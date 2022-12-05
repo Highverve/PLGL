@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Elements\" />
+    <Folder Include="Data\" />
   </ItemGroup>
 
 </Project>
