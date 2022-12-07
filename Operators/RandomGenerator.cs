@@ -12,14 +12,14 @@ namespace LanguageReimaginer.Operators
 {
     public class RandomGenerator
     {
-        public Language Language { get; set; }
+        public Alphabet Language { get; set; }
 
         public int Seed { get; private set; }
         public Random Random { get; set; }
 
         public void SetRandom(string word)
         {
-            Seed = SetSeed(word);
+            Seed = SetSeed(word.ToUpper());
             Random = new Random(Seed);
         }
         private int SetSeed(string word)
@@ -32,15 +32,16 @@ namespace LanguageReimaginer.Operators
 
         public Letter GenerateLetter(Letter[] letters)
         {
-            double numericValue = Random.NextDouble() * WeightSum(letters);
+            double weight = Random.NextDouble() * WeightSum(letters);
 
             foreach (Letter l in letters)
             {
-                numericValue -= l.Weight;
+                weight -= l.Weight;
 
-                if (numericValue <= 0)
+                if (weight <= 0)
                     return l;
             }
+
             //This code should never be reached
             return null;
         }

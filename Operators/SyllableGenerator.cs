@@ -24,7 +24,7 @@ namespace LanguageReimaginer.Operators
     /// </summary>
     public class SyllableGenerator
     {
-        internal Language Language { get; set; }
+        internal Alphabet Language { get; set; }
         internal WordGenerator WordGen { get; set; }
         internal RandomGenerator RanGen { get; set; }
 
@@ -34,11 +34,11 @@ namespace LanguageReimaginer.Operators
         }
         public char GenerateConsonant()
         {
-            return Language.Consonants.First().Value;
+            return Language.Consonants.First().Value.Value;
         }
         public char GenerateVowel()
         {
-            return Language.Vowels.First().Value;
+            return Language.Vowels.First().Value.Value;
         }
 
         private int GenerateSymbolCount(string word)
@@ -46,7 +46,7 @@ namespace LanguageReimaginer.Operators
             int length = word.Length;
             RanGen.SetRandom(word);
 
-            return RanGen.Random.Next(Math.Max(word.Length - Language.SyllableCountMin, 1), word.Length + Language.SyllableCountMax);
+            return 0;//RanGen.Random.Next(Math.Max(word.Length - Language.SyllableCountMin, 1), word.Length + Language.SyllableCountMax);
         }
     }
 }

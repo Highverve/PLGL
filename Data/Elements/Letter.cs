@@ -10,14 +10,7 @@ namespace LanguageReimaginer.Data.Elements
     {
         public char Value { get; set; }
         public double Weight { get; set; }
-        public bool ProhibitDouble { get; set; } = false;
-
-        public Dictionary<char, Letter> Blacklist { get; set; } = new Dictionary<char, Letter>();
-        public void Add(Letter symbol)
-        {
-            if (Blacklist.ContainsKey(symbol.Value) == false)
-                Blacklist.Add(symbol.Value, symbol);
-        }
+        //public bool ProhibitDouble { get; set; } = false; //May not be necessary.
 
         public Letter(char Value, double Weight)
         {

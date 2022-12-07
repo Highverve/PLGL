@@ -6,44 +6,23 @@
 ///     - For quickly generating new words for a new language as needed (e.g, game development),
 ///       or as a tool which aids artists and novelists to build one.
 ///     
-/// Library Structure:
-///     OPERATORS.
-///         - SyllableGenerator.
-///             Defined structure. "CV", "VC", "CVC", "VCV"
-///             Syllabificate(). Returns the syllable structure of a word.
-///         - WordGenerator.
-///             Random. Seeded with the current word when Next() is called.
-///             private Next(string).
-///             public Reimagine(string). The final method utilized. Splits string, applies grammatical rules (e.g, replacing punctuation),
-///                 iterates string into Next(), StringBuilds, and returns result.
-///     DATA.
-///         - Symbol, which derives into Consonant and Vowel.
-///         - Syllable.
-///         
-/// 
-///     
-///
-/// EXTERNAL SETUP EXAMPLE:
-///     SyllableStructure("CV", "VC", "CVC", "VCV");
-/// 
-///     AddVowels('a', 'e', 'i', 'o', 'u');
-///     AddConsonants('c', 'b', 'd', 'f', 'g', etc.);
-/// 
-///     AddCommonality('a', 100);
-///     AddCommonality('e', 80);
-///     AddCommonality('i', 70);
-///     AddCommonality('o', 120);
-///     AddCommonality('u', 90);
-/// 
-///     Blacklist('t', 'o');
-/// 
-/// SYLLABLES:
-///     IsVowel('c'); false
-///     IsConsonant('x'); true
+/// By Density (Scope):
+///     - Alphabet. The smallest component of a word.
+///     - Pathways. Constrains the generator to produce favorable words through weighted flow ('p' -> 'a' -> 't' -> 'h').
+///     - Structure. Constrains the generator to produce favorable words through form ('C', 'V').
+///     - 
 ///         
 /// </summary>
 namespace LanguageReimaginer
 {
+    /// <summary>
+    /// Changelog:
+    ///     2022-12-6:
+    ///         - 1.1 Added weighted suffixes to each letter for diverse branching.
+    ///         - 1.2 Moved 1.1 changes into a separate class: Pathways. May be subject to a name change later.
+    ///         - 1.3 Created the Structure class for word formation (as "CV", "VC", "CVC", "CC", etc) by a weighted distribution. Good start, but more work to do.
+    ///         - 1.4 Added the foundation of the Lexemes class, that answers the question: "How do we handle lexemes?"
+    /// </summary>
     public class Main
     {
 

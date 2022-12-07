@@ -3,54 +3,55 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using LanguageReimaginer.Data.Elements;
 
 namespace LanguageReimaginer.Data
 {
-    public enum Clustering { None, Vowels, Consonants, Both }
-    public record class Language
+    public class Language
     {
-        #region Syllable scope
-        public List<Consonant> Consonants { get; private set; } = new List<Consonant>();
-        public List<Vowel> Vowels{ get; private set; } = new List<Vowel>();
-
-        #endregion
-
-        #region Letter clustering
         /// <summary>
-        /// Determines if double consonants or vowels are generated.
+        /// The name of the language.
         /// </summary>
-        public Clustering Clustering { get; set; } = Clustering.Both;
+        public string Name { get; set; } = string.Empty;
         /// <summary>
-        /// A percentage value between 0f and 1f. Set to 0 for no clustering as the first syllable.
+        /// The description of the language.
         /// </summary>
-        public float ClusterStartChance { get; set; } = 0f;
+        public string Description { get; set; } = string.Empty;
         /// <summary>
-        /// A percentage value between 0f and 1f. Set to 0 for no clustering in any middle syllable.
+        /// The author of the language.
         /// </summary>
-        public float ClusterMiddleChance { get; set; } = .15f;
-        /// <summary>
-        /// A percentage value between 0f and 1f. Set to 0 for no clustering as the last syllable.
-        /// </summary>
-        public float ClusterEndChance { get; set; } = .1f;
+        public string Author { get; set; } = string.Empty;
 
         /// <summary>
-        /// If the syllable generated is a cluster, this determines if it's a consonant or a vowel. Weighted against ClusterVowelWeight.
+        /// A global seed used to offset seed generated for each word. Default is 0.
+        /// Increasing or decreasing will change every word of the generated language.
         /// </summary>
-        public double ClusterConsonantWeight { get; set; } = 5.0;
-        /// <summary>
-        /// If the syllable generated is a cluster, this determines if it's a consonant or a vowel. Weighted against ClusterConsonantWeight.
-        /// </summary>
-        public double ClusterVowelWeight { get; set; } = 5.0;
+        public int SeedOffset { get; set; } = 0;
 
-        #endregion
+        //Classes
+        public Alphabet Alphabet { get; private set; }
+        public Structure Structure { get; private set; }
+        public Pathways Pathways { get; private set; }
+        //Needs work:
+        public Grammar Grammar { get; private set; }
+        public Syntax Syntax { get; private set; }
 
-        #region Word structuring
-        
-        public int SyllableCountMax { get; set; }
-        public int SyllableCountMin { get; set; }
-        public List<string> Delimiters { get; private set; } = new List<string>();
+        public void Initialize()
+        {
 
-        #endregion
+        }
+
+        public string Generate(string phrase)
+        {
+            return phrase;
+        }
+
+        public void SaveJSON(string path)
+        {
+            //JSON to save goes here.
+        }
+        public void LoadJSON(string path)
+        {
+
+        }
     }
 }
