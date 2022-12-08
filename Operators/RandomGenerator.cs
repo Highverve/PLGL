@@ -12,24 +12,23 @@ namespace LanguageReimaginer.Operators
 {
     public class RandomGenerator
     {
-        public Alphabet Language { get; set; }
-
         public int Seed { get; private set; }
-        public Random Random { get; set; }
+        public Random Random { get; set; } = new Random();
 
         public void SetRandom(string word)
         {
-            Seed = SetSeed(word.ToUpper());
+            Seed = WordSeed(word.ToUpper());
             Random = new Random(Seed);
         }
-        private int SetSeed(string word)
+        private int WordSeed(string word)
         {
             using var a = SHA1.Create();
             return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word)));
         }
 
-        public double WeightSum(Letter[] letters) { return letters.Sum(x => x.Weight); }
 
+        //Remove this code; or, if possible, make it anonymous?
+        public double WeightSum(Letter[] letters) { return letters.Sum(x => x.Weight); }
         public Letter GenerateLetter(Letter[] letters)
         {
             double weight = Random.NextDouble() * WeightSum(letters);

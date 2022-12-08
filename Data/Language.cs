@@ -26,14 +26,30 @@ namespace LanguageReimaginer.Data
         /// Increasing or decreasing will change every word of the generated language.
         /// </summary>
         public int SeedOffset { get; set; } = 0;
+        /// <summary>
+        /// If true, the generator will attempt to match the output word's cade to the input word's case.
+        /// Because a generated word may be longer or shorter, a true 1:1 match is impossible.
+        /// 
+        /// When the first letter is the only capitalized letter, the first letter of the output matches.
+        /// When all of the letters are of the same case, the output will match.
+        /// If, for some reason, the case of the input word is a mix of lower and uppercase, the output is randomized.
+        /// 
+        /// If false, all letters are lower case.
+        /// </summary>
+        public bool PreserveCase { get; set; } = true;
+        /// <summary>
+        /// Helps determine how the generator splits words for processing.
+        /// Default is just ' ' (space).
+        /// </summary>
+        public char[] Delimiters { get; set; } = new char[] { ' ' };
 
         //Classes
         public Alphabet Alphabet { get; private set; }
-        public Structure Structure { get; private set; }
         public Pathways Pathways { get; private set; }
-        //Needs work:
-        public Grammar Grammar { get; private set; }
-        public Syntax Syntax { get; private set; }
+        public Structure Structure { get; private set; }
+        public Punctuation Punctuation { get; private set; }
+        public Lexemes Lexemes { get; private set; }
+        public Markings Flags { get; private set; }
 
         public void Initialize()
         {

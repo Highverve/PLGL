@@ -2,7 +2,7 @@
 /// Language Reimaginer recreates an existing language through word-seeded randomness and customizable, for a powerful procedurally, hand-crafted lexicon.
 /// 
 /// Library Goals:
-///     - To recreate languages with word-seeded randomness, constrained by the new language's requirements.
+///     - To recreate languages with word-seeded randomness, constrained by the language author's requirements.
 ///     - For quickly generating new words for a new language as needed (e.g, game development),
 ///       or as a tool which aids artists and novelists to build one.
 ///     
@@ -11,6 +11,15 @@
 ///     - Pathways. Constrains the generator to produce favorable words through weighted flow ('p' -> 'a' -> 't' -> 'h').
 ///     - Structure. Constrains the generator to produce favorable words through form ('C', 'V').
 ///     - 
+///     
+/// An input sentence goes through two processes.
+///     
+///     1. Deconstruction. The sentence is analyzed and parsed. Custom markers are read, punctuation
+///         marks manipulated, and lexemes processed.
+///     2. Construction. The sentence's words are generated, according to the alphabetical characters,
+///        alphabetical pathways, and structure constraints set by the language author.
+///     
+/// Although, there is a bit of overlap between these two processes.
 ///         
 /// </summary>
 namespace LanguageReimaginer
@@ -22,6 +31,11 @@ namespace LanguageReimaginer
     ///         - 1.2 Moved 1.1 changes into a separate class: Pathways. May be subject to a name change later.
     ///         - 1.3 Created the Structure class for word formation (as "CV", "VC", "CVC", "CC", etc) by a weighted distribution. Good start, but more work to do.
     ///         - 1.4 Added the foundation of the Lexemes class, that answers the question: "How do we handle lexemes?"
+    ///     2022-12-7:
+    ///         - 1.5 Created the Punctuation class, for processing and manipulating punctuation marks.
+    ///         - 1.6 Added SyllableInfo and WordInfo. These classes are used by the generator for additional context.
+    ///         - 1.7 Added a few WordGenerator methods.
+    ///         - 1.8 Added the Markings class.
     /// </summary>
     public class Main
     {

@@ -1,11 +1,7 @@
-﻿using LanguageReimaginer.Data.Elements;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
+﻿using LanguageReimaginer.Data;
+using LanguageReimaginer.Data.Elements;
 using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace LanguageReimaginer.Operators
 {
@@ -14,58 +10,50 @@ namespace LanguageReimaginer.Operators
         internal RandomGenerator RanGen { get; set; }
         internal SyllableGenerator SyllableGen { get; set; }
 
-        public WordGenerator() { }
-
+        List<WordInfo> wordInfo = new List<WordInfo>();
         StringBuilder sentenceBuilder = new StringBuilder();
-        public string GenerateSentence(string sentence)
+
+        public Language Language { get; set; }
+
+        public WordGenerator(Language Language) { this.Language = Language; }
+
+        public string Generate(string sentence, out List<WordInfo> info)
         {
-
-            Vowel v = new Vowel('a');
-
-            //GUIDELINES:
-            //  1. Splits string by delimiter(s).
-            //  2. Apply grammatical rules (e.g, replacing punctuation).
-            //  3. Iterate each word into Next(), and add the result into the StringBuilder.
-            //  4. Return the StringBuilder's result.
-
             sentenceBuilder.Clear();
+            wordInfo.Clear();
 
-            string[] words = sentence.Split(' '); //Temporary ' ' char. Replace with customizable option(s).
+            string pattern = "@\"(?<=[" + string.Join("", Language.Delimiters) + "])\"";
+            string[] words = Regex.Split(sentence, pattern);//sentence.Split(' '); //Temporary ' ' char. Replace with customizable option(s).
 
+            //Loop through split words and add to wordInfo list.
             foreach (string s in words)
             {
-                sentenceBuilder.Append(NextWord(s) + " ");
+                WordInfo word = new WordInfo();
+                word.WordActual = s;
+
+                wordInfo.Add(word);
             }
 
-            return sentenceBuilder.ToString();
-        }
-
-        StringBuilder wordBuilder = new StringBuilder();
-        private string NextWord(string word)
-        {
-            //  1. SetRandom to word.
-            //  2. Get syllable count to generate.
-            //  
-
-            wordBuilder.Clear();
-
-            RanGen.SetRandom(word);
-            int length = 3;
-
-            while (length > 0)
+            //Link adjacent words.
+            for (int i = 0; i < wordInfo.Count; i++)
             {
-
-                wordBuilder.Append(NextSyllable());
-                length--;
+                if (i != 0)
+                    wordInfo[i].AdjacentLeft = wordInfo[i - 1];
+                if (i != wordInfo.Count)
+                    wordInfo[i].AdjacentRight = wordInfo[i - 1];
             }
 
-            return wordBuilder.ToString();
-        }
+            foreach (WordInfo part in wordInfo)
+            {
+                //Check for flags
+                //Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
+                //Check for and process lexemes.
 
-        private string NextSyllable()
-        {
-            //TO-DO: Generate syllable from weighted data syllables.
-            return string.Empty;
+                //sentenceBuilder.Append(NextWord(s) + " ");
+            }
+
+            info = wordInfo;
+            return sentenceBuilder.ToString();
         }
     }
 }

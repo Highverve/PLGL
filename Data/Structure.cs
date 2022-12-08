@@ -70,13 +70,10 @@ namespace LanguageReimaginer.Data
                     LetterForms.Add(forms[i].Display, forms[i]);
             }
 
-            AddForm(new Form(10.0, 'C', 'V'), new Form(10.0, 'V', 'C'), new Form(5.0, 'C', 'C'),
-                    new Form(2.0, 'V', 'V'), new Form(1.0, 'C', 'V', 'C'), new Form(1.0, 'V', 'C', 'V'));
+            //Example
+            //AddForm(new Form(10.0, 'C', 'V'), new Form(10.0, 'V', 'C'), new Form(5.0, 'C', 'C'),
+            //        new Form(2.0, 'V', 'V'), new Form(1.0, 'C', 'V', 'C'), new Form(1.0, 'V', 'C', 'V'));
         }
-
-        public int SyllableCountMax { get; set; }
-        public int SyllableCountMin { get; set; }
-        public List<string> Delimiters { get; private set; } = new List<string>();
     }
 
     public class Form

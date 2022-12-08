@@ -36,6 +36,32 @@ namespace LanguageReimaginer.Data
         /// </summary>
         public string[] Prefixes { get; set; }
 
-        public Dictionary<string, Func<string>> Functions { get; private set; } = new Dictionary<string, Func<string>>();
+        /// <summary>
+        /// If a word root matches, it is not processed as a lexeme.
+        /// 
+        /// Example:
+        ///     - The word 'taller' has the suffix 'er'. Therefore, it's processed as a lexeme.
+        ///     - The word 'better' also ends in 'er', yet it shouldn't be processed as a lexeme!
+        ///     
+        /// I'm foreseeing this list getting out of hand; however, I can't think of a substitute.
+        /// </summary>
+        public List<string> WordBlacklist { get; set; }
+
+        public Dictionary<string, Func<string, string>> Functions { get; private set; } = new Dictionary<string, Func<string, string>>();
+
+        public List<string> GetPrefixes(string word)
+        {
+            List<string> prefixes = new List<string>();
+            for(int i = 0; i < Prefixes.Length; i++)
+            {
+                if (word.ToUpper().StartsWith(Prefixes[i]))
+                {
+                    prefixes.Add(Prefixes[i]);
+                    word = word.Remove(0, Prefixes[i].Length - 1); //-1? or no
+                    i = 0; //Restart loop.
+                }
+            }
+            return prefixes;
+        }
     }
 }
