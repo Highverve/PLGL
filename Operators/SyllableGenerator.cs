@@ -25,7 +25,7 @@ namespace LanguageReimaginer.Operators
     public class SyllableGenerator
     {
         internal Alphabet Language { get; set; }
-        internal WordGenerator WordGen { get; set; }
+        internal LanguageGenerator WordGen { get; set; }
         internal RandomGenerator RanGen { get; set; }
 
         public void GenerateSyllable(Random random)

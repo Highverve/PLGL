@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace LanguageReimaginer.Data
 {
     /// <summary>
-    /// An optional class, used to build a a reference guide for pronunciation.
+    /// An optional class, used to build a reference guide for pronunciation.
     /// Work-in-progress, and low-priority.
     /// </summary>
     public class Phonemes
@@ -18,7 +18,6 @@ namespace LanguageReimaginer.Data
     public class Phoneme
     {
         public string IPA { get; set; } = string.Empty;
-        
 
         public Letter? AdjacentLeft { get; set; } = null;
         public Letter? AdjacentRight { get; set; } = null;

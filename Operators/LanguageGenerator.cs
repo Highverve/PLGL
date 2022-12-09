@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace LanguageReimaginer.Operators
 {
-    public class WordGenerator
+    public class LanguageGenerator
     {
         internal RandomGenerator RanGen { get; set; }
         internal SyllableGenerator SyllableGen { get; set; }
@@ -15,7 +15,7 @@ namespace LanguageReimaginer.Operators
 
         public Language Language { get; set; }
 
-        public WordGenerator(Language Language) { this.Language = Language; }
+        public LanguageGenerator(Language Language) { this.Language = Language; }
 
         public string Generate(string sentence, out List<WordInfo> info)
         {

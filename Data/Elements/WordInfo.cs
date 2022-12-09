@@ -22,7 +22,7 @@ namespace LanguageReimaginer.Data.Elements
         /// <summary>
         /// Set automatically by the generator.
         /// </summary>
-        public List<SyllableInfo> Syllables { get; set; }
+        public List<SigmaInfo> Syllables { get; set; }
 
         /// <summary>
         /// This will always be null for the first word in a sentence. Account for it.

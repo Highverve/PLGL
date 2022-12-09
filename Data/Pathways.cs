@@ -10,6 +10,12 @@ namespace LanguageReimaginer.Data
     /// <summary>
     /// A branching tree, telling the word generator the most favorable letter to choose, given the context of the previous letter(s) and the weight of the future options.
     /// For example, in English, the letters folowing 'p' could commonly be 'a', 'e', 'o', uncommonly 'u', 'i', and
+    /// 
+    /// NOTE! Consider moving back to the Letter class.
+    /// Dictionary<Tuple<char, char>, double>, where the first char is the letter before (can be null/make certain), the second char is the next letter, and the double is the weight.
+    /// 
+    /// NOTE 2! This needs to take into account not just the letter before it, but the syllable position and word position!.
+    /// No english word starts with "Ss", yet quite a lot end with "ss" (kiss, less, etc).
     /// </summary>
     public class Pathways
     {

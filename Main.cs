@@ -36,6 +36,11 @@ namespace LanguageReimaginer
     ///         - 1.6 Added SyllableInfo and WordInfo. These classes are used by the generator for additional context.
     ///         - 1.7 Added a few WordGenerator methods.
     ///         - 1.8 Added the Markings class.
+    ///     2022-12-8:
+    ///         - 1.9 Renamed WordGenerator to LanguageGenerator.
+    ///         - 1.10 Changed the Syllable class to Sigma, and improved how the data is structured. It now uses an onset-nucleus-coda approach, adding another layer above the "CVC" structure.
+    ///         - 1.11 Changed SyllableInfo to SigmaInfo, and it's structure to reflesh 1.10's changes.
+    ///         - 1.12 Temporarily gutted Structure.cs while I plan it's code upgrade.
     /// </summary>
     public class Main
     {
