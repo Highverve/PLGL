@@ -41,6 +41,8 @@ namespace LanguageReimaginer
     ///         - 1.10 Changed the Syllable class to Sigma, and improved how the data is structured. It now uses an onset-nucleus-coda approach, adding another layer above the "CVC" structure.
     ///         - 1.11 Changed SyllableInfo to SigmaInfo, and it's structure to reflesh 1.10's changes.
     ///         - 1.12 Temporarily gutted Structure.cs while I plan it's code upgrade.
+    ///     2022-12-9:
+    ///         - 1.13 Designed an ideal scaffolding for letter pathing. It utilizes filters for word position, syllable position, and weighted distribution to pick the next letter.
     /// </summary>
     public class Main
     {

@@ -9,13 +9,15 @@ namespace LanguageReimaginer.Data.Elements
     public abstract class Letter
     {
         public char Value { get; set; }
-        public double Weight { get; set; }
-        //public bool ProhibitDouble { get; set; } = false; //May not be necessary.
+        /// <summary>
+        /// The likelihood this letter will start the next word.
+        /// </summary>
+        public double StartWeight { get; set; }
 
-        public Letter(char Value, double Weight)
+        public Letter(char Value, double StartWeight)
         {
             this.Value = char.ToLower(Value);
-            this.Weight = Weight;
+            this.StartWeight = StartWeight;
         }
 
         public char Upper() { return char.ToUpper(Value); }
