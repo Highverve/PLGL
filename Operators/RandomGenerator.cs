@@ -28,14 +28,14 @@ namespace LanguageReimaginer.Operators
 
 
         //Remove this code; or, if possible, make it anonymous?
-        public double WeightSum(Letter[] letters) { return letters.Sum(x => x.Weight); }
+        public double WeightSum(Letter[] letters) { return letters.Sum(x => x.StartWeight); }
         public Letter GenerateLetter(Letter[] letters)
         {
             double weight = Random.NextDouble() * WeightSum(letters);
 
             foreach (Letter l in letters)
             {
-                weight -= l.Weight;
+                weight -= l.StartWeight;
 
                 if (weight <= 0)
                     return l;

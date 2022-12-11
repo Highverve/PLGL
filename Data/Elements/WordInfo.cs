@@ -13,12 +13,23 @@ namespace LanguageReimaginer.Data.Elements
     public class WordInfo
     {
         public string WordActual { get; set; } = string.Empty;
+        public string WordRoot { get; set; } = string.Empty;
+
+        public char[] Punctuation { get; set; } = new char[0];
+        public char[] Flags { get; set; } = new char[0];
+        public string[] Prefixes { get; set; } = new string[0];
+        public string[] Suffixes { get; set; } = new string[0];
+
         public string WordGenerated { get; set; } = string.Empty;
-        public string Delimiter { get; set; } = string.Empty;
 
-        public List<string> Prefixes { get; set; }
-        public List<string> Suffixes { get; set; }
-
+        /// <summary>
+        /// Set to true if the word has the SkipGeneration flag.
+        /// </summary>
+        public bool Skip { get; set; }
+        /// <summary>
+        /// Set to true if the word has the Possessive flag.
+        /// </summary>
+        public bool Possessive { get; set; }
         /// <summary>
         /// Set automatically by the generator.
         /// </summary>

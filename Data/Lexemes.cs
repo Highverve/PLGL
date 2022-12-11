@@ -40,8 +40,11 @@ namespace LanguageReimaginer.Data
         /// If a word root matches, it is not processed as a lexeme.
         /// 
         /// Example:
-        ///     - The word 'taller' has the suffix 'er'. Therefore, it's processed as a lexeme.
-        ///     - The word 'better' also ends in 'er', yet it shouldn't be processed as a lexeme!
+        ///     - The word "taller" has the suffix 'er'. Therefore, it's processed as a lexeme.
+        ///     - The word "better" also ends in 'er', yet it shouldn't be processed as a lexeme!
+        ///     - The word "it's" or "what's" 
+        ///     
+        /// What to do if the word is something like "bettering", where only one suffix should be processed?
         ///     
         /// I'm foreseeing this list getting out of hand; however, I can't think of a substitute.
         /// </summary>
@@ -52,7 +55,11 @@ namespace LanguageReimaginer.Data
         public List<string> GetPrefixes(string word)
         {
             List<string> prefixes = new List<string>();
-            for(int i = 0; i < Prefixes.Length; i++)
+            List<string> ordered = new List<string>(Prefixes.ToList());
+            ordered.OrderBy(s1 => s1.Length);
+            //Double-check: If it's not from longest to shortest: ordered.Reverse();
+
+            for (int i = 0; i < Prefixes.Length; i++)
             {
                 if (word.ToUpper().StartsWith(Prefixes[i]))
                 {

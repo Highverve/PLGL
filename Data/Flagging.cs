@@ -20,7 +20,7 @@ namespace LanguageReimaginer.Data
     ///     - Let's add an PrependMarker with the 'a' key. This will add a fictional title "syl-" to the start of a name.
     ///     - Now add the extra character to the name: "Trevor**sa", and will output "syl-Trevor"
     /// </summary>
-    public class Markings
+    public class Flagging
     {
         /// <summary>
         /// An indicator written at the end of a word during the input process.
@@ -29,36 +29,47 @@ namespace LanguageReimaginer.Data
         /// </summary>
         public string Marcation { get; set; } = "**";
         
-        public bool ContainsMarker(string word) { return (string.IsNullOrEmpty(word) == false) ? word.Contains(Marcation) : false; }
-        public int MarkerIndex(string word) { return word.LastIndexOf(Marcation); }
-        public char[] ParseMarkers(string word) { return word.Remove(0, MarkerIndex(word) - word.Length).ToCharArray(); }
+        public bool ContainsFlag(string word) { return (string.IsNullOrEmpty(word) == false) ? word.Contains(Marcation) : false; }
+        public int FlagIndex(string word) { return word.LastIndexOf(Marcation); }
+        public char[] ParseFlags(string word) { return word.Remove(0, FlagIndex(word) - word.Length).ToCharArray(); }
 
-        public List<Marker> GetMarkers(string word)
+        public List<Flag> GetFlags(string word)
         {
-            List<Marker> result = new List<Marker>();
-            char[] chars = ParseMarkers(word);
+            List<Flag> result = new List<Flag>();
+            char[] chars = ParseFlags(word);
 
             foreach (char f in chars)
             {
-                if (Markers.ContainsKey(f))
-                    result.Add(Markers[f]);
+                if (Flags.ContainsKey(f))
+                    result.Add(Flags[f]);
             }
 
             return result;
         }
 
-        public Dictionary<char, Marker> Markers { get; set; } = new Dictionary<char, Marker>();
+        public Dictionary<char, Flag> Flags { get; set; } = new Dictionary<char, Flag>();
     }
 
+
     /// <summary>
-    /// Marker ideas: SkipGenerate (useful for names), SkipLexemes, Prepend, Append
+    /// Marker ideas:
+    ///     - (**X)SkipGenerate. Skips the entire word, making output = input. This is useful for names, places, etc.
+    ///     - (**x)SkipLexemes. Processes the entire word, avoiding any lexeme processing.
+    ///     - (**p)Possessive. Processes the "'s" possessive as a possessive, instead of a default contraction.
+    ///
+    ///     - Prepend/Append. Prepend or append text. Useful for adding flavor to words. Custom character for custom result.
+    ///     - (**e)Append. Re-adds the removed "e" that was removed by the suffix to the root word. Communal -> commun|al -> commune|al
     /// </summary>
-    public class Marker
+    public class Flag
     {
         public char Symbol { get; private set; }
         public Func<string, string>? Function { get; set; } = null;
 
-        public Marker(char Symbol)
+        public enum TextPosition { BeforePrefix, AfterPrefix, BeforeSuffix, AfterSuffix }
+        public TextPosition Position { get; set; } = TextPosition.AfterSuffix;
+        public bool TargetGenerated { get; set; } = true;
+
+        public Flag(char Symbol)
         {
             this.Symbol = Symbol;
         }

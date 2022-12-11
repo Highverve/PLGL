@@ -43,6 +43,12 @@ namespace LanguageReimaginer
     ///         - 1.12 Temporarily gutted Structure.cs while I plan it's code upgrade.
     ///     2022-12-9:
     ///         - 1.13 Designed an ideal scaffolding for letter pathing. It utilizes filters for word position, syllable position, and weighted distribution to pick the next letter.
+    ///     2022-12-10:
+    ///         - 1.14 Moved the more broad options in Language to an Options class for better clarity.
+    ///         - 1.15 Renamed Markers to Flagging to clarify it's different from punctuation marks.
+    ///         - 1.16 Selected affixes (in Lexemes) are now ordered from longest to shortest. This prevent in- stopping inter- from parsing (in·ter·cept).
+    ///         - 1.17 Added "Skip" and "Possessive" booleans to WordInfo (though I should consider making Possessive flagging more modular).
+    ///         - 1.18 Added text position targeting to Flags: BeforePrefix, AfterPrefix, BeforeSuffix, AfterSuffix. Useful for flags that add text.
     /// </summary>
     public class Main
     {

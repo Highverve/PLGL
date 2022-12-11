@@ -6,26 +6,56 @@ using System.Threading.Tasks;
 
 namespace LanguageReimaginer.Data
 {
+    /// <summary>
+    /// Language showcasing:
+    ///     - Fauxglish. A language designed to mimic the patterns of English.
+    ///     - Elvish.
+    ///     - Orcish.
+    ///     - Singing. A silly language. Uses L, D, A, E, O, no double consonants, yet triple vowel potential.
+    /// </summary>
+
     public class Language
     {
         /// <summary>
         /// The name of the language.
         /// </summary>
-        public string OPTIONS_Name { get; set; } = string.Empty;
+        public string META_Name { get; set; } = string.Empty;
         /// <summary>
         /// The description of the language.
         /// </summary>
-        public string OPTIONS_Description { get; set; } = string.Empty;
+        public string META_Description { get; set; } = string.Empty;
         /// <summary>
         /// The author of the language.
         /// </summary>
-        public string OPTIONS_Author { get; set; } = string.Empty;
+        public string META_Author { get; set; } = string.Empty;
 
+        public LanguageOptions Options { get; set; } = new LanguageOptions();
+
+        //Ordered by the simplest components to the most complex. (i.e, by density)
+        public Alphabet Alphabet { get; private set; }
+        public Pathways Pathways { get; private set; }
+        public Structure Structure { get; private set; }
+        public Lexemes Lexemes { get; private set; }
+        public Flagging Flagging { get; private set; }
+        public Punctuation Punctuation { get; private set; }
+
+        public Language()
+        {
+            Alphabet = new Alphabet();
+            Structure = new Structure();
+            Lexemes = new Lexemes();
+            Flagging = new Flagging();
+            Punctuation = new Punctuation();
+        }
+    }
+    public class LanguageOptions
+    {
+        public int Seed { get; set; } = 0;
         /// <summary>
-        /// A global seed used to offset seed generated for each word. Default is 0.
+        /// A global seed used to offset the seed generated for each word. Default is 0.
         /// Increasing or decreasing will change every word of the generated language.
         /// </summary>
-        public int OPTIONS_SeedOffset { get; set; } = 0;
+        public int SeedOffset { get; set; } = 0;
         /// <summary>
         /// If true, the generator will attempt to match the output word's cade to the input word's case.
         /// Because a generated word may be longer or shorter, a true 1:1 match is impossible.
@@ -36,13 +66,12 @@ namespace LanguageReimaginer.Data
         /// 
         /// If false, all letters are lower case.
         /// </summary>
-        public bool OPTIONS_PreserveCase { get; set; } = true;
+        public bool PreserveCase { get; set; } = true;
         /// <summary>
         /// Helps determine how the generator splits words for processing.
         /// Default is just ' ' (space).
         /// </summary>
-        public char[] OPTIONS_Delimiters { get; set; } = new char[] { ' ' };
-
+        public char[] Delimiters { get; set; } = new char[] { ' ' };
 
         public enum LetterPathing { Exclusion, Inclusion, EndWord }
         /// <summary>
@@ -51,24 +80,19 @@ namespace LanguageReimaginer.Data
         /// <para name="Inclusion">With no valid path forward, the generator will default to selecting a letter by StartWeight that fits the sigma template.</para>
         /// <para name="EndWord">Tthe generator will simply end the word. While this is the safest option, too many empy pathways will result in a lot of short words.</para>
         /// </summary>
-        public LetterPathing OPTIONS_Pathing { get; set; } = LetterPathing.EndWord;
+        public LetterPathing Pathing { get; set; } = LetterPathing.EndWord;
 
-        //Classes
-        public Alphabet Alphabet { get; private set; }
-        public Pathways Pathways { get; private set; }
-        public Structure Structure { get; private set; }
-        public Punctuation Punctuation { get; private set; }
-        public Lexemes Lexemes { get; private set; }
-        public Markings Flags { get; private set; }
-
-        public void Initialize()
-        {
-
-        }
-
-        public string Generate(string phrase)
-        {
-            return phrase;
-        }
+        /// <summary>
+        /// All lowercase letters in your input language. This is for estimating syllable count, and defaults to english.
+        /// </summary>
+        public char[] InputLetters { get; set; } = "abcdefghijklmnopqrstuvwxyz".ToArray();
+        /// <summary>
+        /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.6
+        /// </summary>
+        public double SigmaSkewMin { get; set; } = 0.6;
+        /// <summary>
+        /// Tells the generator how much higher the word's syllable count could be from the syllable estimate. Default is 1.2.
+        /// </summary>
+        public double SigmaSkewMax { get; set; } = 1.2;
     }
 }
