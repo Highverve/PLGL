@@ -12,24 +12,48 @@ namespace LanguageReimaginer.Data.Elements
     /// </summary>
     public class WordInfo
     {
+        /// <summary>
+        /// The word, as it's just been split from the string.
+        /// </summary>
         public string WordActual { get; set; } = string.Empty;
+        /// <summary>
+        /// The word, split of all punctuation.
+        /// </summary>
+        public string WordStripped { get; set; } = string.Empty;
+        /// <summary>
+        /// The word, split of all affixes.
+        /// </summary>
         public string WordRoot { get; set; } = string.Empty;
 
-        public char[] Punctuation { get; set; } = new char[0];
-        public char[] Flags { get; set; } = new char[0];
-        public string[] Prefixes { get; set; } = new string[0];
-        public string[] Suffixes { get; set; } = new string[0];
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        /// <summary>
+        /// The word's stored punctuation.
+        /// </summary>
+        public char[] Punctuation { get; set; }
+        /// <summary>
+        /// The word's flags. Processed by Flagging.
+        /// </summary>
+        public char[] Flags { get; set; }
+        /// <summary>
+        /// The word's prefixes. Processed by Lexemes.
+        /// </summary>
+        public Affix[] Prefixes { get; set; }
+        /// <summary>
+        /// The word's suffixes. Processed by Lexemes.
+        /// </summary>
+        public Affix[] Suffixes { get; set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
+
+        /// <summary>
+        /// The generated word. Lexemes, punctuation, and flagging unincluded.
+        /// </summary>
         public string WordGenerated { get; set; } = string.Empty;
+        /// <summary>
+        /// The final, procedurally generated word.
+        /// </summary>
+        public string WordFinal { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Set to true if the word has the SkipGeneration flag.
-        /// </summary>
-        public bool Skip { get; set; }
-        /// <summary>
-        /// Set to true if the word has the Possessive flag.
-        /// </summary>
-        public bool Possessive { get; set; }
         /// <summary>
         /// Set automatically by the generator.
         /// </summary>

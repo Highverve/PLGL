@@ -29,6 +29,8 @@ namespace LanguageReimaginer.Data.Elements
         /// </summary>
         public SigmaBlock Coda { get; set; }
 
+        public SigmaWeight Weight { get; set; }
+
         /// <summary>
         /// Returns the letter pattern structure of the syllable (sigma).
         /// This may look like "CCVC", "VC", "CVC", "CCCVCC", etc.
@@ -67,46 +69,22 @@ namespace LanguageReimaginer.Data.Elements
             return count;
         }
 
-        public Sigma()
-        {
-            Onset = new SigmaBlock() { Type = BlockType.Onset };
-            Nucleus = new SigmaBlock() { Type = BlockType.Nucleus };
-            Medial = new SigmaBlock() { Type = BlockType.Medial };
-            Coda = new SigmaBlock() { Type = BlockType.Coda };
-        }
-
-        /*public Clustering Cluster { get; private set; }
-
-        public Type Select(int index) { return (Char.ToUpper(Order[index]) == 'C') ? typeof(Consonant) : typeof(Vowel); }
-        public Type First() { return Select(0); }
-        public Type Last() { return Select(Count()); } //-1? Double check
-
-        public bool IsConsonant(int index) { return Select(index) == typeof(Consonant); }
-        public bool IsVowel(int index) { return Select(index) == typeof(Vowel); }
-
-        private Clustering SetCluster()
-        {
-            if (DoubleForm('C')) return Clustering.Consonants;
-            if (DoubleForm('V')) return Clustering.Vowels;
-
-            return Clustering.None;
-        }
-        private bool DoubleForm(char c) { return Display.Contains((c + "" + c), StringComparison.OrdinalIgnoreCase); }
-
         /// <summary>
-        /// The structure a syllable will take.
         /// </summary>
-        /// <param name="Weight">The chance for </param>
-        /// <param name="Order">Must be either C (for 'consonant') or V (for 'vowel'). Limited to three characters.</param>
-        public Sigma(double Weight, params char[] Order)
+        /// <param name="Onset">The first part of the sigma. For readability, set to some count of "C", "CC", etc.</param>
+        /// <param name="Nucleus">The middle part of the sigma. For readability, set to some count of "VV", "VV", etc.</param>
+        /// <param name="Coda">The end part of the sigma, containing consonants. For readability, set to some count of "C", "CC", etc.</param>
+        public Sigma(string Onset, string Nucleus, string Coda)
         {
-            this.Weight = Weight;
-            this.Order = Order;
+            this.Onset = new SigmaBlock() { Type = BlockType.Onset };
+            this.Nucleus = new SigmaBlock() { Type = BlockType.Nucleus };
+            this.Medial = new SigmaBlock() { Type = BlockType.Medial };
+            this.Coda = new SigmaBlock() { Type = BlockType.Coda };
 
-            for (int i = 0; i < Order.Length; i++)
-                Display += Order[i];
-            Cluster = SetCluster();
-        }*/
+            this.Onset.Template = Onset;
+            this.Nucleus.Template = Nucleus;
+            this.Coda.Template = Coda;
+        }
     }
 
     public enum BlockType { Onset, Nucleus, Medial, Coda }
@@ -129,5 +107,31 @@ namespace LanguageReimaginer.Data.Elements
             get { return (Type == BlockType.Nucleus) ? new string('V', Count) : new string('C', Count); }
             set { Count = value.Length; }
         }
+    }
+
+    public class SigmaWeight
+    {
+        /// <summary>
+        /// How likely the generator will choose this sigma. Default is 1.0.
+        /// </summary>
+        public double SelectionWeight { get; set; } = 1.0;
+
+        /// <summary>
+        /// How likely this sigma will start a word. Default is 1.0.
+        /// </summary>
+        public double StartingWeight { get; set; } = 1.0;
+        /// <summary>
+        /// How likely this sigma will end a word. Default is 1.0.
+        /// </summary>
+        public double EndingWeight { get; set; } = 1.0;
+
+        /// <summary>
+        /// How likely this sigma will follow a sigma that ends with a vowel. Default is 1.0.
+        /// </summary>
+        public double LastVowelWeight { get; set; } = 1.0;
+        /// <summary>
+        /// How likely this sigma will follow a sigma that ends with a consonant. Default is 1.0.
+        /// </summary>
+        public double LastConsonantWeight { get; set; } = 1.0;
     }
 }

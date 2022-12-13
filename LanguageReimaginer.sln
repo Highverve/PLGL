@@ -5,7 +5,12 @@ VisualStudioVersion = 17.4.33122.133
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageReimaginer", "LanguageReimaginer.csproj", "{350171C4-2C08-4008-BDB8-6BA7EAA6DD5F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LanguageTester", "..\LanguageTester\LanguageTester.csproj", "{532FE7A6-12E6-48E1-81CE-143E4A2826E3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageTester", "..\LanguageTester\LanguageTester.csproj", "{532FE7A6-12E6-48E1-81CE-143E4A2826E3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8A19DE89-1817-4409-98E7-CBA45972DBBD}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

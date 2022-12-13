@@ -15,7 +15,7 @@ namespace LanguageReimaginer.Data.Elements
         /// <summary>
         /// This reference is set by the word generator. It should never be null.
         /// </summary>
-        public Sigma? Sigma { get; set; } = null;
+        public Sigma Sigma { get; set; }
 
         /// <summary>
         /// The position of the syllable in the word. Set by the generator.

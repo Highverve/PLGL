@@ -55,14 +55,18 @@ namespace LanguageReimaginer.Data
     /// Marker ideas:
     ///     - (**X)SkipGenerate. Skips the entire word, making output = input. This is useful for names, places, etc.
     ///     - (**x)SkipLexemes. Processes the entire word, avoiding any lexeme processing.
-    ///     - (**p)Possessive. Processes the "'s" possessive as a possessive, instead of a default contraction.
     ///
-    ///     - Prepend/Append. Prepend or append text. Useful for adding flavor to words. Custom character for custom result.
-    ///     - (**e)Append. Re-adds the removed "e" that was removed by the suffix to the root word. Communal -> commun|al -> commune|al
+    ///     - Append. Prepend or append text. Useful for adding flavor to words. Custom character for custom result.
+    ///         1. Example: (**e)Append. Re-adds the removed "e" that was removed by the suffix to the root word. Communal -> commun|al -> commune|al
+    ///     - Remove. Removes a set amount of characters from the start or the end.
+    ///         1. Example: (**d)Removes double "n" from "running" after the root is extracted.
     /// </summary>
     public class Flag
     {
-        public char Symbol { get; private set; }
+        public char Symbol { get; set; }
+        /// <summary>
+        /// Called by the generator. String parameter is the word (actual, root), and sets the word to something else.
+        /// </summary>
         public Func<string, string>? Function { get; set; } = null;
 
         public enum TextPosition { BeforePrefix, AfterPrefix, BeforeSuffix, AfterSuffix }
@@ -74,4 +78,23 @@ namespace LanguageReimaginer.Data
             this.Symbol = Symbol;
         }
     }
+    public class SkipGenerate : Flag { public SkipGenerate() : base('X') { } }
+    public class SkipLexemes : Flag { public SkipLexemes() : base('x') { } }
+    public class Add : Flag
+    {
+        public Add(char Symbol, string ToStart, string ToEnd) : base(Symbol)
+        {
+            Function = (s) => { return ToStart + s + ToEnd; };
+        }
+        public Add(char Symbol, string ToStart) : this(Symbol, ToStart, "") { }
+        public Add(char Symbol, string ToEnd, int ignore = 0) : this(Symbol, "", ToEnd) { }
+    }
+    public class Remove : Flag
+    {
+        public Remove(char Symbol, int Start, int End) : base(Symbol)
+        {
+            Function = (s) => { return s.Remove(Start, (s.Length - End) - Start); };
+        }
+    }
 }
+

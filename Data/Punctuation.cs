@@ -19,7 +19,7 @@ namespace LanguageReimaginer.Data
     public class Punctuation
     {
     }
-    public class Mark
+    public class PunctuationMark
     {
 
     }

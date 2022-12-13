@@ -10,7 +10,7 @@ namespace LanguageReimaginer.Data
     public record class Alphabet
     {
         public Dictionary<char, Consonant> Consonants { get; private set; } = new Dictionary<char, Consonant>();
-        public Dictionary<char, Vowel> Vowels{ get; private set; } = new Dictionary<char, Vowel>();
+        public Dictionary<char, Vowel> Vowels { get; private set; } = new Dictionary<char, Vowel>();
 
         public Consonant AddConsonant(char letter)
         {

@@ -83,9 +83,10 @@ namespace LanguageReimaginer.Data
         public LetterPathing Pathing { get; set; } = LetterPathing.EndWord;
 
         /// <summary>
-        /// All lowercase letters in your input language. This is for estimating syllable count, and defaults to english.
+        /// All lowercase consonants in your input language. This is for estimating syllable count, and defaults to english.
         /// </summary>
-        public char[] InputLetters { get; set; } = "abcdefghijklmnopqrstuvwxyz".ToArray();
+        public char[] InputConsonants { get; set; } = "bcdfghjklmnpqrstvwxyz".ToArray();
+        public char[] InputVowels { get; set; } = "aeiou".ToArray();
         /// <summary>
         /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.6
         /// </summary>

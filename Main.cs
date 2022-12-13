@@ -49,6 +49,16 @@ namespace LanguageReimaginer
     ///         - 1.16 Selected affixes (in Lexemes) are now ordered from longest to shortest. This prevent in- stopping inter- from parsing (in·ter·cept).
     ///         - 1.17 Added "Skip" and "Possessive" booleans to WordInfo (though I should consider making Possessive flagging more modular).
     ///         - 1.18 Added text position targeting to Flags: BeforePrefix, AfterPrefix, BeforeSuffix, AfterSuffix. Useful for flags that add text.
+    ///     2022-12-12:
+    ///         - 1.19 Removed Skip and Possessive booleans from WordInfo, as I realized it was redundant.
+    ///         - 1.20 Progress in the generating method(s) for language generation.
+    ///         - 1.21 Defined SigmaWeight; a author-specified class that helps the generator decide which sigma to pick.
+    ///         - 1.22 Added InputConsonants/Vowels to Language.Options. This is for estimating syllable count.
+    ///         - 1.23 Added and tested a method to count syllables for any input word. According to my testing, it only has trouble with words that use y as a vowel.
+    ///         - 1.24 Small changes and additional variables to WordInfo.
+    ///         - 1.25 Added supporting methods to Structure.
+    ///         - 1.26 Added the Affix class, and supporting methods to Lexemes.
+    ///         - 1.27 Added a few classes inherited from Flagging: SkipGenerate, SkipLexemes, Add, and Remove.
     /// </summary>
     public class Main
     {

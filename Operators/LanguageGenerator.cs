@@ -36,7 +36,6 @@ namespace LanguageReimaginer.Operators
         //internal SyllableGenerator SyllableGen { get; set; }
 
         List<WordInfo> wordInfo = new List<WordInfo>();
-        List<SigmaInfo> sigmaInfo = new List<SigmaInfo>();
         StringBuilder sentenceBuilder = new StringBuilder();
 
         public Language Language { get; set; }
@@ -69,6 +68,7 @@ namespace LanguageReimaginer.Operators
             //10. The new punctuation marks are adding to the end of the word.
 
 
+            //This should split a word by the delimiters, and then leave the delimiter at the end.
             string[] words = Regex.Split(sentence, "@\"(?<=[" + string.Join("", Language.Options.Delimiters) + "])\"");
 
             //Loop through split words and add to wordInfo list.
@@ -91,15 +91,133 @@ namespace LanguageReimaginer.Operators
 
             foreach (WordInfo part in wordInfo)
             {
-                //Check for flags
-                //Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
-                //Check for and process lexemes.
+                bool skipGeneration = false;
+                bool skipLexemes = false;
+
+                //FLAGGING!
+                if (Language.Flagging.ContainsFlag(part.WordActual))
+                {
+                    //Add any flags as char array to WordInfo.
+                    int marcation = Language.Flagging.FlagIndex(part.WordActual);
+                    string flags = part.WordActual.Substring(marcation, part.WordActual.Length - marcation); //May need + Flagging.Marcation.Length to startIndex.
+                    string flagsFinal = string.Empty;
+
+                    foreach (char c in flags)
+                    {
+                        if (Language.Flagging.Flags.ContainsKey(c))
+                            flagsFinal += c;
+                    }
+
+                    part.Flags = flagsFinal.ToCharArray();
+                }
+
+                //Set generator-level flags.
+                if (part.Flags?.Any() == true && part.Flags.Contains('X') == true) skipGeneration = true;
+                if (part.Flags?.Any() == true && part.Flags.Contains('x') == true) skipLexemes = true;
+
+                //LEXEMES!
+                if (skipLexemes == false) ProcessLexemes(part);
+                else part.WordRoot = part.WordActual;
+
+                //TO-DO:
+                //1. Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
+                //2. Check for and process lexemes.
+
 
                 //sentenceBuilder.Append(NextWord(s) + " ");
             }
 
             info = wordInfo;
             return sentenceBuilder.ToString();
+        }
+        private void ProcessLexemes(WordInfo part)
+        {
+            //Extract affixes.
+            part.Prefixes = Language.Lexemes.GetPrefixes(part.WordActual).ToArray();
+            part.Suffixes = Language.Lexemes.GetSuffixes(part.WordActual).ToArray();
+
+            //Strip word to root.
+            int prefixLength = part.Prefixes.Sum((a) => a.Key.Length);
+            int suffixLength = part.Suffixes.Sum((a) => a.Key.Length);
+            part.WordRoot = part.WordActual.Substring(prefixLength, part.WordActual.Length - suffixLength);
+        }
+
+        List<SigmaInfo> sigmaInfo = new List<SigmaInfo>();
+        private void ConstructWord(WordInfo part)
+        {
+            //Constructing a new word.
+            //4. Estimate sigma (syllable) count by checking the boundaries of "VC" and "CV".
+            //5. Generate sigma structure; by length of actual sigma count * sigma weight. "CCV·VC·VC·CV"
+            //6. The first letter of the word is chosen; by first sigma's C/V, then by start letter weight.
+            //7. The next letters are chosen, according to the pathways set by the language author.
+
+            int sigmaCount = SigmaCount(part.WordRoot);
+
+            //Generate sigma structure.
+            for (int i = 0; i < sigmaCount; i++)
+            {
+                //5.1 Select sigma by sigma's weights and the language's sigma options.
+
+                SigmaInfo info = new SigmaInfo();
+                Sigma sigma = SelectSigma(i, sigmaInfo.LastOrDefault().Sigma);
+                
+                sigmaInfo.Add(info);
+            }
+
+            //Link adjacent sigma.
+            for (int i = 0; i < sigmaInfo.Count; i++)
+            {
+                if (i != 0)
+                    sigmaInfo[i].AdjacentLeft = sigmaInfo[i - 1];
+                if (i != wordInfo.Count)
+                    sigmaInfo[i].AdjacentRight = sigmaInfo[i - 1];
+            }
+        }
+        private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
+        {
+            //Temporary
+            return lastSigma;
+        }
+
+        /// <summary>
+        /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int SigmaCount(string word)
+        {
+            string cv = string.Empty;
+
+            foreach (char c in word)
+            {
+                if (Language.Options.InputConsonants.Contains(c)) cv += 'c';
+                if (Language.Options.InputVowels.Contains(c)) cv += 'v';
+            }
+
+            int result = 0;
+            while (cv.Length > 1)
+            {
+
+                //Check for consonant-vowel border.
+                if ((cv[0] == 'c' && cv[1] == 'v') ||
+                    (cv[0] == 'v' && cv[1] == 'c'))
+                {
+                    result++;
+                    cv = cv.Remove(0, Math.Min(cv.Length, 2));
+                }
+
+                if (cv.Length <= 1)
+                    break;
+
+                //If double consonant or vowel, remove one.
+                if ((cv[0] == 'c' && cv[1] == 'c') ||
+                    (cv[0] == 'v' && cv[1] == 'v'))
+                {
+                    cv = cv.Remove(0, 1);
+                }
+            }
+
+            return result;
         }
     }
 }

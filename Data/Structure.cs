@@ -30,22 +30,24 @@ namespace LanguageReimaginer.Data
         //      -
         // Letter formation will follow similar rules, especially taking syllable position into account.
 
-        /*public Dictionary<string, Sigma> LetterForms { get; private set; } = new Dictionary<string, Sigma>();
-        public void AddForm(params Sigma[] syllables)
-        {
-            for (int i = 0; i < syllables.Length; i++)
-            {
-                if (LetterForms.ContainsKey(syllables[i].Display) == false)
-                    LetterForms.Add(syllables[i].Display, syllables[i]);
-            }
+        /// <summary>
+        /// The possible syllable pattern that the generator may choose.
+        /// </summary>
+        public List<Sigma> SigmaTemplates { get; private set; } = new List<Sigma>();
 
-            //Example
-            //AddForm(new Form(10.0, 'C', 'V'), new Form(10.0, 'V', 'C'), new Form(5.0, 'C', 'C'),
-            //        new Form(2.0, 'V', 'V'), new Form(1.0, 'C', 'V', 'C'), new Form(1.0, 'V', 'C', 'V'));
-        }*/
+        /// <summary>
+        /// Any of these strings can be empty without issue (except the nucleus).
+        /// </summary>
+        /// <param name="onset"></param>
+        /// <param name="nucleus"></param>
+        /// <param name="coda"></param>
+        /// <param name="weights"></param>
+        public void AddSigma(string onset, string nucleus, string coda, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(onset, nucleus, coda) { Weight = weights }); }
+        public void AddSigmaVC(string nucleus, string coda, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(string.Empty, nucleus, coda) { Weight = weights }); }
+        public void AddSigmaCV(string onset, string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(onset, nucleus, string.Empty) { Weight = weights }); }
+        public void AddSigmaV(string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(string.Empty, nucleus, string.Empty) { Weight = weights }); }
 
         public List<LetterPath> Pathways { get; private set; } = new List<LetterPath>();
-
         /// <summary>
         /// Returns the possible paths based on the generator's current word position, sigma position, and the last letter generated.
         /// Final candidate is selected by distributed weight in the generator's method.
@@ -104,10 +106,5 @@ namespace LanguageReimaginer.Data
         /// The likelihood of this letter occurring, relative to the other weighted letters under this rule by this letter.
         /// </summary>
         public double Weight { get; set; } = 1.0;
-    }
-
-    public class SigmaSkews
-    {
-
     }
 }
