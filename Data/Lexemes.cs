@@ -37,6 +37,7 @@ namespace LanguageReimaginer.Data
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
             List<Affix> prefixes = Affixes.Where<Affix>(s => s.Affixation == Affix.AffixType.Prefix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
+            prefixes.Reverse();
 
             for (int i = 0; i < prefixes.Count; i++)
             {
@@ -54,16 +55,17 @@ namespace LanguageReimaginer.Data
         {
             List<Affix> results = new List<Affix>();
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
-            List<Affix> suffixes = Affixes.Where<Affix>(s => s.Affixation == Affix.AffixType.Prefix)
+            List<Affix> suffixes = Affixes.Where<Affix>(s => s.Affixation == Affix.AffixType.Suffix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
+            suffixes.Reverse();
 
             for (int i = 0; i < suffixes.Count; i++)
             {
                 if (word.ToLower().EndsWith(suffixes[i].Key.ToLower()))
                 {
                     results.Add(suffixes[i]);
-                    word = word.Remove(suffixes[i].Key.Length, word.Length - suffixes[i].Key.Length); //-1? or no
-                    i = 0; //Restart loop.
+                    word = word.Remove(word.Length - suffixes[i].Key.Length, suffixes[i].Key.Length); //-1? or no
+                    i = -1; //Restart loop.
                 }
             }
             return results;
@@ -90,6 +92,7 @@ namespace LanguageReimaginer.Data
         public Affix(string Key, string Value, AffixType Affixation, LocationType Location)
         {
             this.Key = Key;
+            this.Value = Value;
             this.Affixation = Affixation;
             this.Location = Location;
         }

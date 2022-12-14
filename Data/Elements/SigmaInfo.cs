@@ -16,6 +16,9 @@ namespace LanguageReimaginer.Data.Elements
         /// This reference is set by the word generator. It should never be null.
         /// </summary>
         public Sigma Sigma { get; set; }
+        public string Onset { get; set; } = string.Empty;
+        public string Nucleus { get; set; } = string.Empty;
+        public string Coda { get; set; } = string.Empty;
 
         /// <summary>
         /// The position of the syllable in the word. Set by the generator.

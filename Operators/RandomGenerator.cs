@@ -14,6 +14,7 @@ namespace LanguageReimaginer.Operators
     {
         public int Seed { get; private set; }
         public Random Random { get; set; } = new Random();
+        public Language Language { get; set; }
 
         public void SetRandom(string word)
         {
@@ -23,7 +24,7 @@ namespace LanguageReimaginer.Operators
         private int WordSeed(string word)
         {
             using var a = SHA1.Create();
-            return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word)));
+            return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word))) + Language.Options.SeedOffset;
         }
 
 

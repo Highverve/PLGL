@@ -59,6 +59,9 @@ namespace LanguageReimaginer
     ///         - 1.25 Added supporting methods to Structure.
     ///         - 1.26 Added the Affix class, and supporting methods to Lexemes.
     ///         - 1.27 Added a few classes inherited from Flagging: SkipGenerate, SkipLexemes, Add, and Remove.
+    ///     2022-12-13:
+    ///         - Coded in the barebone framework for word generation. Currently, it strips a word from it's affixes, generates the seed from the word root, compiles the sigma template (no weighting yet), sets the letters (without pathways yet), and outputs the result. Good progress, with more to accomplish.
+    ///         - 
     /// </summary>
     public class Main
     {

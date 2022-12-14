@@ -32,13 +32,22 @@ namespace LanguageReimaginer.Operators
     /// </summary>
     public class LanguageGenerator
     {
-        internal RandomGenerator RanGen { get; set; }
+        internal RandomGenerator RanGen { get; set; } = new RandomGenerator();
         //internal SyllableGenerator SyllableGen { get; set; }
 
         List<WordInfo> wordInfo = new List<WordInfo>();
         StringBuilder sentenceBuilder = new StringBuilder();
 
-        public Language Language { get; set; }
+        private Language language;
+        public Language Language
+        {
+            get { return language; }
+            set
+            {
+                language = value;
+                RanGen.Language = language;
+            }
+        }
 
         public LanguageGenerator() { }
         public LanguageGenerator(Language Language) { this.Language = Language; }
@@ -47,6 +56,7 @@ namespace LanguageReimaginer.Operators
         {
             sentenceBuilder.Clear();
             wordInfo.Clear();
+            sigmaInfo.Clear();
 
             //Pre: Split words by delimiter and add to WordInfo list.
 
@@ -64,7 +74,7 @@ namespace LanguageReimaginer.Operators
 
             //Combining together.
             //8. The sigmas of the root word are combined in order.
-            //9. The new affixes are retrieve and placed in order.
+            //9. The new affixes are retrieved and placed in order.
             //10. The new punctuation marks are adding to the end of the word.
 
 
@@ -85,8 +95,8 @@ namespace LanguageReimaginer.Operators
             {
                 if (i != 0)
                     wordInfo[i].AdjacentLeft = wordInfo[i - 1];
-                if (i != wordInfo.Count)
-                    wordInfo[i].AdjacentRight = wordInfo[i - 1];
+                if (i != wordInfo.Count - 1)
+                    wordInfo[i].AdjacentRight = wordInfo[i + 1];
             }
 
             foreach (WordInfo part in wordInfo)
@@ -119,12 +129,16 @@ namespace LanguageReimaginer.Operators
                 if (skipLexemes == false) ProcessLexemes(part);
                 else part.WordRoot = part.WordActual;
 
+                //Set random of root word.
+                RanGen.SetRandom(part.WordRoot);
+
                 //TO-DO:
                 //1. Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
                 //2. Check for and process lexemes.
 
-
                 //sentenceBuilder.Append(NextWord(s) + " ");
+
+                ConstructWord(part);
             }
 
             info = wordInfo;
@@ -151,15 +165,16 @@ namespace LanguageReimaginer.Operators
             //6. The first letter of the word is chosen; by first sigma's C/V, then by start letter weight.
             //7. The next letters are chosen, according to the pathways set by the language author.
 
-            int sigmaCount = SigmaCount(part.WordRoot);
+            int sigmaCount = SigmaCount(part.WordRoot); // * random.NextDouble(minSkew, maxSkew)
 
             //Generate sigma structure.
             for (int i = 0; i < sigmaCount; i++)
             {
                 //5.1 Select sigma by sigma's weights and the language's sigma options.
-
                 SigmaInfo info = new SigmaInfo();
-                Sigma sigma = SelectSigma(i, sigmaInfo.LastOrDefault().Sigma);
+                Sigma last = (sigmaInfo.LastOrDefault() != null) ? sigmaInfo.LastOrDefault().Sigma : null;
+                Sigma sigma = SelectSigma(i, last);
+                info.Sigma = sigma;
                 
                 sigmaInfo.Add(info);
             }
@@ -169,15 +184,59 @@ namespace LanguageReimaginer.Operators
             {
                 if (i != 0)
                     sigmaInfo[i].AdjacentLeft = sigmaInfo[i - 1];
-                if (i != wordInfo.Count)
-                    sigmaInfo[i].AdjacentRight = sigmaInfo[i - 1];
+                if (i != sigmaInfo.Count - 1)
+                    sigmaInfo[i].AdjacentRight = sigmaInfo[i + 1];
             }
+
+            //Build letters in sigma.
+            foreach (SigmaInfo s in sigmaInfo)
+                SelectLetter(s);
+
+            //Compile affixes
+            foreach (Affix p in part.Prefixes)
+                part.WordPrefixes += p.Value;
+            foreach (Affix s in part.Suffixes)
+                part.WordSuffixes += s.Value;
+
+            //Assemble word from sigmas
+            foreach (SigmaInfo s in sigmaInfo)
+                part.WordGenerated += (s.Onset + s.Nucleus + s.Coda);
+            part.Syllables = sigmaInfo;
+
+            //Put it all together.
+            part.WordFinal = part.WordPrefixes + part.WordGenerated + part.WordSuffixes;
+            sentenceBuilder.AppendLine(part.WordFinal);
         }
         private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
         {
             //Temporary
-            return lastSigma;
+            return Language.Structure.SigmaTemplates[RanGen.Random.Next(0, Language.Structure.SigmaTemplates.Count)];
         }
+        private void SelectLetter(SigmaInfo sigma)
+        {
+            List<Consonant> consonants = Language.Alphabet.Consonants.Values.ToList();
+            List<Vowel> vowels = Language.Alphabet.Vowels.Values.ToList();
+
+            if (sigma.Sigma.Onset.Count > 0)
+            {
+                for (int i = 0; i < sigma.Sigma.Onset.Count; i++)
+                    sigma.Onset += consonants[RanGen.Random.Next(0, consonants.Count)].Value;
+            }
+
+            if (sigma.Sigma.Nucleus.Count > 0)
+            {
+                for (int i = 0; i < sigma.Sigma.Nucleus.Count; i++)
+                    sigma.Nucleus += vowels[RanGen.Random.Next(0, vowels.Count)].Value;
+            }
+
+            if (sigma.Sigma.Coda.Count > 0)
+            {
+                for (int i = 0; i < sigma.Sigma.Coda.Count; i++)
+                    sigma.Coda += consonants[RanGen.Random.Next(0, consonants.Count)].Value;
+            }
+        }
+        private void SelectConsonant() { }
+        private void SelectVowel() { }
 
         /// <summary>
         /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).

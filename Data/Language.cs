@@ -50,7 +50,6 @@ namespace LanguageReimaginer.Data
     }
     public class LanguageOptions
     {
-        public int Seed { get; set; } = 0;
         /// <summary>
         /// A global seed used to offset the seed generated for each word. Default is 0.
         /// Increasing or decreasing will change every word of the generated language.
