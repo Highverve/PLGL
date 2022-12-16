@@ -27,23 +27,9 @@ namespace LanguageReimaginer.Operators
             return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word))) + Language.Options.SeedOffset;
         }
 
-
-        //Remove this code; or, if possible, make it anonymous?
-        public double WeightSum(Letter[] letters) { return letters.Sum(x => x.StartWeight); }
-        public Letter GenerateLetter(Letter[] letters)
+        public double NextDouble(double minimum, double maximum)
         {
-            double weight = Random.NextDouble() * WeightSum(letters);
-
-            foreach (Letter l in letters)
-            {
-                weight -= l.StartWeight;
-
-                if (weight <= 0)
-                    return l;
-            }
-
-            //This code should never be reached
-            return null;
+            return Random.NextDouble() * (maximum - minimum) + minimum;
         }
     }
 }

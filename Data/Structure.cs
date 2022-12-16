@@ -47,20 +47,42 @@ namespace LanguageReimaginer.Data
         public void AddSigmaCV(string onset, string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(onset, nucleus, string.Empty) { Weight = weights }); }
         public void AddSigmaV(string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(string.Empty, nucleus, string.Empty) { Weight = weights }); }
 
+
         public List<LetterPath> Pathways { get; private set; } = new List<LetterPath>();
+        public void AddPath(char letter, WordPosition wordPos, SigmaPosition sigmaPos, params (char, double)[] letterWeights)
+        {
+            LetterPath path = new LetterPath();
+
+            path.Previous = letter;
+            path.WordPosition = wordPos;
+            path.SigmaPosition = sigmaPos;
+            path.Next.AddRange(letterWeights);
+
+            Pathways.Add(path);
+        }
+
         /// <summary>
         /// Returns the possible paths based on the generator's current word position, sigma position, and the last letter generated.
-        /// Final candidate is selected by distributed weight in the generator's method.
+        /// This is sorted by 
         /// </summary>
         /// <param name="previous"></param>
         /// <param name="wordPos"></param>
         /// <param name="sigmaPos"></param>
         /// <returns></returns>
-        public LetterPath[] GetPotentialPaths(Letter previous, WordPosition wordPos, SigmaPosition sigmaPos)
+        public LetterPath[] GetPotentialPaths(char previous, WordPosition wordPos, SigmaPosition sigmaPos)
         {
-            return Pathways.Where<LetterPath>((l) => (l.WordPosition == wordPos || l.WordPosition == WordPosition.Any))
-                .Where<LetterPath>((l) => (l.SigmaPosition == sigmaPos || l.SigmaPosition == SigmaPosition.Any))
-                .Where<LetterPath>(l => l.Operator == previous).ToArray();
+            //Filters the list by:
+            //  1. The operating letter ("previous").
+            //  2. The word positon matches, or is any.
+            //  3. The sigma position matches, or is any.
+            //Then, it orders it by:
+            //  1. Word position.
+            //  2. Sigma position.
+
+            return Pathways.Where<LetterPath>(l => l.Previous == previous)
+                .Where<LetterPath>((l) => (l.WordPosition == wordPos || l.WordPosition == WordPosition.Any))
+                .Where<LetterPath>((l) => (l.SigmaPosition == sigmaPos || l.SigmaPosition == SigmaPosition.Any))//.ToArray();
+                .OrderBy(l => l.WordPosition.CompareTo(wordPos)).ThenBy(l => l.SigmaPosition.CompareTo(sigmaPos)).ToArray();
         }
     }
 
@@ -85,11 +107,11 @@ namespace LanguageReimaginer.Data
         /// <summary>
         /// The current generated letter. This tells the generator the next letter it would prefer.
         /// </summary>
-        public Letter Operator { get; set; }
+        public char Previous { get; set; }
         /// <summary>
         /// The next potential letter.
         /// </summary>
-        public Letter[] Next { get; set; }
+        public List<(char, double)> Next { get; set; } = new List<(char, double)>();
 
         /// <summary>
         /// Does this path rule apply only to a certain part of the word?
@@ -101,10 +123,5 @@ namespace LanguageReimaginer.Data
         /// If it applies to the onset and coda, but not the medial, then simply add two rules.
         /// </summary>
         public SigmaPosition SigmaPosition { get; set; } = SigmaPosition.Any;
-
-        /// <summary>
-        /// The likelihood of this letter occurring, relative to the other weighted letters under this rule by this letter.
-        /// </summary>
-        public double Weight { get; set; } = 1.0;
     }
 }

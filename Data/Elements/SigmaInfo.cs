@@ -20,10 +20,11 @@ namespace LanguageReimaginer.Data.Elements
         public string Nucleus { get; set; } = string.Empty;
         public string Coda { get; set; } = string.Empty;
 
+        public string Structure() { return Sigma.Structure(); }
         /// <summary>
-        /// The position of the syllable in the word. Set by the generator.
+        /// The position of the sigma in the word. Set by the generator.
         /// </summary>
-        public int SyllableIndex { get; set; }
+        public WordPosition Position { get; set; }
         public SigmaBlock Last()
         {
             if (Sigma.Coda != null && Sigma.Coda.Count > 0) return Sigma.Coda;

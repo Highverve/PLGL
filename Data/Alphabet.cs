@@ -21,7 +21,7 @@ namespace LanguageReimaginer.Data
         public Vowel AddVowel(char letter)
         {
             if (Vowels.ContainsKey(letter) == false)
-                Vowels.Add(letter, new Vowel(letter));
+                Vowels.Add(letter, new Vowel(letter) { IsVowel = true });
             return Vowels[letter];
         }
 
@@ -33,5 +33,14 @@ namespace LanguageReimaginer.Data
                 return Vowels[letter];
             return null;
         }
+        public List<Letter> Letters()
+        {
+            List<Letter> result = new List<Letter>();
+            result.AddRange(Consonants.Values);
+            result.AddRange(Vowels.Values);
+
+            return result.OrderBy(l => l.Value).ToList();
+        }
+        public bool IsVowel(char c) { return Find(c).IsVowel; }
     }
 }

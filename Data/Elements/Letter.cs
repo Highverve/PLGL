@@ -14,6 +14,11 @@ namespace LanguageReimaginer.Data.Elements
         /// </summary>
         public double StartWeight { get; set; }
 
+        /// <summary>
+        /// Set by the Alphabet class when added to either Dictionary.
+        /// </summary>
+        public bool IsVowel { get; set; } = false;
+
         public Letter(char Value, double StartWeight)
         {
             this.Value = char.ToLower(Value);

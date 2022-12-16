@@ -1,5 +1,6 @@
 ﻿using LanguageReimaginer.Data;
 using LanguageReimaginer.Data.Elements;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -56,7 +57,6 @@ namespace LanguageReimaginer.Operators
         {
             sentenceBuilder.Clear();
             wordInfo.Clear();
-            sigmaInfo.Clear();
 
             //Pre: Split words by delimiter and add to WordInfo list.
 
@@ -79,7 +79,7 @@ namespace LanguageReimaginer.Operators
 
 
             //This should split a word by the delimiters, and then leave the delimiter at the end.
-            string[] words = Regex.Split(sentence, "@\"(?<=[" + string.Join("", Language.Options.Delimiters) + "])\"");
+            string[] words = sentence.Split(Language.Options.Delimiters);//Regex.Split(sentence, "@\"(?<=[" + string.Join("", Language.Options.Delimiters) + "])\"");
 
             //Loop through split words and add to wordInfo list.
             foreach (string s in words)
@@ -99,17 +99,17 @@ namespace LanguageReimaginer.Operators
                     wordInfo[i].AdjacentRight = wordInfo[i + 1];
             }
 
-            foreach (WordInfo part in wordInfo)
+            foreach (WordInfo word in wordInfo)
             {
                 bool skipGeneration = false;
                 bool skipLexemes = false;
 
-                //FLAGGING!
-                if (Language.Flagging.ContainsFlag(part.WordActual))
+                //The word is checked for flags. If any, the flags are processed and stripped.
+                if (Language.Flagging.ContainsFlag(word.WordActual))
                 {
                     //Add any flags as char array to WordInfo.
-                    int marcation = Language.Flagging.FlagIndex(part.WordActual);
-                    string flags = part.WordActual.Substring(marcation, part.WordActual.Length - marcation); //May need + Flagging.Marcation.Length to startIndex.
+                    int marcation = Language.Flagging.FlagIndex(word.WordActual);
+                    string flags = word.WordActual.Substring(marcation, word.WordActual.Length - marcation); //May need + Flagging.Marcation.Length to startIndex.
                     string flagsFinal = string.Empty;
 
                     foreach (char c in flags)
@@ -118,126 +118,131 @@ namespace LanguageReimaginer.Operators
                             flagsFinal += c;
                     }
 
-                    part.Flags = flagsFinal.ToCharArray();
+                    word.Flags = flagsFinal.ToCharArray();
                 }
 
                 //Set generator-level flags.
-                if (part.Flags?.Any() == true && part.Flags.Contains('X') == true) skipGeneration = true;
-                if (part.Flags?.Any() == true && part.Flags.Contains('x') == true) skipLexemes = true;
+                if (word.Flags?.Any() == true && word.Flags.Contains('X') == true) skipGeneration = true;
+                if (word.Flags?.Any() == true && word.Flags.Contains('x') == true) skipLexemes = true;
 
-                //LEXEMES!
-                if (skipLexemes == false) ProcessLexemes(part);
-                else part.WordRoot = part.WordActual;
+                //Check inflection-level lexicon for matches. If there's a match, skip procedural generation and lexeme processing.
+                if (Language.Lexicon.InflectedWords.ContainsKey(word.WordActual))
+                    skipGeneration = skipLexemes = ProcessLexiconInflections(word);
 
-                //Set random of root word.
-                RanGen.SetRandom(part.WordRoot);
+                //The lexemes are processed, stripping the actual word down to its root.
+                //The affixes are assembled and set in order.
+                if (skipLexemes == false)
+                {
+                    ProcessLexemes(word);
+                    AssembleLexemes(word);
+                }
+                else word.WordRoot = word.WordActual;
+
+                //Check root-level lexicon for matches. If there's a match, skip procedural generation.
+                if (Language.Lexicon.RootWords.ContainsKey(word.WordRoot))
+                    skipGeneration = ProcessLexiconRoots(word);
+
+                //Set random to the root word.
+                RanGen.SetRandom(word.WordRoot);
 
                 //TO-DO:
                 //1. Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
                 //2. Check for and process lexemes.
 
-                //sentenceBuilder.Append(NextWord(s) + " ");
+                if (skipGeneration == false)
+                    ConstructWord(word);
 
-                ConstructWord(part);
+                //Put the word together.
+                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+                sentenceBuilder.Append(word.WordFinal + ' ');
+
+                //"Memorizes" the word if the option has been set and the word isn't there.
+                if (Language.Options.MemorizeWords == true && Language.Lexicon.InflectedWords.ContainsKey(word.WordActual) == false)
+                    Language.Lexicon.InflectedWords.Add(word.WordActual, word.WordFinal);
             }
 
+            //Return the result.
             info = wordInfo;
             return sentenceBuilder.ToString();
         }
-        private void ProcessLexemes(WordInfo part)
-        {
-            //Extract affixes.
-            part.Prefixes = Language.Lexemes.GetPrefixes(part.WordActual).ToArray();
-            part.Suffixes = Language.Lexemes.GetSuffixes(part.WordActual).ToArray();
 
-            //Strip word to root.
-            int prefixLength = part.Prefixes.Sum((a) => a.Key.Length);
-            int suffixLength = part.Suffixes.Sum((a) => a.Key.Length);
-            part.WordRoot = part.WordActual.Substring(prefixLength, part.WordActual.Length - suffixLength);
+        private bool ProcessLexiconInflections(WordInfo word)
+        {
+            word.WordGenerated = Language.Lexicon.InflectedWords[word.WordActual];
+            return true;
+        }
+        private bool ProcessLexiconRoots(WordInfo word)
+        {
+            word.WordGenerated = Language.Lexicon.RootWords[word.WordRoot];
+            return true;
         }
 
-        List<SigmaInfo> sigmaInfo = new List<SigmaInfo>();
-        private void ConstructWord(WordInfo part)
+        private void ProcessLexemes(WordInfo word)
         {
-            //Constructing a new word.
+            //Extract affixes.
+            word.Prefixes = Language.Lexemes.GetPrefixes(word.WordActual).ToArray();
+            word.Suffixes = Language.Lexemes.GetSuffixes(word.WordActual).ToArray();
+
+            //Strip word to root.
+            int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
+            int suffixLength = word.Suffixes.Sum((a) => a.Key.Length);
+            word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
+        }
+        private void AssembleLexemes(WordInfo word)
+        {
+            foreach (Affix p in word.Prefixes)
+                word.WordPrefixes += p.Value;
+            foreach (Affix s in word.Suffixes)
+                word.WordSuffixes += s.Value;
+        }
+
+        private void ConstructWord(WordInfo word)
+        {
             //4. Estimate sigma (syllable) count by checking the boundaries of "VC" and "CV".
             //5. Generate sigma structure; by length of actual sigma count * sigma weight. "CCV·VC·VC·CV"
+            SelectSigmaStructures(word);
+
             //6. The first letter of the word is chosen; by first sigma's C/V, then by start letter weight.
             //7. The next letters are chosen, according to the pathways set by the language author.
+            PopulateWord(word);
+        }
 
-            int sigmaCount = SigmaCount(part.WordRoot); // * random.NextDouble(minSkew, maxSkew)
+        private void SelectSigmaStructures(WordInfo word)
+        {
+            int sigmaCount = (int)((double)SigmaCount(word.WordRoot) * 
+                    RanGen.NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax));
 
             //Generate sigma structure.
             for (int i = 0; i < sigmaCount; i++)
             {
                 //5.1 Select sigma by sigma's weights and the language's sigma options.
                 SigmaInfo info = new SigmaInfo();
-                Sigma last = (sigmaInfo.LastOrDefault() != null) ? sigmaInfo.LastOrDefault().Sigma : null;
+
+                Sigma last = (word.SigmaInfo.LastOrDefault() != null) ? word.SigmaInfo.LastOrDefault().Sigma : null;
                 Sigma sigma = SelectSigma(i, last);
+
+                if (i == 0) info.Position = WordPosition.First;
+                else if (i == sigmaCount - 1) info.Position = WordPosition.Last;
+                else info.Position = WordPosition.Middle;
+
                 info.Sigma = sigma;
-                
-                sigmaInfo.Add(info);
+                word.SigmaInfo.Add(info);
             }
 
             //Link adjacent sigma.
-            for (int i = 0; i < sigmaInfo.Count; i++)
+            for (int i = 0; i < word.SigmaInfo.Count; i++)
             {
                 if (i != 0)
-                    sigmaInfo[i].AdjacentLeft = sigmaInfo[i - 1];
-                if (i != sigmaInfo.Count - 1)
-                    sigmaInfo[i].AdjacentRight = sigmaInfo[i + 1];
+                    word.SigmaInfo[i].AdjacentLeft = word.SigmaInfo[i - 1];
+                if (i != word.SigmaInfo.Count - 1)
+                    word.SigmaInfo[i].AdjacentRight = word.SigmaInfo[i + 1];
             }
-
-            //Build letters in sigma.
-            foreach (SigmaInfo s in sigmaInfo)
-                SelectLetter(s);
-
-            //Compile affixes
-            foreach (Affix p in part.Prefixes)
-                part.WordPrefixes += p.Value;
-            foreach (Affix s in part.Suffixes)
-                part.WordSuffixes += s.Value;
-
-            //Assemble word from sigmas
-            foreach (SigmaInfo s in sigmaInfo)
-                part.WordGenerated += (s.Onset + s.Nucleus + s.Coda);
-            part.Syllables = sigmaInfo;
-
-            //Put it all together.
-            part.WordFinal = part.WordPrefixes + part.WordGenerated + part.WordSuffixes;
-            sentenceBuilder.AppendLine(part.WordFinal);
         }
         private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
         {
             //Temporary
             return Language.Structure.SigmaTemplates[RanGen.Random.Next(0, Language.Structure.SigmaTemplates.Count)];
         }
-        private void SelectLetter(SigmaInfo sigma)
-        {
-            List<Consonant> consonants = Language.Alphabet.Consonants.Values.ToList();
-            List<Vowel> vowels = Language.Alphabet.Vowels.Values.ToList();
-
-            if (sigma.Sigma.Onset.Count > 0)
-            {
-                for (int i = 0; i < sigma.Sigma.Onset.Count; i++)
-                    sigma.Onset += consonants[RanGen.Random.Next(0, consonants.Count)].Value;
-            }
-
-            if (sigma.Sigma.Nucleus.Count > 0)
-            {
-                for (int i = 0; i < sigma.Sigma.Nucleus.Count; i++)
-                    sigma.Nucleus += vowels[RanGen.Random.Next(0, vowels.Count)].Value;
-            }
-
-            if (sigma.Sigma.Coda.Count > 0)
-            {
-                for (int i = 0; i < sigma.Sigma.Coda.Count; i++)
-                    sigma.Coda += consonants[RanGen.Random.Next(0, consonants.Count)].Value;
-            }
-        }
-        private void SelectConsonant() { }
-        private void SelectVowel() { }
-
         /// <summary>
         /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
         /// </summary>
@@ -276,7 +281,94 @@ namespace LanguageReimaginer.Operators
                 }
             }
 
+            if (word.Length > 0 && result == 0)
+                result = 1;
+
             return result;
+        }
+
+
+        private void PopulateWord(WordInfo word)
+        {
+            //Select starting letter according to letter weights.
+            if (word.SigmaInfo[0].First().Type == BlockType.Nucleus)
+                word.WordGenerated += SelectFirstVowel();
+            else
+                word.WordGenerated += SelectFirstConsonant();
+
+            int onsetOffset = 0, nucleusOffset = 0;
+            if (word.SigmaInfo.First().First().Type == BlockType.Onset)
+                onsetOffset = word.WordGenerated.Length;
+            if (word.SigmaInfo.First().First().Type == BlockType.Nucleus)
+                nucleusOffset = word.WordGenerated.Length;
+
+            foreach (SigmaInfo s in word.SigmaInfo)
+            {
+                for (int i = 0; i < s.Sigma.Onset.Count - onsetOffset; i++)
+                    s.Onset += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Onset, false);
+                word.WordGenerated += s.Onset;
+
+                for (int i = 0; i < s.Sigma.Nucleus.Count - nucleusOffset; i++)
+                    s.Nucleus += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Nucleus, true);
+                word.WordGenerated += s.Nucleus;
+
+                for (int i = 0; i < s.Sigma.Coda.Count; i++)
+                    s.Coda += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Coda, false);
+                word.WordGenerated += s.Coda;
+
+                onsetOffset = 0;
+                nucleusOffset = 0;
+            }
+        }
+
+        private char SelectFirstVowel()
+        {
+            double weight = RanGen.Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
+
+            foreach (Vowel v in Language.Alphabet.Vowels.Values)
+            {
+                weight -= v.StartWeight;
+
+                if (weight <= 0)
+                    return v.Value;
+            }
+
+            return '_';
+        }
+        private char SelectFirstConsonant()
+        {
+            double weight = RanGen.Random.NextDouble() * Language.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
+
+            foreach (Consonant c in Language.Alphabet.Consonants.Values)
+            {
+                weight -= c.StartWeight;
+
+                if (weight <= 0)
+                    return c.Value;
+            }
+
+            return '_';
+        }
+        private char SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
+        {
+            LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
+            LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
+
+            List<(char, double)> filter = isVowel ?
+                chosen.Next.Where<(char, double)>(x => Language.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
+                chosen.Next.Where<(char, double)>(x => Language.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
+
+            double weight = RanGen.Random.NextDouble() * filter.Sum(w => w.Item2);
+
+            foreach ((char, double) l in filter)
+            {
+                weight -= l.Item2;
+
+                if (weight <= 0)
+                    return l.Item1;
+            }
+
+            throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
         }
     }
 }

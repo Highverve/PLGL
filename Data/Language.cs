@@ -31,10 +31,11 @@ namespace LanguageReimaginer.Data
 
         public LanguageOptions Options { get; set; } = new LanguageOptions();
 
-        //Ordered by the simplest components to the most complex. (i.e, by density)
+        //Ordered by the simplest components to the most complex.
         public Alphabet Alphabet { get; private set; }
-        public Pathways Pathways { get; private set; }
         public Structure Structure { get; private set; }
+
+        public Lexicon Lexicon { get; private set; }
         public Lexemes Lexemes { get; private set; }
         public Flagging Flagging { get; private set; }
         public Punctuation Punctuation { get; private set; }
@@ -43,6 +44,7 @@ namespace LanguageReimaginer.Data
         {
             Alphabet = new Alphabet();
             Structure = new Structure();
+            Lexicon = new Lexicon();
             Lexemes = new Lexemes();
             Flagging = new Flagging();
             Punctuation = new Punctuation();
@@ -67,17 +69,26 @@ namespace LanguageReimaginer.Data
         /// </summary>
         public bool PreserveCase { get; set; } = true;
         /// <summary>
+        /// If true, all inflections are added to the Lexicon class, skipping the generation stage for previously processed words.
+        /// </summary>
+        public bool MemorizeWords { get; set; } = true;
+        /// <summary>
         /// Helps determine how the generator splits words for processing.
         /// Default is just ' ' (space).
         /// </summary>
         public char[] Delimiters { get; set; } = new char[] { ' ' };
 
-        public enum LetterPathing { Exclusion, Inclusion, EndWord }
+        public enum LetterPathing
+        {
+            /// <summary>For language author's with a solid grip on their language. This will error if there isn't a next path.</summary>
+            Exclusion,
+            /// <summary>With no valid path forward, the generator will default to selecting a letter by StartWeight that fits the sigma template.</summary>
+            Inclusion,
+            /// <summary>The generator will simply end the word. While this is the safest option, too many empy pathways will result in a lot of short words.</summary>
+            EndWord
+        }
         /// <summary>
         /// Determines how the generator behaves if it encounters a letter path with no way forward, yet has more letters to generate.
-        /// <para name="Exclusion">For language author's with a solid grip on their language. This will error if there isn't a next path.</para>
-        /// <para name="Inclusion">With no valid path forward, the generator will default to selecting a letter by StartWeight that fits the sigma template.</para>
-        /// <para name="EndWord">Tthe generator will simply end the word. While this is the safest option, too many empy pathways will result in a lot of short words.</para>
         /// </summary>
         public LetterPathing Pathing { get; set; } = LetterPathing.EndWord;
 

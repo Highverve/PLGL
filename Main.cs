@@ -61,7 +61,13 @@ namespace LanguageReimaginer
     ///         - 1.27 Added a few classes inherited from Flagging: SkipGenerate, SkipLexemes, Add, and Remove.
     ///     2022-12-13:
     ///         - Coded in the barebone framework for word generation. Currently, it strips a word from it's affixes, generates the seed from the word root, compiles the sigma template (no weighting yet), sets the letters (without pathways yet), and outputs the result. Good progress, with more to accomplish.
-    ///         - 
+    ///     2022-12-15:
+    ///         - Added letter pathing support into the generator itself.
+    ///         - Added the Lexicon class, which supports custom words from the root to the inflection ("lexeme") level.
+    ///         - Added MemorizeWords boolean to Language.Options. If true, it will add newly generated words to the Lexicon's InflectedWords dictionary.
+    ///         - Added syllable count skewing to the language generation. Set SigmaSkewMin and SigmaSkewMax in Language.Options.
+    ///         - Tracked down a bug that prevented the generator from adding characters to the sigma's onset.
+    ///         - Fixed a bug that was causing an extra vowel to be added if the nucleus was the start of the word.
     /// </summary>
     public class Main
     {

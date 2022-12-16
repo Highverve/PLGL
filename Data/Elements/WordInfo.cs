@@ -58,7 +58,7 @@ namespace LanguageReimaginer.Data.Elements
         /// <summary>
         /// Set automatically by the generator.
         /// </summary>
-        public List<SigmaInfo> Syllables { get; set; }
+        public List<SigmaInfo> SigmaInfo { get; set; } = new List<SigmaInfo>();
 
         /// <summary>
         /// This will always be null for the first word in a sentence. Account for it.
