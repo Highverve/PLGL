@@ -34,8 +34,6 @@ namespace LanguageReimaginer.Operators
     public class LanguageGenerator
     {
         internal RandomGenerator RanGen { get; set; } = new RandomGenerator();
-        //internal SyllableGenerator SyllableGen { get; set; }
-
         List<WordInfo> wordInfo = new List<WordInfo>();
         StringBuilder sentenceBuilder = new StringBuilder();
 
@@ -49,10 +47,30 @@ namespace LanguageReimaginer.Operators
                 RanGen.Language = language;
             }
         }
+        public Dictionary<string, Language> Languages { get; private set; } = new Dictionary<string, Language>();
 
-        public LanguageGenerator() { }
-        public LanguageGenerator(Language Language) { this.Language = Language; }
+        public void AddLanguage(string key, Language language)
+        {
+            if (Languages.ContainsKey(key) == false)
+                Languages.Add(key, language);
+        }
+        public void AddLanguage(Language language) { AddLanguage(language.META_Nickname, language); }
+        public void SelectLanguage(string nickname)
+        {
+            if (Languages.ContainsKey(nickname))
+                Language = Languages[nickname];
+        }
+        public void SelectLanguage(Language language) { Language = language; }
 
+        /// <summary>
+        /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
+        /// </summary>
+        public Func<string, int> SigmaCount { get; set; }
+
+        public LanguageGenerator() { SigmaCount = (s) => EnglishSigmaCount(s);  }
+        public LanguageGenerator(Language Language) : base() { this.Language = Language; }
+
+        #region Generation — Main method and overloads
         public string Generate(string sentence, out List<WordInfo> info)
         {
             sentenceBuilder.Clear();
@@ -61,7 +79,7 @@ namespace LanguageReimaginer.Operators
             //Pre: Split words by delimiter and add to WordInfo list.
 
             //Deconstructing a word.
-            //1. Punctuation marks (1 of 2). Loop through WordInfo list, isolate all punctuation marks (e.g., comma, or quote/comma),
+            //1. Punctuation marks. Loop through WordInfo list, isolate all punctuation marks (e.g., comma, or quote/comma),
             //   add punctuation to WordInfo.
             //2. Flagging. Check for flag marcation, add flags to WordInfo, process flags.
             //3. Lexemes. Check for affixes, add prefixes and suffixes to WordInfo.
@@ -77,7 +95,6 @@ namespace LanguageReimaginer.Operators
             //9. The new affixes are retrieved and placed in order.
             //10. The new punctuation marks are adding to the end of the word.
 
-
             //This should split a word by the delimiters, and then leave the delimiter at the end.
             string[] words = sentence.Split(Language.Options.Delimiters);//Regex.Split(sentence, "@\"(?<=[" + string.Join("", Language.Options.Delimiters) + "])\"");
 
@@ -90,14 +107,7 @@ namespace LanguageReimaginer.Operators
                 wordInfo.Add(word);
             }
 
-            //Link adjacent words.
-            for (int i = 0; i < wordInfo.Count; i++)
-            {
-                if (i != 0)
-                    wordInfo[i].AdjacentLeft = wordInfo[i - 1];
-                if (i != wordInfo.Count - 1)
-                    wordInfo[i].AdjacentRight = wordInfo[i + 1];
-            }
+            LinkWords();
 
             foreach (WordInfo word in wordInfo)
             {
@@ -126,7 +136,7 @@ namespace LanguageReimaginer.Operators
                 if (word.Flags?.Any() == true && word.Flags.Contains('x') == true) skipLexemes = true;
 
                 //Check inflection-level lexicon for matches. If there's a match, skip procedural generation and lexeme processing.
-                if (Language.Lexicon.InflectedWords.ContainsKey(word.WordActual))
+                if (Language.Lexicon.Inflections.ContainsKey(word.WordActual))
                     skipGeneration = skipLexemes = ProcessLexiconInflections(word);
 
                 //The lexemes are processed, stripping the actual word down to its root.
@@ -139,49 +149,78 @@ namespace LanguageReimaginer.Operators
                 else word.WordRoot = word.WordActual;
 
                 //Check root-level lexicon for matches. If there's a match, skip procedural generation.
-                if (Language.Lexicon.RootWords.ContainsKey(word.WordRoot))
+                if (Language.Lexicon.Roots.ContainsKey(word.WordRoot))
                     skipGeneration = ProcessLexiconRoots(word);
 
                 //Set random to the root word.
                 RanGen.SetRandom(word.WordRoot);
 
-                //TO-DO:
-                //1. Check for punctuation marks. If the sentence contains any, then: isolate (Add before or after
-                //2. Check for and process lexemes.
-
                 if (skipGeneration == false)
-                    ConstructWord(word);
+                {
+                    // Estimate sigma count and generate sigma structure.
+                    SelectSigmaStructures(word);
+                    //Choose first letter (according to sigma's C/V), then fill the rest of the sigma structure through letter pathing.
+                    PopulateWord(word);
+                }
 
                 //Put the word together.
                 word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
                 sentenceBuilder.Append(word.WordFinal + ' ');
 
                 //"Memorizes" the word if the option has been set and the word isn't there.
-                if (Language.Options.MemorizeWords == true && Language.Lexicon.InflectedWords.ContainsKey(word.WordActual) == false)
-                    Language.Lexicon.InflectedWords.Add(word.WordActual, word.WordFinal);
+                if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
+                    Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
             }
 
             //Return the result.
             info = wordInfo;
             return sentenceBuilder.ToString();
         }
+        public string Generate(string sentence) { return Generate(sentence, out _); }
+        public string Generate(Language language, string sentence) { SelectLanguage(language); return Generate(sentence); }
+        public string Generate(string language, string sentence) { SelectLanguage(language); return Generate(sentence); }
+        #endregion
 
+        #region Deconstruction — 
+
+        /// <summary>
+        /// Links adjacent words for additional generation context.
+        /// </summary>
+        public void LinkWords()
+        {
+            for (int i = 0; i < wordInfo.Count; i++)
+            {
+                if (i != 0)
+                    wordInfo[i].AdjacentLeft = wordInfo[i - 1];
+                if (i != wordInfo.Count - 1)
+                    wordInfo[i].AdjacentRight = wordInfo[i + 1];
+            }
+        }
+
+        #endregion
+
+        #region Flagging
+        #endregion
+
+        #region Punctuation
+        #endregion
+
+        #region Lexicon (and inflections) — Affixes, root extraction, custom words
         private bool ProcessLexiconInflections(WordInfo word)
         {
-            word.WordGenerated = Language.Lexicon.InflectedWords[word.WordActual];
+            word.WordGenerated = Language.Lexicon.Inflections[word.WordActual];
             return true;
         }
         private bool ProcessLexiconRoots(WordInfo word)
         {
-            word.WordGenerated = Language.Lexicon.RootWords[word.WordRoot];
+            word.WordGenerated = Language.Lexicon.Roots[word.WordRoot];
             return true;
         }
-
         private void ProcessLexemes(WordInfo word)
         {
             //Extract affixes.
-            word.Prefixes = Language.Lexemes.GetPrefixes(word.WordActual).ToArray();
-            word.Suffixes = Language.Lexemes.GetSuffixes(word.WordActual).ToArray();
+            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordActual).ToArray();
+            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordActual).ToArray();
 
             //Strip word to root.
             int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
@@ -195,18 +234,9 @@ namespace LanguageReimaginer.Operators
             foreach (Affix s in word.Suffixes)
                 word.WordSuffixes += s.Value;
         }
+        #endregion
 
-        private void ConstructWord(WordInfo word)
-        {
-            //4. Estimate sigma (syllable) count by checking the boundaries of "VC" and "CV".
-            //5. Generate sigma structure; by length of actual sigma count * sigma weight. "CCV·VC·VC·CV"
-            SelectSigmaStructures(word);
-
-            //6. The first letter of the word is chosen; by first sigma's C/V, then by start letter weight.
-            //7. The next letters are chosen, according to the pathways set by the language author.
-            PopulateWord(word);
-        }
-
+        #region Word construction — Sigma structuring and word population
         private void SelectSigmaStructures(WordInfo word)
         {
             int sigmaCount = (int)((double)SigmaCount(word.WordRoot) * 
@@ -248,7 +278,7 @@ namespace LanguageReimaginer.Operators
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        public int SigmaCount(string word)
+        public int EnglishSigmaCount(string word)
         {
             string cv = string.Empty;
 
@@ -286,8 +316,28 @@ namespace LanguageReimaginer.Operators
 
             return result;
         }
+        /// <summary>
+        /// Counts each valid character found in Language.Options.InputConsonants and InputVowels. More ideal for languages where each letter may be a syllable.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int CharacterSigmaCount(string word)
+        {
+            int result = 0;
 
+            foreach (char c in word)
+            {
+                if (Language.Options.InputConsonants.Contains(c)) result++;
+                if (Language.Options.InputVowels.Contains(c)) result++;
+            }
 
+            return result;
+        }
+
+        /// <summary>
+        /// Populates the sigma structures according to the language's letter pathing.
+        /// </summary>
+        /// <param name="word"></param>
         private void PopulateWord(WordInfo word)
         {
             //Select starting letter according to letter weights.
@@ -320,7 +370,6 @@ namespace LanguageReimaginer.Operators
                 nucleusOffset = 0;
             }
         }
-
         private char SelectFirstVowel()
         {
             double weight = RanGen.Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
@@ -370,5 +419,6 @@ namespace LanguageReimaginer.Operators
 
             throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
         }
+        #endregion
     }
 }

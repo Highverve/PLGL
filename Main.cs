@@ -68,6 +68,11 @@ namespace LanguageReimaginer
     ///         - Added syllable count skewing to the language generation. Set SigmaSkewMin and SigmaSkewMax in Language.Options.
     ///         - Tracked down a bug that prevented the generator from adding characters to the sigma's onset.
     ///         - Fixed a bug that was causing an extra vowel to be added if the nucleus was the start of the word.
+    ///     2022-12-16:
+    ///         - Merged Lexicon with Lexemes, and renamed Lexemes to Lexicon.
+    ///         - Added Language switching to LanguageGenerator.
+    ///         - Cleaned up the code in LanguageGenerator. Much nicer.
+    ///         - Deleted SyllableGenerator as it's been made Redundant.
     /// </summary>
     public class Main
     {

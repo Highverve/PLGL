@@ -21,6 +21,10 @@ namespace LanguageReimaginer.Data
         /// </summary>
         public string META_Name { get; set; } = string.Empty;
         /// <summary>
+        /// The language's nickname. LanguageGenerator sets this value to the Languages<string, Language> Dictionary key.
+        /// </summary>
+        public string META_Nickname { get; set; } = string.Empty;
+        /// <summary>
         /// The description of the language.
         /// </summary>
         public string META_Description { get; set; } = string.Empty;
@@ -36,7 +40,6 @@ namespace LanguageReimaginer.Data
         public Structure Structure { get; private set; }
 
         public Lexicon Lexicon { get; private set; }
-        public Lexemes Lexemes { get; private set; }
         public Flagging Flagging { get; private set; }
         public Punctuation Punctuation { get; private set; }
 
@@ -45,7 +48,6 @@ namespace LanguageReimaginer.Data
             Alphabet = new Alphabet();
             Structure = new Structure();
             Lexicon = new Lexicon();
-            Lexemes = new Lexemes();
             Flagging = new Flagging();
             Punctuation = new Punctuation();
         }

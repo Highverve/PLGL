@@ -26,10 +26,6 @@ namespace LanguageReimaginer.Operators
             using var a = SHA1.Create();
             return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word))) + Language.Options.SeedOffset;
         }
-
-        public double NextDouble(double minimum, double maximum)
-        {
-            return Random.NextDouble() * (maximum - minimum) + minimum;
-        }
+        public double NextDouble(double minimum, double maximum) { return Random.NextDouble() * (maximum - minimum) + minimum; }
     }
 }

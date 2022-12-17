@@ -18,8 +18,5 @@ namespace LanguageReimaginer.Data
     public class Phoneme
     {
         public string IPA { get; set; } = string.Empty;
-
-        public Letter? AdjacentLeft { get; set; } = null;
-        public Letter? AdjacentRight { get; set; } = null;
     }
 }
