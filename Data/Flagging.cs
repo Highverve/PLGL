@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data
+namespace PLGL.Data
 {
     /// <summary>
     /// Markers allow the end-user to specify custom behaviour.
@@ -65,7 +65,7 @@ namespace LanguageReimaginer.Data
     {
         public char Symbol { get; set; }
         /// <summary>
-        /// Called by the generator. String parameter is the word (actual, root), and sets the word to something else.
+        /// Called by the generator. String parameter is the word (stripped, root), and sets the word to something else.
         /// </summary>
         public Func<string, string>? Function { get; set; } = null;
 

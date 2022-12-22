@@ -1,10 +1,10 @@
-﻿using LanguageReimaginer.Data;
-using LanguageReimaginer.Data.Elements;
+﻿using PLGL.Data;
+using PLGL.Data.Elements;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace LanguageReimaginer
+namespace PLGL
 {
     public class LanguageGenerator
     {
@@ -94,6 +94,9 @@ namespace LanguageReimaginer
 
             foreach (WordInfo word in wordInfo)
             {
+                //Added in case no flags or punctuation marks are found.
+                word.WordStripped = word.WordActual;
+
                 skipGeneration = false;
                 skipLexemes = false;
 
@@ -101,14 +104,14 @@ namespace LanguageReimaginer
                 ParseFlags(word);
                 CheckFlags(word);
 
-                CheckLexiconInflection(word);
-
-                if (skipLexemes == false)
+                if (skipGeneration == false && skipLexemes == false)
                 {
+                    CheckLexiconInflection(word);
+
                     ProcessLexemes(word);
                     AssembleLexemes(word);
                 }
-                else word.WordRoot = word.WordActual;
+                else word.WordRoot = word.WordStripped;
 
                 CheckLexiconRoot(word);
 
@@ -123,10 +126,13 @@ namespace LanguageReimaginer
 
                 //Put the word together.
                 word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
-                sentenceBuilder.Append(word.WordFinal + ' ');
 
                 LexiconMemorize(word);
             }
+
+            //Compile the sentence.
+            foreach(WordInfo word in wordInfo)
+                sentenceBuilder.Append(word.WordFinal + ' ');
 
             //Return the result.
             info = wordInfo;
@@ -195,16 +201,15 @@ namespace LanguageReimaginer
             {
                 //Add any flags as char array to WordInfo.
                 int marcation = Language.Flagging.FlagIndex(word.WordActual);
-                string flags = word.WordActual.Substring(marcation, word.WordActual.Length - marcation); //May need + Flagging.Marcation.Length to startIndex.
+                string flags = word.WordActual.Substring(marcation + Language.Flagging.Marcation.Length,
+                    word.WordActual.Length - (marcation + Language.Flagging.Marcation.Length)); //May need + Flagging.Marcation.Length to startIndex.
                 string flagsFinal = string.Empty;
 
                 foreach (char c in flags)
-                {
-                    if (Language.Flagging.Flags.ContainsKey(c))
-                        flagsFinal += c;
-                }
+                     flagsFinal += c;
 
                 word.Flags = flagsFinal.ToCharArray();
+                word.WordStripped = word.WordActual.Substring(0, word.WordActual.Length - (Language.Flagging.Marcation.Length + word.Flags.Length));
             }
         }
         /// <summary>
@@ -214,7 +219,11 @@ namespace LanguageReimaginer
         private void CheckFlags(WordInfo word)
         {
             //Set generator-level flags.
-            if (word.Flags?.Any() == true && word.Flags.Contains('X') == true) skipGeneration = true;
+            if (word.Flags?.Any() == true && word.Flags.Contains('X') == true)
+            {
+                skipGeneration = true;
+                word.WordGenerated = word.WordStripped;
+            }
             if (word.Flags?.Any() == true && word.Flags.Contains('x') == true) skipLexemes = true;
         }
         #endregion
@@ -229,7 +238,7 @@ namespace LanguageReimaginer
         /// <param name="word"></param>
         private void CheckLexiconInflection(WordInfo word)
         {
-            if (Language.Lexicon.Inflections.ContainsKey(word.WordActual))
+            if (Language.Lexicon.Inflections.ContainsKey(word.WordStripped))
                 skipGeneration = skipLexemes = ProcessLexiconInflections(word);
         }
         /// <summary>
@@ -259,13 +268,13 @@ namespace LanguageReimaginer
         private void ProcessLexemes(WordInfo word)
         {
             //Extract affixes.
-            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordActual).ToArray();
-            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordActual).ToArray();
+            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordStripped).ToArray();
+            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordStripped).ToArray();
 
             //Strip word to root.
             int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
             int suffixLength = word.Suffixes.Sum((a) => a.Key.Length);
-            word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
+            word.WordRoot = word.WordStripped.Substring(prefixLength, word.WordStripped.Length - suffixLength);
         }
         /// <summary>
         /// The affixes are assembled and set in order.
@@ -328,8 +337,22 @@ namespace LanguageReimaginer
         }
         private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
         {
-            //Temporary
-            return Language.Structure.SigmaTemplates[Random.Next(0, Language.Structure.SigmaTemplates.Count)];
+            double weight = 0;
+
+            //if (lastSigma.Coda != null || lastSigma.Coda.Count > 0)
+
+
+            weight = Random.NextDouble() * Language.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
+
+            foreach (Sigma s in Language.Structure.Templates)
+            {
+                weight -= s.Weight.SelectionWeight;
+
+                if (weight <= 0)
+                    return s;
+            }
+
+            return null;
         }
         /// <summary>
         /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).

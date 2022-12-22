@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data.Elements
+namespace PLGL.Data.Elements
 {
     /// <summary>
     /// A class used by generation to fill with word information when deconstructing a word.
@@ -17,7 +17,7 @@ namespace LanguageReimaginer.Data.Elements
         /// </summary>
         public string WordActual { get; set; } = string.Empty;
         /// <summary>
-        /// The word, split of all punctuation.
+        /// The word, split of all punctuation and flags.
         /// </summary>
         public string WordStripped { get; set; } = string.Empty;
         /// <summary>
@@ -29,7 +29,7 @@ namespace LanguageReimaginer.Data.Elements
         /// <summary>
         /// The word's stored punctuation.
         /// </summary>
-        public char[] Punctuation { get; set; }
+        public PunctuationMark[] Marks { get; set; }
         /// <summary>
         /// The word's flags. Processed by Flagging.
         /// </summary>

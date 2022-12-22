@@ -1,11 +1,11 @@
-﻿using LanguageReimaginer.Data.Elements;
+﻿using PLGL.Data.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data
+namespace PLGL.Data
 {
     /// <summary>
     /// Tells the generator how to structure a word, starting with the syllable (sigma), and the valid lettrs inside those sigma.
@@ -33,7 +33,7 @@ namespace LanguageReimaginer.Data
         /// <summary>
         /// The possible syllable pattern that the generator may choose.
         /// </summary>
-        public List<Sigma> SigmaTemplates { get; private set; } = new List<Sigma>();
+        public List<Sigma> Templates { get; private set; } = new List<Sigma>();
 
         /// <summary>
         /// Any of these strings can be empty without issue (except the nucleus).
@@ -42,14 +42,29 @@ namespace LanguageReimaginer.Data
         /// <param name="nucleus"></param>
         /// <param name="coda"></param>
         /// <param name="weights"></param>
-        public void AddSigma(string onset, string nucleus, string coda, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(onset, nucleus, coda) { Weight = weights }); }
-        public void AddSigmaVC(string nucleus, string coda, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(string.Empty, nucleus, coda) { Weight = weights }); }
-        public void AddSigmaCV(string onset, string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(onset, nucleus, string.Empty) { Weight = weights }); }
-        public void AddSigmaV(string nucleus, SigmaWeight weights) { SigmaTemplates.Add(new Sigma(string.Empty, nucleus, string.Empty) { Weight = weights }); }
+        public void AddSigma(string onset, string nucleus, string coda, SigmaPath weights) { Templates.Add(new Sigma(onset, nucleus, coda) { Weight = weights }); }
+        public void AddSigmaVC(string nucleus, string coda, SigmaPath weights) { Templates.Add(new Sigma(string.Empty, nucleus, coda) { Weight = weights }); }
+        public void AddSigmaCV(string onset, string nucleus, SigmaPath weights) { Templates.Add(new Sigma(onset, nucleus, string.Empty) { Weight = weights }); }
+        public void AddSigmaV(string nucleus, SigmaPath weights) { Templates.Add(new Sigma(string.Empty, nucleus, string.Empty) { Weight = weights }); }
+
+        public List<LetterPath> SigmaPaths { get; private set; } = new List<LetterPath>();
+
+        public void AddSigmaPath(Sigma previous, WordPosition position, params (Sigma, double)[] sigmaWeights)
+        {
+
+        }
+        public (double, Sigma)[] GetPotentialSigma(Sigma lastSigma)
+        {
+            List<(double, Sigma)> results = new List<(double, Sigma)>();
+            //List<Sigma> filter = ;
 
 
-        public List<LetterPath> Pathways { get; private set; } = new List<LetterPath>();
-        public void AddPath(char letter, WordPosition wordPos, SigmaPosition sigmaPos, params (char, double)[] letterWeights)
+            return results.ToArray();
+        }
+
+        public List<LetterPath> LetterPaths { get; private set; } = new List<LetterPath>();
+
+        public void AddLetterPath(char letter, WordPosition wordPos, SigmaPosition sigmaPos, params (char, double)[] letterWeights)
         {
             LetterPath path = new LetterPath();
 
@@ -58,12 +73,11 @@ namespace LanguageReimaginer.Data
             path.SigmaPosition = sigmaPos;
             path.Next.AddRange(letterWeights);
 
-            Pathways.Add(path);
+            LetterPaths.Add(path);
         }
-
         /// <summary>
-        /// Returns the possible paths based on the generator's current word position, sigma position, and the last letter generated.
-        /// This is sorted by 
+        /// Returns the possible paths based on the generator's last generated letter, word position, and then sigma position.
+        /// Finally, it's sorted by word and sigma position.
         /// </summary>
         /// <param name="previous"></param>
         /// <param name="wordPos"></param>
@@ -79,9 +93,9 @@ namespace LanguageReimaginer.Data
             //  1. Word position.
             //  2. Sigma position.
 
-            return Pathways.Where<LetterPath>(l => l.Previous == previous)
+            return LetterPaths.Where<LetterPath>(l => l.Previous == previous)
                 .Where<LetterPath>((l) => (l.WordPosition == wordPos || l.WordPosition == WordPosition.Any))
-                .Where<LetterPath>((l) => (l.SigmaPosition == sigmaPos || l.SigmaPosition == SigmaPosition.Any))//.ToArray();
+                .Where<LetterPath>((l) => (l.SigmaPosition == sigmaPos || l.SigmaPosition == SigmaPosition.Any))
                 .OrderBy(l => l.WordPosition.CompareTo(wordPos)).ThenBy(l => l.SigmaPosition.CompareTo(sigmaPos)).ToArray();
         }
     }

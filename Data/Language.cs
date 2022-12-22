@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data
+namespace PLGL.Data
 {
     /// <summary>
     /// Language showcasing:

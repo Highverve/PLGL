@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data
+namespace PLGL.Data
 {
     /// <summary>
     /// This class answers the question: "What do we do with punctuation marks?"
@@ -19,8 +19,8 @@ namespace LanguageReimaginer.Data
     public class Punctuation
     {
     }
+    public enum MarkLocation { InsideWord, OutsideWord }
     public class PunctuationMark
     {
-
     }
 }

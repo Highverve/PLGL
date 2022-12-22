@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data.Elements
+namespace PLGL.Data.Elements
 {
     public class Sigma
     {
@@ -29,7 +29,7 @@ namespace LanguageReimaginer.Data.Elements
         /// </summary>
         public SigmaBlock Coda { get; set; }
 
-        public SigmaWeight Weight { get; set; }
+        public SigmaPath Weight { get; set; }
 
         /// <summary>
         /// Returns the letter pattern structure of the syllable (sigma).
@@ -85,6 +85,8 @@ namespace LanguageReimaginer.Data.Elements
             this.Nucleus.Template = Nucleus;
             this.Coda.Template = Coda;
         }
+
+        public override string ToString() { return Structure() +"[" + Count() + "]"; }
     }
 
     public enum BlockType { Onset, Nucleus, Medial, Coda }
@@ -109,7 +111,7 @@ namespace LanguageReimaginer.Data.Elements
         }
     }
 
-    public class SigmaWeight
+    public class SigmaPath
     {
         /// <summary>
         /// How likely the generator will choose this sigma. Default is 1.0.

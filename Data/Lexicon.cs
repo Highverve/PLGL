@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LanguageReimaginer.Data
+namespace PLGL.Data
 {
     /// <summary>
     /// A constraining class, that aims to answer a tricky question: "How do we handle lexemes?"
@@ -66,13 +66,14 @@ namespace LanguageReimaginer.Data
             return results;
         }
     }
-    public class Affix// "What if the sentence-s were type-d like this? Would it be problem-atic? Inter-est-ing-ly. Commune-al."
+    public class Affix
     {
         public string Key { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
 
         public enum AffixType { Prefix, Suffix }
         public enum LocationType { Start, End }
+        public int Order { get; set; }
         public bool IsGenerated { get; set; } = false;
 
         /// <summary>
@@ -84,12 +85,13 @@ namespace LanguageReimaginer.Data
         /// </summary>
         public LocationType Location { get; set; }
 
-        public Affix(string Key, string Value, AffixType Affixation, LocationType Location)
+        public Affix(string Key, string Value, AffixType Affixation, LocationType Location, int Order)
         {
             this.Key = Key;
             this.Value = Value;
             this.Affixation = Affixation;
             this.Location = Location;
+            this.Order = Order;
         }
         /// <summary>
         /// With this constructor, the affix's value will be procedurally generated, like a regular word.
@@ -97,7 +99,7 @@ namespace LanguageReimaginer.Data
         /// <param name="Key"></param>
         /// <param name="Affixation"></param>
         /// <param name="Location"></param>
-        public Affix(string Key, AffixType Affixation, LocationType Location) : this(Key, "", Affixation, Location)
+        public Affix(string Key, AffixType Affixation, LocationType Location, int Order) : this(Key, "", Affixation, Location, Order)
         {
             IsGenerated = true;
         }
