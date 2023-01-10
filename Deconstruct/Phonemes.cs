@@ -1,11 +1,10 @@
-﻿using PLGL.Data.Elements;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data
+namespace PLGL
 {
     /// <summary>
     /// An optional class, used to build a reference guide for pronunciation.

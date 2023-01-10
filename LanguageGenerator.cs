@@ -1,6 +1,8 @@
-﻿using PLGL.Data;
-using PLGL.Data.Elements;
+﻿using PLGL.Construct;
+using PLGL.Construct.Elements;
+using PLGL.Deconstruct;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -8,14 +10,29 @@ namespace PLGL
 {
     public class LanguageGenerator
     {
+        public Deconstructor Deconstruct { get; private set; } = new Deconstructor();
+
         StringBuilder sentenceBuilder = new StringBuilder();
+        List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
+
+        //Allows deconstructed blocks to be merged, or whatever else. "Let's" gets split into three blocks, when it should be one.
+        public delegate void OnDeconstruct(CharacterBlock current, CharacterBlock adjacentLeft, CharacterBlock adjacentRight);
+        public delegate void OnConstruct(WordInfo word);
+        //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
+        //E.g, adding a vowel for smooth vocal transitions.
+        public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+        public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+
+        public event OnConstruct ConstructFilter;
 
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
         /// </summary>
         public Func<string, int> SigmaCount { get; set; }
-        private bool skipGeneration, skipLexemes;
+        public Func<string, string> Capitalize { get; set; }
+        public Func<string, string> Uppercase { get; set; }
+        public Func<string, string> RandomCase { get; set; }
 
         #region Language management
         public Language Language { get; set; }
@@ -66,63 +83,37 @@ namespace PLGL
         {
             //Clear class-level variables for the next sentence.
             sentenceBuilder.Clear();
+            blocks.Clear();
             wordInfo.Clear();
 
-            /* Pre: Split words by delimiter and add to WordInfo list.
+            blocks = Deconstruct.Deconstruct(sentence);
 
-            //Deconstructing a word.
-            //1. Punctuation marks. Loop through WordInfo list, isolate all punctuation marks (e.g., comma, or quote/comma),
-            //   add punctuation to WordInfo.
-            //2. Flagging. Check for flag marcation, add flags to WordInfo, process flags.
-            //3. Lexemes. Check for affixes, add prefixes and suffixes to WordInfo.
-
-            //Constructing a new word.
-            //4. Estimate sigma (syllable) count by checking the boundaries of "VC" and "CV".
-            //5. Generate sigma structure; by length of actual sigma count * sigma weight. "CCV·VC·VC·CV"
-            //6. The first letter of the word is chosen; by first sigma's C/V, then by start letter weight.
-            //7. The next letters are chosen, according to the pathways set by the language author.
-
-            //Combining together.
-            //8. The sigmas of the root word are combined in order.
-            //9. The new affixes are retrieved and placed in order.
-            //10. The new punctuation marks are adding to the end of the word.*/
-
-            //This should split a word by the delimiters, and then leave the delimiter at the end.
-            string[] words = sentence.Split(Language.Options.Delimiters);//Regex.Split(sentence, "@\"(?<=[" + string.Join("", Language.Options.Delimiters) + "])\"");
-            AddWordInfo(words);
+            AddWordInfo(blocks);
             LinkWords();
 
             foreach (WordInfo word in wordInfo)
             {
-                //Added in case no flags or punctuation marks are found.
-                word.WordStripped = word.WordActual;
+                ProcessLexiconInflections(word);
 
-                skipGeneration = false;
-                skipLexemes = false;
+                ProcessLexemes(word);
+                AssembleLexemes(word);
 
-                //The word is checked for flags. If any, the flags are processed and stripped.
-                ParseFlags(word);
-                CheckFlags(word);
-
-                if (skipGeneration == false && skipLexemes == false)
-                {
-                    CheckLexiconInflection(word);
-
-                    ProcessLexemes(word);
-                    AssembleLexemes(word);
-                }
-                else word.WordRoot = word.WordStripped;
-
-                CheckLexiconRoot(word);
+                ProcessLexiconRoots(word);
 
                 //The foundation of the generator. Initializes a new Random using the root word as its seed.
                 SetRandom(word.WordRoot);
 
-                if (skipGeneration == false)
+                if (word.Filter.Name.ToUpper() == "LETTERS")
                 {
-                    SelectSigmaStructures(word);
-                    PopulateWord(word);
+                    if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) == false &&
+                    Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot) == false)
+                    {
+                        SelectSigmaStructures(word);
+                        PopulateWord(word);
+                    }
                 }
+                else
+                    word.WordGenerated = word.WordActual;
 
                 //Put the word together.
                 word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
@@ -131,9 +122,14 @@ namespace PLGL
             }
 
             //Compile the sentence.
-            foreach(WordInfo word in wordInfo)
-                sentenceBuilder.Append(word.WordFinal + ' ');
-
+            for (int i = 0; i < wordInfo.Count; i++)// WordInfo word in wordInfo)
+            {
+                //Capitalize it. This should be a smarter process, of course.
+                if (i == 0)
+                    sentenceBuilder.Append(char.ToUpper(wordInfo[i].WordFinal[0]) + wordInfo[i].WordFinal.Substring(1));
+                else
+                    sentenceBuilder.Append(wordInfo[i].WordFinal);
+            }
             //Return the result.
             info = wordInfo;
             return sentenceBuilder.ToString();
@@ -165,12 +161,13 @@ namespace PLGL
         /// Loops through each word, and adds it to wordInfo.
         /// </summary>
         /// <param name="words"></param>
-        private void AddWordInfo(string[] words)
+        private void AddWordInfo(List<CharacterBlock> blocks)
         {
-            foreach (string s in words)
+            foreach (CharacterBlock b in blocks)
             {
                 WordInfo word = new WordInfo();
-                word.WordActual = s;
+                word.WordActual = b.Text;
+                word.Filter = b.Filter;
 
                 wordInfo.Add(word);
             }
@@ -190,75 +187,17 @@ namespace PLGL
         }
         #endregion
 
-        #region Flagging
-        /// <summary>
-        /// Checks if a word contains the flag marcation, parses all characters after it, and sets word.Flags to gathered flags.
-        /// </summary>
-        /// <param name="word"></param>
-        private void ParseFlags(WordInfo word)
-        {
-            if (Language.Flagging.ContainsFlag(word.WordActual))
-            {
-                //Add any flags as char array to WordInfo.
-                int marcation = Language.Flagging.FlagIndex(word.WordActual);
-                string flags = word.WordActual.Substring(marcation + Language.Flagging.Marcation.Length,
-                    word.WordActual.Length - (marcation + Language.Flagging.Marcation.Length)); //May need + Flagging.Marcation.Length to startIndex.
-                string flagsFinal = string.Empty;
-
-                foreach (char c in flags)
-                     flagsFinal += c;
-
-                word.Flags = flagsFinal.ToCharArray();
-                word.WordStripped = word.WordActual.Substring(0, word.WordActual.Length - (Language.Flagging.Marcation.Length + word.Flags.Length));
-            }
-        }
-        /// <summary>
-        /// Checks if a word has any two flags: (X)Skip Generation, (x)Skip Lexemes
-        /// </summary>
-        /// <param name="word"></param>
-        private void CheckFlags(WordInfo word)
-        {
-            //Set generator-level flags.
-            if (word.Flags?.Any() == true && word.Flags.Contains('X') == true)
-            {
-                skipGeneration = true;
-                word.WordGenerated = word.WordStripped;
-            }
-            if (word.Flags?.Any() == true && word.Flags.Contains('x') == true) skipLexemes = true;
-        }
-        #endregion
-
-        #region Punctuation
-        #endregion
 
         #region Lexicon (and inflections) — Affixes, root extraction, custom words
-        /// <summary>
-        /// Checks inflection-level lexicon for matches. If there's a match, skip procedural generation and lexeme processing.
-        /// </summary>
-        /// <param name="word"></param>
-        private void CheckLexiconInflection(WordInfo word)
+        private void ProcessLexiconInflections(WordInfo word)
         {
-            if (Language.Lexicon.Inflections.ContainsKey(word.WordStripped))
-                skipGeneration = skipLexemes = ProcessLexiconInflections(word);
+            if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual))
+                word.WordGenerated = Language.Deconstruction.Lexicon.Inflections[word.WordActual];
         }
-        /// <summary>
-        /// Checks root-level lexicon for matches. If there's a match, skip procedural generation.
-        /// </summary>
-        /// <param name="word"></param>
-        private void CheckLexiconRoot(WordInfo word)
+        private void ProcessLexiconRoots(WordInfo word)
         {
-            if (Language.Lexicon.Roots.ContainsKey(word.WordRoot))
-                skipGeneration = ProcessLexiconRoots(word);
-        }
-        private bool ProcessLexiconInflections(WordInfo word)
-        {
-            word.WordGenerated = Language.Lexicon.Inflections[word.WordActual];
-            return true;
-        }
-        private bool ProcessLexiconRoots(WordInfo word)
-        {
-            word.WordGenerated = Language.Lexicon.Roots[word.WordRoot];
-            return true;
+            if (Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot))
+                word.WordGenerated = Language.Deconstruction.Lexicon.Roots[word.WordRoot];
         }
         
         /// <summary>
@@ -268,13 +207,13 @@ namespace PLGL
         private void ProcessLexemes(WordInfo word)
         {
             //Extract affixes.
-            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordStripped).ToArray();
-            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordStripped).ToArray();
+            word.Prefixes = Language.Deconstruction.Lexicon.GetPrefixes(word.WordActual).ToArray();
+            word.Suffixes = Language.Deconstruction.Lexicon.GetSuffixes(word.WordActual).ToArray();
 
             //Strip word to root.
             int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
             int suffixLength = word.Suffixes.Sum((a) => a.Key.Length);
-            word.WordRoot = word.WordStripped.Substring(prefixLength, word.WordStripped.Length - suffixLength);
+            word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
         }
         /// <summary>
         /// The affixes are assembled and set in order.
@@ -294,8 +233,8 @@ namespace PLGL
         /// <param name="word"></param>
         private void LexiconMemorize(WordInfo word)
         {
-            if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
-                Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
+            if (Language.Options.MemorizeWords == true && Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
+                Language.Deconstruction.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
         }
         #endregion
 
@@ -342,9 +281,9 @@ namespace PLGL
             //if (lastSigma.Coda != null || lastSigma.Coda.Count > 0)
 
 
-            weight = Random.NextDouble() * Language.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
+            weight = Random.NextDouble() * Language.Construction.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
 
-            foreach (Sigma s in Language.Structure.Templates)
+            foreach (Sigma s in Language.Construction.Structure.Templates)
             {
                 weight -= s.Weight.SelectionWeight;
 
@@ -422,15 +361,15 @@ namespace PLGL
         private void PopulateWord(WordInfo word)
         {
             //Select starting letter according to letter weights.
-            if (word.SigmaInfo[0].First().Type == BlockType.Nucleus)
+            if (word.SigmaInfo[0].First().Type == SigmaType.Nucleus)
                 word.WordGenerated += SelectFirstVowel();
             else
                 word.WordGenerated += SelectFirstConsonant();
 
             int onsetOffset = 0, nucleusOffset = 0;
-            if (word.SigmaInfo.First().First().Type == BlockType.Onset)
+            if (word.SigmaInfo.First().First().Type == SigmaType.Onset)
                 onsetOffset = word.WordGenerated.Length;
-            if (word.SigmaInfo.First().First().Type == BlockType.Nucleus)
+            if (word.SigmaInfo.First().First().Type == SigmaType.Nucleus)
                 nucleusOffset = word.WordGenerated.Length;
 
             foreach (SigmaInfo s in word.SigmaInfo)
@@ -453,9 +392,9 @@ namespace PLGL
         }
         private char SelectFirstVowel()
         {
-            double weight = Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
+            double weight = Random.NextDouble() * Language.Construction.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
 
-            foreach (Vowel v in Language.Alphabet.Vowels.Values)
+            foreach (Vowel v in Language.Construction.Alphabet.Vowels.Values)
             {
                 weight -= v.StartWeight;
 
@@ -467,9 +406,9 @@ namespace PLGL
         }
         private char SelectFirstConsonant()
         {
-            double weight = Random.NextDouble() * Language.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
+            double weight = Random.NextDouble() * Language.Construction.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
 
-            foreach (Consonant c in Language.Alphabet.Consonants.Values)
+            foreach (Consonant c in Language.Construction.Alphabet.Consonants.Values)
             {
                 weight -= c.StartWeight;
 
@@ -481,12 +420,12 @@ namespace PLGL
         }
         private char SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
         {
-            LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
+            LetterPath[] potentials = Language.Construction.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
             LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
 
             List<(char, double)> filter = isVowel ?
-                chosen.Next.Where(x => Language.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
-                chosen.Next.Where(x => Language.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
+                chosen.Next.Where(x => Language.Construction.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
+                chosen.Next.Where(x => Language.Construction.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
 
             double weight = Random.NextDouble() * filter.Sum(w => w.Item2);
 

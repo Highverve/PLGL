@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data
+namespace PLGL.Deconstruct
 {
     /// <summary>
     /// This class answers the question: "What do we do with punctuation marks?"

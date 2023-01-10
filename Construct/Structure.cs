@@ -1,11 +1,11 @@
-﻿using PLGL.Data.Elements;
+﻿using PLGL.Construct.Elements;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data
+namespace PLGL.Construct
 {
     /// <summary>
     /// Tells the generator how to structure a word, starting with the syllable (sigma), and the valid lettrs inside those sigma.

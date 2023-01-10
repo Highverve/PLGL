@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PLGL.Data.Elements;
+using PLGL.Construct.Elements;
 
-namespace PLGL.Data
+namespace PLGL.Construct
 {
     public record class Alphabet
     {

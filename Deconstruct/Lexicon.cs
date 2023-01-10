@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data
+namespace PLGL.Deconstruct
 {
     /// <summary>
     /// A constraining class, that aims to answer a tricky question: "How do we handle lexemes?"

@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PLGL.Deconstruct;
+using PLGL.Construct;
 
-namespace PLGL.Data
+namespace PLGL
 {
     /// <summary>
     /// Language showcasing:
@@ -35,21 +37,37 @@ namespace PLGL.Data
 
         public LanguageOptions Options { get; set; } = new LanguageOptions();
 
-        //Ordered by the simplest components to the most complex.
-        public Alphabet Alphabet { get; private set; }
-        public Structure Structure { get; private set; }
+        public Deconstruction Deconstruction { get; private set; }
+        public Construction Construction { get; private set; }
 
+        public Language()
+        {
+            Deconstruction = new Deconstruction();
+            Construction = new Construction();
+        }
+    }
+    public class Deconstruction
+    {
         public Lexicon Lexicon { get; private set; }
         public Flagging Flagging { get; private set; }
         public Punctuation Punctuation { get; private set; }
 
-        public Language()
+        public Deconstruction()
         {
-            Alphabet = new Alphabet();
-            Structure = new Structure();
             Lexicon = new Lexicon();
             Flagging = new Flagging();
             Punctuation = new Punctuation();
+        }
+    }
+    public class Construction
+    {
+        public Alphabet Alphabet { get; private set; }
+        public Structure Structure { get; private set; }
+
+        public Construction()
+        {
+            Alphabet = new Alphabet();
+            Structure = new Structure();
         }
     }
     public class LanguageOptions
@@ -98,6 +116,9 @@ namespace PLGL.Data
         /// All lowercase consonants in your input language. This is for estimating syllable count, and defaults to english.
         /// </summary>
         public char[] InputConsonants { get; set; } = "bcdfghjklmnpqrstvwxyz".ToArray();
+        /// <summary>
+        /// All lowercase vowels in your input language. This is for estimating syllable count, and defaults to english.
+        /// </summary>
         public char[] InputVowels { get; set; } = "aeiou".ToArray();
         /// <summary>
         /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.6

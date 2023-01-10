@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data.Elements
+namespace PLGL.Construct.Elements
 {
     public class Sigma
     {
@@ -76,10 +76,10 @@ namespace PLGL.Data.Elements
         /// <param name="Coda">The end part of the sigma, containing consonants. For readability, set to some count of "C", "CC", etc.</param>
         public Sigma(string Onset, string Nucleus, string Coda)
         {
-            this.Onset = new SigmaBlock() { Type = BlockType.Onset };
-            this.Nucleus = new SigmaBlock() { Type = BlockType.Nucleus };
-            this.Medial = new SigmaBlock() { Type = BlockType.Medial };
-            this.Coda = new SigmaBlock() { Type = BlockType.Coda };
+            this.Onset = new SigmaBlock() { Type = SigmaType.Onset };
+            this.Nucleus = new SigmaBlock() { Type = SigmaType.Nucleus };
+            this.Medial = new SigmaBlock() { Type = SigmaType.Medial };
+            this.Coda = new SigmaBlock() { Type = SigmaType.Coda };
 
             this.Onset.Template = Onset;
             this.Nucleus.Template = Nucleus;
@@ -89,10 +89,10 @@ namespace PLGL.Data.Elements
         public override string ToString() { return Structure() +"[" + Count() + "]"; }
     }
 
-    public enum BlockType { Onset, Nucleus, Medial, Coda }
+    public enum SigmaType { Onset, Nucleus, Medial, Coda }
     public class SigmaBlock
     {
-        public BlockType Type { get; internal set; }
+        public SigmaType Type { get; internal set; }
 
         /// <summary>
         /// Determines how many consonants (Block Type.Onset or Type.Coda) or vowels (Block Type.Nucleus) the generator creates in this part of the sigma.
@@ -106,7 +106,7 @@ namespace PLGL.Data.Elements
         /// </summary>
         public string Template
         {
-            get { return (Type == BlockType.Nucleus) ? new string('V', Count) : new string('C', Count); }
+            get { return (Type == SigmaType.Nucleus) ? new string('V', Count) : new string('C', Count); }
             set { Count = value.Length; }
         }
     }

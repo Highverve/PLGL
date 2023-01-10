@@ -3,37 +3,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PLGL.Deconstruct;
+using PLGL.Construct;
 
-namespace PLGL.Data.Elements
+namespace PLGL.Construct.Elements
 {
+    //public enum Capitalization { First, all }
+
     /// <summary>
     /// A class used by generation to fill with word information when deconstructing a word.
     /// This class is particularly useful to pass to generators for additional context to their work.
     /// </summary>
     public class WordInfo
     {
+        public CharacterFilter Filter { get; set; }
+
         /// <summary>
         /// The word, as it's just been split from the string.
         /// </summary>
         public string WordActual { get; set; } = string.Empty;
         /// <summary>
-        /// The word, split of all punctuation and flags.
-        /// </summary>
-        public string WordStripped { get; set; } = string.Empty;
-        /// <summary>
         /// The word, split of all affixes.
         /// </summary>
         public string WordRoot { get; set; } = string.Empty;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        /// <summary>
-        /// The word's stored punctuation.
-        /// </summary>
-        public PunctuationMark[] Marks { get; set; }
-        /// <summary>
-        /// The word's flags. Processed by Flagging.
-        /// </summary>
-        public char[] Flags { get; set; }
         /// <summary>
         /// The word's prefixes. Processed by Lexemes.
         /// </summary>
@@ -42,12 +35,11 @@ namespace PLGL.Data.Elements
         /// The word's suffixes. Processed by Lexemes.
         /// </summary>
         public Affix[] Suffixes { get; set; }
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-
         public string WordPrefixes { get; set; } = string.Empty;
         public string WordSuffixes { get; set; } = string.Empty;
+
         /// <summary>
-        /// The generated word. Lexemes, punctuation, and flagging unincluded.
+        /// The generated word, lexemes unincluded.
         /// </summary>
         public string WordGenerated { get; set; } = string.Empty;
         /// <summary>

@@ -53,7 +53,9 @@
     - Deleted RandomGenerator, moving it's components into LanguageGenerator.
     - Moved LanguageGenerator a level above the Operators folder, and deleted that folder.
     - Cleaned up the LanguageGenerator.Generate method even further. A few aspects of the method have been separated out into new methods for enhanced clarity.
-### 2022-12-21:
+### 2022-1-9:
     - Added simple weight distribution to sigma selection.
-    - Improved flagging. Now it actually works, and plays nicely with lexeme deconstruction.
-    - 
+    - Outdated: Improved flagging. Now it actually works, and plays nicely with lexeme deconstruction.
+    - Radically improved how a sentence is deconstructed with the *Deconstructor* class. Custom filters (with name and char array).
+    - Added delegates/events to LanguageGenerator, for customizable behavior. I just need to hook them up properly.
+    - Removed flagging from LanguageGenerator. Punctuation is effectively handled through the deconstruction process; yet custom changes to punctuation will look very similar to how lexemes are processed.

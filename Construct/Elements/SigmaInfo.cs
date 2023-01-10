@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data.Elements
+namespace PLGL.Construct.Elements
 {
     /// <summary>
     /// A class used by generation to fill with syllable information when constructing a word.

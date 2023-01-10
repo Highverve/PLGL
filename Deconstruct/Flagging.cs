@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Data
+namespace PLGL.Deconstruct
 {
     /// <summary>
     /// Markers allow the end-user to specify custom behaviour.
