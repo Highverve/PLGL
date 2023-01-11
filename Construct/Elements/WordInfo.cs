@@ -16,28 +16,33 @@ namespace PLGL.Construct.Elements
     /// </summary>
     public class WordInfo
     {
+        /// <summary>
+        /// Set by the generator after it's been fully processed.
+        /// </summary>
+        public bool IsProcessed { get; set; }
+
         public CharacterFilter Filter { get; set; }
+        /// <summary>
+        /// This will always be null for the first word in a sentence. Account for it.
+        /// </summary>
+        public WordInfo? AdjacentLeft { get; set; } = null;
+        /// <summary>
+        /// This will always be null for the last word in a sentence. Account for it.
+        /// </summary>
+        public WordInfo? AdjacentRight { get; set; } = null;
+        /// <summary>
+        /// Populated by the generator.
+        /// </summary>
+        public List<SigmaInfo> SigmaInfo { get; set; } = new List<SigmaInfo>();
 
         /// <summary>
-        /// The word, as it's just been split from the string.
+        /// The character block, as it's been deconstructed from the sentence.
         /// </summary>
         public string WordActual { get; set; } = string.Empty;
         /// <summary>
         /// The word, split of all affixes.
         /// </summary>
         public string WordRoot { get; set; } = string.Empty;
-
-        /// <summary>
-        /// The word's prefixes. Processed by Lexemes.
-        /// </summary>
-        public Affix[] Prefixes { get; set; }
-        /// <summary>
-        /// The word's suffixes. Processed by Lexemes.
-        /// </summary>
-        public Affix[] Suffixes { get; set; }
-        public string WordPrefixes { get; set; } = string.Empty;
-        public string WordSuffixes { get; set; } = string.Empty;
-
         /// <summary>
         /// The generated word, lexemes unincluded.
         /// </summary>
@@ -47,18 +52,12 @@ namespace PLGL.Construct.Elements
         /// </summary>
         public string WordFinal { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Set automatically by the generator.
-        /// </summary>
-        public List<SigmaInfo> SigmaInfo { get; set; } = new List<SigmaInfo>();
+        public Affix[] Prefixes { get; set; }
+        public Affix[] Suffixes { get; set; }
+        public string WordPrefixes { get; set; } = string.Empty;
+        public string WordSuffixes { get; set; } = string.Empty;
 
-        /// <summary>
-        /// This will always be null for the first word in a sentence. Account for it.
-        /// </summary>
-        public WordInfo? AdjacentLeft { get; set; } = null;
-        /// <summary>
-        /// This will always be null for the last word in a sentence. Account for it.
-        /// </summary>
-        public WordInfo? AdjacentRight { get; set; } = null;
+        public enum CaseType { Lowercase, Capitalize, Uppercase, RandomCase }
+        public CaseType Case { get; set; } = CaseType.Lowercase;
     }
 }

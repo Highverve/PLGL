@@ -59,3 +59,6 @@
     - Radically improved how a sentence is deconstructed with the *Deconstructor* class. Custom filters (with name and char array).
     - Added delegates/events to LanguageGenerator, for customizable behavior. I just need to hook them up properly.
     - Removed flagging from LanguageGenerator. Punctuation is effectively handled through the deconstruction process; yet custom changes to punctuation will look very similar to how lexemes are processed.
+### 2022-1-10:
+    - Hooked up a few events into the word generation method. You can now effectively decide what happens to which filter types, as defined by the user. Very powerful, flexible, and well-defined. Feels good.
+    - Generated words match the case of the original word as closely as possible: lowercase (default), uppercase, capitalize, or random case.

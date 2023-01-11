@@ -8,6 +8,15 @@ using System.Text.RegularExpressions;
 
 namespace PLGL
 {
+    /// <summary>
+    /// Allows deconstructed blocks to be merged, or whatever else. "Let's" gets split into three blocks, when it should be one.
+    /// </summary>
+    /// <param name="current"></param>
+    /// <param name="adjacentLeft"></param>
+    /// <param name="adjacentRight"></param>
+    public delegate void OnDeconstruct(LanguageGenerator lg, CharacterBlock current, CharacterBlock adjacentLeft, CharacterBlock adjacentRight);
+    public delegate void OnConstruct(LanguageGenerator lg, WordInfo word);
+
     public class LanguageGenerator
     {
         public Deconstructor Deconstruct { get; private set; } = new Deconstructor();
@@ -16,26 +25,43 @@ namespace PLGL
         List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
 
-        //Allows deconstructed blocks to be merged, or whatever else. "Let's" gets split into three blocks, when it should be one.
-        public delegate void OnDeconstruct(CharacterBlock current, CharacterBlock adjacentLeft, CharacterBlock adjacentRight);
-        public delegate void OnConstruct(WordInfo word);
         //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
         //E.g, adding a vowel for smooth vocal transitions.
         public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
         public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
 
-        public event OnConstruct ConstructFilter;
-
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
         /// </summary>
         public Func<string, int> SigmaCount { get; set; }
-        public Func<string, string> Capitalize { get; set; }
-        public Func<string, string> Uppercase { get; set; }
-        public Func<string, string> RandomCase { get; set; }
+        public Action<WordInfo> Capitalize { get; set; } = (w) => { w.WordFinal = char.ToUpper(w.WordFinal[0]) + w.WordFinal.Substring(1); };
+        public Action<WordInfo> Uppercase { get; set; } = (w) => { w.WordFinal = w.WordFinal.ToUpper(); };
+        public Action<WordInfo> RandomCase { get; set; } = (w) =>
+        {
+            Random random = new Random();
+
+            string result = string.Empty;
+            for (int i = 0; i < w.WordFinal.Length; i++)
+            {
+                if (random.Next(100) > 50)
+                    result += char.ToUpper(w.WordFinal[i]);
+                else
+                    result += w.WordFinal[i];
+            }
+            w.WordFinal = result;
+        };
 
         #region Language management
-        public Language Language { get; set; }
+        private Language language;
+        public Language Language
+        {
+            get { return language; }
+            set
+            {
+                language = value;
+                Deconstruct.Language = Language;
+            }
+        }
         public Dictionary<string, Language> Languages { get; private set; } = new Dictionary<string, Language>();
 
         public void AddLanguage(string key, Language language)
@@ -56,7 +82,13 @@ namespace PLGL
         public int Seed { get; private set; }
         public Random Random { get; set; } = new Random();
 
-        private void SetRandom(string word)
+        /// <summary>
+        /// The foundation of the generator. Initializes a new Random using the root word as its seed.
+        /// This needs to be set in the letters filter in Language.Construction.ConstructFilter, before the call to generate a new word.
+        /// This should be set to the root word.
+        /// </summary>
+        /// <param name="word"></param>
+        public void SetRandom(string word)
         {
             Seed = WordSeed(word.ToUpper());
             Random = new Random(Seed);
@@ -87,49 +119,27 @@ namespace PLGL
             wordInfo.Clear();
 
             blocks = Deconstruct.Deconstruct(sentence);
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                CharacterBlock current = blocks[i], left = null, right = null;
+
+                if (i > 0) left = blocks[i - 1];
+                if (i < blocks.Count - 1) right = blocks[i + 1];
+
+                Language.Deconstruction.Deconstruct(this, current, left, right);
+            }
 
             AddWordInfo(blocks);
             LinkWords();
 
+            //Loop through every word, applying the filters
             foreach (WordInfo word in wordInfo)
-            {
-                ProcessLexiconInflections(word);
-
-                ProcessLexemes(word);
-                AssembleLexemes(word);
-
-                ProcessLexiconRoots(word);
-
-                //The foundation of the generator. Initializes a new Random using the root word as its seed.
-                SetRandom(word.WordRoot);
-
-                if (word.Filter.Name.ToUpper() == "LETTERS")
-                {
-                    if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) == false &&
-                    Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot) == false)
-                    {
-                        SelectSigmaStructures(word);
-                        PopulateWord(word);
-                    }
-                }
-                else
-                    word.WordGenerated = word.WordActual;
-
-                //Put the word together.
-                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
-
-                LexiconMemorize(word);
-            }
+                Language.Construction.ConstructFilter(this, word);
 
             //Compile the sentence.
-            for (int i = 0; i < wordInfo.Count; i++)// WordInfo word in wordInfo)
-            {
-                //Capitalize it. This should be a smarter process, of course.
-                if (i == 0)
-                    sentenceBuilder.Append(char.ToUpper(wordInfo[i].WordFinal[0]) + wordInfo[i].WordFinal.Substring(1));
-                else
-                    sentenceBuilder.Append(wordInfo[i].WordFinal);
-            }
+            for (int i = 0; i < wordInfo.Count; i++)
+                sentenceBuilder.Append(wordInfo[i].WordFinal);
+
             //Return the result.
             info = wordInfo;
             return sentenceBuilder.ToString();
@@ -185,19 +195,50 @@ namespace PLGL
                     wordInfo[i].AdjacentRight = wordInfo[i + 1];
             }
         }
+
+        public void CheckCase(WordInfo word)
+        {
+            bool firstLetter = false;
+            int upper = 0;
+            for (int i = 0; i < word.WordActual.Length; i++)
+            {
+                if (char.IsUpper(word.WordActual[i]))
+                {
+                    if (i == 0)
+                        firstLetter = true;
+                    upper++;
+                }
+            }
+
+            if (firstLetter == true && upper == 1)
+                word.Case = WordInfo.CaseType.Capitalize;
+            if (upper == word.WordActual.Length)
+                word.Case = WordInfo.CaseType.Uppercase;
+            //if (upper > 0 && upper < word.WordActual.Length)
+            //    word.Case = WordInfo.CaseType.RandomCase;
+        }
+        public void SetCase(WordInfo word)
+        {
+            switch (word.Case)
+            {
+                case WordInfo.CaseType.Capitalize: Capitalize(word); break;
+                case WordInfo.CaseType.Uppercase: Uppercase(word); break;
+                case WordInfo.CaseType.RandomCase: RandomCase(word); break;
+            }
+        }
         #endregion
 
 
         #region Lexicon (and inflections) — Affixes, root extraction, custom words
         private void ProcessLexiconInflections(WordInfo word)
         {
-            if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual))
-                word.WordGenerated = Language.Deconstruction.Lexicon.Inflections[word.WordActual];
+            if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
+                word.WordGenerated = Language.Deconstruction.Lexicon.Inflections[word.WordActual.ToLower()];
         }
         private void ProcessLexiconRoots(WordInfo word)
         {
-            if (Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot))
-                word.WordGenerated = Language.Deconstruction.Lexicon.Roots[word.WordRoot];
+            if (Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
+                word.WordGenerated = Language.Deconstruction.Lexicon.Roots[word.WordRoot.ToLower()];
         }
         
         /// <summary>
@@ -231,10 +272,28 @@ namespace PLGL
         /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Inflections.
         /// </summary>
         /// <param name="word"></param>
-        private void LexiconMemorize(WordInfo word)
+        public void LexiconMemorize(WordInfo word)
         {
             if (Language.Options.MemorizeWords == true && Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
                 Language.Deconstruction.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
+        }
+
+        /// <summary>
+        /// Add this to an if statement that surrounds word generation.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public bool LexiconContains(WordInfo word)
+        {
+            return Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) &&
+                    Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot);
+        }
+        public void Lexemes(WordInfo word)
+        {
+            ProcessLexiconInflections(word);
+            ProcessLexemes(word);
+            AssembleLexemes(word);
+            ProcessLexiconRoots(word);
         }
         #endregion
 
@@ -438,6 +497,12 @@ namespace PLGL
             }
 
             throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
+        }
+
+        public void GenerateWord(WordInfo word)
+        {
+            SelectSigmaStructures(word);
+            PopulateWord(word);
         }
         #endregion
     }

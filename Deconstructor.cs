@@ -8,41 +8,29 @@ namespace PLGL
 {
     public class Deconstructor
     {
-        public CharacterFilter Undefined { get; set; }
-        public List<CharacterFilter> Filters { get; private set; } = new List<CharacterFilter>();
+        private CharacterFilter undefined = new CharacterFilter() { Characters = new char[0], Name = "Undefined" };
+        public CharacterFilter Undefined { get { return undefined; } }
+        public Language Language { get; set; }
 
-        public Deconstructor()
-        {
-            AddFilter("Undefined", "");
-            Undefined = Filters.First();
-        }
+        public Deconstructor() { }
 
-        public void AddFilter(string name, params char[] characters)
-        {
-            Filters.Add(new CharacterFilter()
-            {
-                Name = name,
-                Characters = characters
-            });
-        }
-        public void AddFilter(string name, string characters)
-        {
-            Filters.Add(new CharacterFilter()
-            {
-                Name = name,
-                Characters = characters.ToCharArray()
-            });
-        }
         public CharacterFilter CheckFilter(char character)
         {
-            foreach (CharacterFilter filter in Filters)
+            foreach (CharacterFilter filter in Language.Deconstruction.Filters)
             {
                 if (filter.Characters != null && filter.Characters.Contains(character))
                     return filter;
             }
-            return null;
+            return Undefined;
         }
 
+        /// <summary>
+        /// Breaks a sentence down with the required character filters, returning a list of character blocks.
+        /// This is the "first pass". Further functionality (that may require surrounding context-dependent action) should be in the "second pass".
+        /// E.g, "let's" is one word, yet three character blocks: "let", "'", and "s". The second pass code will handle this behavior, but is outside the scope of this class.
+        /// </summary>
+        /// <param name="sentence"></param>
+        /// <returns></returns>
         public List<CharacterBlock> Deconstruct(string sentence)
         {
             List<CharacterBlock> result = new List<CharacterBlock>();
@@ -55,9 +43,6 @@ namespace PLGL
             {
                 filter = CheckFilter(sentence[c]);
                 if (c == 0) lastFilter = filter;
-
-                if (filter == null)
-                    filter = Undefined;
 
                 if (filter != lastFilter)
                 {

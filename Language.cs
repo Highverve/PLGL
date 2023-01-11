@@ -52,6 +52,26 @@ namespace PLGL
         public Flagging Flagging { get; private set; }
         public Punctuation Punctuation { get; private set; }
 
+        public List<CharacterFilter> Filters { get; set; } = new List<CharacterFilter>();
+        public void AddFilter(string name, params char[] characters)
+        {
+            Filters.Add(new CharacterFilter()
+            {
+                Name = name,
+                Characters = characters
+            });
+        }
+        public void AddFilter(string name, string characters)
+        {
+            Filters.Add(new CharacterFilter()
+            {
+                Name = name,
+                Characters = characters.ToCharArray()
+            });
+        }
+
+        public OnDeconstruct Deconstruct;
+
         public Deconstruction()
         {
             Lexicon = new Lexicon();
@@ -63,6 +83,8 @@ namespace PLGL
     {
         public Alphabet Alphabet { get; private set; }
         public Structure Structure { get; private set; }
+
+        public OnConstruct ConstructFilter;
 
         public Construction()
         {
