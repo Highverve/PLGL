@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,9 +19,13 @@ namespace PLGL.Deconstruct
     /// </summary>
     public class Punctuation
     {
-    }
-    public enum MarkLocation { InsideWord, OutsideWord }
-    public class PunctuationMark
-    {
+        public Dictionary<string, string> Marks { get; set; } = new Dictionary<string, string>();
+
+        /*public (string, string) GetMarks()
+        {
+            string key = string.Empty, result = string.Empty;
+
+
+        }*/
     }
 }

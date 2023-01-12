@@ -62,3 +62,9 @@
 ### 2022-1-10:
     - Hooked up a few events into the word generation method. You can now effectively decide what happens to which filter types, as defined by the user. Very powerful, flexible, and well-defined. Feels good.
     - Generated words match the case of the original word as closely as possible: lowercase (default), uppercase, capitalize, or random case.
+### 2022-1-11:
+    - Added default OnConstruct filter methods to Language.Construction: Generate processes the text, whereas KeepAsIs doesn't.
+    - Added two booleans to Language.Options: MatchCase, and AllowRandomCase.
+    - Merged Construction and Deconstruction classes back into Language, because it didn't feel as clean.
+    - CharacterBlocks can now be programatically merged with LanguageGenerator.EVENT_MergeBlocks. "Let's" and "10,000" are seen as one block by the generator instead of three.
+    - Fixed a minor logical issue that caused capitalized single-letter words (such as "I") that generated into a word longer than one letter to be entirely uppercase rather than capitalized.

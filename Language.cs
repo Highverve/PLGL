@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PLGL.Deconstruct;
 using PLGL.Construct;
+using PLGL.Construct.Elements;
 
 namespace PLGL
 {
@@ -37,20 +38,11 @@ namespace PLGL
 
         public LanguageOptions Options { get; set; } = new LanguageOptions();
 
-        public Deconstruction Deconstruction { get; private set; }
-        public Construction Construction { get; private set; }
-
-        public Language()
-        {
-            Deconstruction = new Deconstruction();
-            Construction = new Construction();
-        }
-    }
-    public class Deconstruction
-    {
+        public Alphabet Alphabet { get; private set; }
+        public Structure Structure { get; private set; }
         public Lexicon Lexicon { get; private set; }
-        public Flagging Flagging { get; private set; }
         public Punctuation Punctuation { get; private set; }
+
 
         public List<CharacterFilter> Filters { get; set; } = new List<CharacterFilter>();
         public void AddFilter(string name, params char[] characters)
@@ -70,26 +62,61 @@ namespace PLGL
             });
         }
 
-        public OnDeconstruct Deconstruct;
-
-        public Deconstruction()
+        public void FILTER_Hide(LanguageGenerator lg, WordInfo word, string filter)
         {
-            Lexicon = new Lexicon();
-            Flagging = new Flagging();
-            Punctuation = new Punctuation();
+            if (word.Filter.Name.ToUpper() == filter)
+            {
+                word.IsProcessed = true;
+            }
         }
-    }
-    public class Construction
-    {
-        public Alphabet Alphabet { get; private set; }
-        public Structure Structure { get; private set; }
+        /// <summary>
+        /// Applies to delimiters, undefined, etc.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        public void FILTER_KeepAsIs(LanguageGenerator lg, WordInfo word, string filter)
+        {
+            if (word.Filter.Name.ToUpper() == filter)
+            {
+                word.WordFinal = word.WordActual;
+                word.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Almost exclusively applied to letter filters.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        public void FILTER_Generate(LanguageGenerator lg, WordInfo word, string filter)
+        {
+            if (word.Filter.Name.ToUpper() == "LETTERS")
+            {
+                lg.Lexemes(word);
+                lg.SetRandom(word.WordRoot);
 
+                if (string.IsNullOrEmpty(word.WordGenerated))
+                    lg.GenerateWord(word);
+
+                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+                word.IsProcessed = true;
+
+                lg.LexiconMemorize(word);
+
+                lg.SetCase(word);
+            }
+        }
+
+        public OnDeconstruct Deconstruct;
         public OnConstruct ConstructFilter;
 
-        public Construction()
+        public Language()
         {
             Alphabet = new Alphabet();
             Structure = new Structure();
+            Lexicon = new Lexicon();
+            Punctuation = new Punctuation();
         }
     }
     public class LanguageOptions
@@ -99,17 +126,17 @@ namespace PLGL
         /// Increasing or decreasing will change every word of the generated language.
         /// </summary>
         public int SeedOffset { get; set; } = 0;
+
         /// <summary>
-        /// If true, the generator will attempt to match the output word's cade to the input word's case.
-        /// Because a generated word may be longer or shorter, a true 1:1 match is impossible.
-        /// 
-        /// When the first letter is the only capitalized letter, the first letter of the output matches.
-        /// When all of the letters are of the same case, the output will match.
-        /// If, for some reason, the case of the input word is a mix of lower and uppercase, the output is randomized.
-        /// 
-        /// If false, all letters are lower case.
+        /// Attempts to match the generated word's case to the original word (lowercase, uppercase, capitalize, etc).
+        /// Default is true.
         /// </summary>
-        public bool PreserveCase { get; set; } = true;
+        public bool MatchCase { get; set; } = true;
+        /// <summary>
+        /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD), it will be randomized (wOrD).
+        /// </summary>
+        public bool AllowRandomCase { get; set; } = true;
+
         /// <summary>
         /// If true, all inflections are added to the Lexicon class, skipping the generation stage for previously processed words.
         /// </summary>

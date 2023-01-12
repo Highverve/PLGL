@@ -16,9 +16,18 @@ namespace PLGL
 
         public CharacterFilter CheckFilter(char character)
         {
-            foreach (CharacterFilter filter in Language.Deconstruction.Filters)
+            foreach (CharacterFilter filter in Language.Filters)
             {
                 if (filter.Characters != null && filter.Characters.Contains(character))
+                    return filter;
+            }
+            return Undefined;
+        }
+        public CharacterFilter GetFilter(string filterName)
+        {
+            foreach (CharacterFilter filter in Language.Filters)
+            {
+                if (filter.Name.ToUpper() == filterName.ToUpper())
                     return filter;
             }
             return Undefined;
@@ -82,6 +91,8 @@ namespace PLGL
     public class CharacterBlock
     {
         public CharacterFilter Filter { get; set; }
+        public bool IsAlive { get; set; } = true;
+
         public string Text { get; set; } = string.Empty;
         public int IndexFirst { get; set; } = 0;
         public int IndexLast { get; set; } = 0;

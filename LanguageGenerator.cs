@@ -121,12 +121,21 @@ namespace PLGL
             blocks = Deconstruct.Deconstruct(sentence);
             for (int i = 0; i < blocks.Count; i++)
             {
-                CharacterBlock current = blocks[i], left = null, right = null;
+                CharacterBlock current = blocks[i];
 
-                if (i > 0) left = blocks[i - 1];
-                if (i < blocks.Count - 1) right = blocks[i + 1];
+                if (i > 0) LinkLeftBlock(current);
+                if (i < blocks.Count - 1) LinkRightBlock(current);
 
-                Language.Deconstruction.Deconstruct(this, current, left, right);
+                Language.Deconstruct(this, current, current.Left, current.Right);
+            }
+
+            for (int i = 0; i < blocks.Count; i++)
+            {
+                if (blocks[i].IsAlive == false)
+                {
+                    blocks.Remove(blocks[i]);
+                    i--;
+                }
             }
 
             AddWordInfo(blocks);
@@ -134,7 +143,7 @@ namespace PLGL
 
             //Loop through every word, applying the filters
             foreach (WordInfo word in wordInfo)
-                Language.Construction.ConstructFilter(this, word);
+                Language.ConstructFilter(this, word);
 
             //Compile the sentence.
             for (int i = 0; i < wordInfo.Count; i++)
@@ -195,35 +204,97 @@ namespace PLGL
                     wordInfo[i].AdjacentRight = wordInfo[i + 1];
             }
         }
-
-        public void CheckCase(WordInfo word)
+        public void LinkBlocks()
         {
-            bool firstLetter = false;
-            int upper = 0;
-            for (int i = 0; i < word.WordActual.Length; i++)
+            for (int i = 0; i < blocks.Count; i++)
             {
-                if (char.IsUpper(word.WordActual[i]))
+                if (i > 0) blocks[i].Left = blocks[i - 1];
+                if (i < blocks.Count - 1) blocks[i].Right = blocks[i + 1];
+            }
+        }
+        private void LinkLeftBlock(CharacterBlock block)
+        {
+            int index = blocks.IndexOf(block);
+
+            for (int i = index - 1; i > 0; i--)
+            {
+                if (blocks[i].IsAlive == true)
                 {
-                    if (i == 0)
-                        firstLetter = true;
-                    upper++;
+                    block.Left = blocks[i];
+                    break;
                 }
             }
-
-            if (firstLetter == true && upper == 1)
-                word.Case = WordInfo.CaseType.Capitalize;
-            if (upper == word.WordActual.Length)
-                word.Case = WordInfo.CaseType.Uppercase;
-            //if (upper > 0 && upper < word.WordActual.Length)
-            //    word.Case = WordInfo.CaseType.RandomCase;
         }
+        private void LinkRightBlock(CharacterBlock block)
+        {
+            int index = blocks.IndexOf(block);
+
+            for (int i = index + 1; i < blocks.Count; i++)
+            {
+                if (blocks[i].IsAlive == true)
+                {
+                    block.Right = blocks[i];
+                    break;
+                }
+            }
+        }
+
         public void SetCase(WordInfo word)
         {
-            switch (word.Case)
+            if (Language.Options.MatchCase == true)
             {
-                case WordInfo.CaseType.Capitalize: Capitalize(word); break;
-                case WordInfo.CaseType.Uppercase: Uppercase(word); break;
-                case WordInfo.CaseType.RandomCase: RandomCase(word); break;
+                bool firstLetter = false;
+                int upper = 0;
+                for (int i = 0; i < word.WordActual.Length; i++)
+                {
+                    if (char.IsUpper(word.WordActual[i]))
+                    {
+                        if (i == 0)
+                            firstLetter = true;
+                        upper++;
+                    }
+                }
+
+                if (firstLetter == true && upper == 1)
+                    word.Case = WordInfo.CaseType.Capitalize;
+                if (word.WordActual.Length > 1)
+                {
+                    if (upper == word.WordActual.Length)
+                        word.Case = WordInfo.CaseType.Uppercase;
+                    if (upper > 1 && upper < word.WordActual.Length && Language.Options.AllowRandomCase == true)
+                        word.Case = WordInfo.CaseType.RandomCase;
+                }
+
+                switch (word.Case)
+                {
+                    case WordInfo.CaseType.Capitalize: Capitalize(word); break;
+                    case WordInfo.CaseType.Uppercase: Uppercase(word); break;
+                    case WordInfo.CaseType.RandomCase: RandomCase(word); break;
+                }
+            }
+        }
+
+        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+            string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
+        {
+            if (left != null && right != null)
+            {
+                if (current.Filter.Name.ToUpper() == currentFilter &&
+                    left.Filter.Name.ToUpper() == leftFilter &&
+                    right.Filter.Name.ToUpper() == rightFilter)
+                {
+                    if (current.Text == currentText)
+                    {
+                        current.Text = left.Text + current.Text + right.Text;
+                        current.Filter = Deconstruct.GetFilter(newFilter);
+
+                        left.IsAlive = false;
+                        right.IsAlive = false;
+
+                        LinkLeftBlock(current);
+                        LinkRightBlock(current);
+                    }
+                }
             }
         }
         #endregion
@@ -232,13 +303,13 @@ namespace PLGL
         #region Lexicon (and inflections) — Affixes, root extraction, custom words
         private void ProcessLexiconInflections(WordInfo word)
         {
-            if (Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
-                word.WordGenerated = Language.Deconstruction.Lexicon.Inflections[word.WordActual.ToLower()];
+            if (Language.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
+                word.WordGenerated = Language.Lexicon.Inflections[word.WordActual.ToLower()];
         }
         private void ProcessLexiconRoots(WordInfo word)
         {
-            if (Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
-                word.WordGenerated = Language.Deconstruction.Lexicon.Roots[word.WordRoot.ToLower()];
+            if (Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
+                word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
         }
         
         /// <summary>
@@ -248,8 +319,8 @@ namespace PLGL
         private void ProcessLexemes(WordInfo word)
         {
             //Extract affixes.
-            word.Prefixes = Language.Deconstruction.Lexicon.GetPrefixes(word.WordActual).ToArray();
-            word.Suffixes = Language.Deconstruction.Lexicon.GetSuffixes(word.WordActual).ToArray();
+            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordActual).ToArray();
+            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordActual).ToArray();
 
             //Strip word to root.
             int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
@@ -274,8 +345,8 @@ namespace PLGL
         /// <param name="word"></param>
         public void LexiconMemorize(WordInfo word)
         {
-            if (Language.Options.MemorizeWords == true && Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
-                Language.Deconstruction.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
+            if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
+                Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
         }
 
         /// <summary>
@@ -285,8 +356,8 @@ namespace PLGL
         /// <returns></returns>
         public bool LexiconContains(WordInfo word)
         {
-            return Language.Deconstruction.Lexicon.Inflections.ContainsKey(word.WordActual) &&
-                    Language.Deconstruction.Lexicon.Roots.ContainsKey(word.WordRoot);
+            return Language.Lexicon.Inflections.ContainsKey(word.WordActual) &&
+                    Language.Lexicon.Roots.ContainsKey(word.WordRoot);
         }
         public void Lexemes(WordInfo word)
         {
@@ -340,9 +411,9 @@ namespace PLGL
             //if (lastSigma.Coda != null || lastSigma.Coda.Count > 0)
 
 
-            weight = Random.NextDouble() * Language.Construction.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
+            weight = Random.NextDouble() * Language.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
 
-            foreach (Sigma s in Language.Construction.Structure.Templates)
+            foreach (Sigma s in Language.Structure.Templates)
             {
                 weight -= s.Weight.SelectionWeight;
 
@@ -451,9 +522,9 @@ namespace PLGL
         }
         private char SelectFirstVowel()
         {
-            double weight = Random.NextDouble() * Language.Construction.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
+            double weight = Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
 
-            foreach (Vowel v in Language.Construction.Alphabet.Vowels.Values)
+            foreach (Vowel v in Language.Alphabet.Vowels.Values)
             {
                 weight -= v.StartWeight;
 
@@ -465,9 +536,9 @@ namespace PLGL
         }
         private char SelectFirstConsonant()
         {
-            double weight = Random.NextDouble() * Language.Construction.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
+            double weight = Random.NextDouble() * Language.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
 
-            foreach (Consonant c in Language.Construction.Alphabet.Consonants.Values)
+            foreach (Consonant c in Language.Alphabet.Consonants.Values)
             {
                 weight -= c.StartWeight;
 
@@ -479,12 +550,12 @@ namespace PLGL
         }
         private char SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
         {
-            LetterPath[] potentials = Language.Construction.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
+            LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
             LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
 
             List<(char, double)> filter = isVowel ?
-                chosen.Next.Where(x => Language.Construction.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
-                chosen.Next.Where(x => Language.Construction.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
+                chosen.Next.Where(x => Language.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
+                chosen.Next.Where(x => Language.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
 
             double weight = Random.NextDouble() * filter.Sum(w => w.Item2);
 
