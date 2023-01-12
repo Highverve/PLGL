@@ -5,9 +5,9 @@
 
 ### 1 — Introduction
 
-Procedural Language Generation Library (PLGL) is a code library designed for game developers who want consistent, fictional languages for their game's cultures and peoples, *without the time needed to create one*. The language author constructs the alphabet, sigma structures, letter pathing, and other constraints; then, the generator processes a regular sentence, and returns an entirely new one.
+Procedural Language Generation Library (PLGL) is a code library designed for game developers who want consistent, fictional languages for their game's cultures and peoples, *without the time needed to create one*. The language author constructs the alphabet, sigma structures, letter pathing, character filtering for deconstruction, and other constraints; then, the generator processes a regular sentence, and returns an new, stylized sentence from your fictional language.
 
-The initial thought that started this project was simple: using a word as a seed, could I procedurally generate an entirely different word? I knew the answer, so I gave it a try. After a few obstacles and a necessary amount of feature creep, the first version of the PLGL is (almost) released.
+The initial thought that started this project was simple: using a word as a seed, could I procedurally generate an entirely different word? After a few obstacles and a necessary amount of feature creep, the first version of the PLGL is released.
 
 
 ### 2 — Glossary
@@ -50,7 +50,7 @@ The ConstructFilter event is the most crucial to implement. This is where you te
 lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
 ```
 
-The LanguageGenerator comes with a few common generation methods to speed up language authoring: CONSTRUCT_Hide, CONSTRUCT_KeepAsIs, CONSTRUCT_Generate. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
+The LanguageGenerator comes with a few common generation methods to speed up language authoring: *CONSTRUCT_Hide*, *CONSTRUCT_KeepAsIs*, *CONSTRUCT_Generate*. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
 ```
 public void FILTER_KeepAsIs(WordInfo word, string filter)
 {
