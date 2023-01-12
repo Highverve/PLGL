@@ -15,7 +15,17 @@ namespace PLGL
     /// <param name="adjacentLeft"></param>
     /// <param name="adjacentRight"></param>
     public delegate void OnDeconstruct(LanguageGenerator lg, CharacterBlock current, CharacterBlock adjacentLeft, CharacterBlock adjacentRight);
+    /// <summary>
+    /// Processes author-defined filters, determining how each character block is processed.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="word"></param>
     public delegate void OnConstruct(LanguageGenerator lg, WordInfo word);
+    //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
+    //E.g, adding a vowel for smooth vocal transitions.
+    public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+    public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+
 
     public class LanguageGenerator
     {
@@ -25,10 +35,73 @@ namespace PLGL
         List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
 
-        //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
-        //E.g, adding a vowel for smooth vocal transitions.
-        public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
-        public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+        public void FILTER_Hide(WordInfo word, string filter)
+        {
+            if (word.Filter.Name.ToUpper() == filter)
+            {
+                word.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Applies to delimiters, undefined, etc.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        public void FILTER_KeepAsIs(WordInfo word, string filter)
+        {
+            if (word.Filter.Name.ToUpper() == filter)
+            {
+                word.WordFinal = word.WordActual;
+                word.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Almost exclusively applied to letter filters.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        public void FILTER_Generate(WordInfo word, string filter)
+        {
+            if (word.Filter.Name.ToUpper() == "LETTERS")
+            {
+                Lexemes(word);
+                SetRandom(word.WordRoot);
+
+                if (string.IsNullOrEmpty(word.WordGenerated))
+                    GenerateWord(word);
+
+                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+                word.IsProcessed = true;
+
+                LexiconMemorize(word);
+
+                SetCase(word);
+            }
+        }
+
+        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+            string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
+        {
+            if (left != null && right != null)
+            {
+                if (current.Filter.Name.ToUpper() == currentFilter &&
+                    left.Filter.Name.ToUpper() == leftFilter &&
+                    right.Filter.Name.ToUpper() == rightFilter)
+                {
+                    if (current.Text == currentText)
+                    {
+                        current.Text = left.Text + current.Text + right.Text;
+                        current.Filter = Deconstruct.GetFilter(newFilter);
+
+                        left.IsAlive = false;
+                        right.IsAlive = false;
+
+                        LinkLeftBlock(current);
+                        LinkRightBlock(current);
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
@@ -111,10 +184,9 @@ namespace PLGL
         /// <param name="sentence"></param>
         /// <param name="info"></param>
         /// <returns></returns>
-        public string Generate(string sentence, out List<WordInfo> info)
+        public List<WordInfo> GenerateRaw(string sentence)
         {
             //Clear class-level variables for the next sentence.
-            sentenceBuilder.Clear();
             blocks.Clear();
             wordInfo.Clear();
 
@@ -145,37 +217,59 @@ namespace PLGL
             foreach (WordInfo word in wordInfo)
                 Language.ConstructFilter(this, word);
 
-            //Compile the sentence.
+            return wordInfo;
+        }
+        /// <summary>
+        /// Calls GenerateRaw(), compiling and returning the string.
+        /// </summary>
+        /// <param name="sentence"></param>
+        /// <returns></returns>
+        public string GenerateClean(string sentence)
+        {
+            sentenceBuilder.Clear();
+
+            List<WordInfo> result = GenerateRaw(sentence);
+
             for (int i = 0; i < wordInfo.Count; i++)
                 sentenceBuilder.Append(wordInfo[i].WordFinal);
 
-            //Return the result.
-            info = wordInfo;
             return sentenceBuilder.ToString();
         }
         /// <summary>
-        /// Generates a new sentence from the input sentence according to the language's constraints.
+        /// Switches to the specified language and generates a new sentence.
         /// </summary>
+        /// <param name="language"></param>
         /// <param name="sentence"></param>
         /// <returns></returns>
-        public string Generate(string sentence) { return Generate(sentence, out _); }
+        public string GenerateClean(Language language, string sentence) { SelectLanguage(language); return GenerateClean(sentence); }
         /// <summary>
         /// Switches to the specified language and generates a new sentence.
         /// </summary>
         /// <param name="language"></param>
         /// <param name="sentence"></param>
         /// <returns></returns>
-        public string Generate(Language language, string sentence) { SelectLanguage(language); return Generate(sentence); }
+        public string GenerateClean(string language, string sentence) { SelectLanguage(language); return GenerateClean(sentence); }
         /// <summary>
-        /// Switches to the specified language and generates a new sentence.
+        /// Does the same as GenerateClean, while also returning the list of WordInfo.
         /// </summary>
-        /// <param name="language"></param>
         /// <param name="sentence"></param>
+        /// <param name="info"></param>
         /// <returns></returns>
-        public string Generate(string language, string sentence) { SelectLanguage(language); return Generate(sentence); }
+        public string GenerateDebug(string sentence, out List<WordInfo> info)
+        {
+            sentenceBuilder.Clear();
+
+            List<WordInfo> result = GenerateRaw(sentence);
+            info = result;
+
+            for (int i = 0; i < wordInfo.Count; i++)
+                sentenceBuilder.Append(wordInfo[i].WordFinal);
+
+            return sentenceBuilder.ToString();
+        }
         #endregion
 
-        #region Deconstruction — Adding and linking words
+        #region Other methods
         /// <summary>
         /// Loops through each word, and adds it to wordInfo.
         /// </summary>
@@ -202,14 +296,6 @@ namespace PLGL
                     wordInfo[i].AdjacentLeft = wordInfo[i - 1];
                 if (i != wordInfo.Count - 1)
                     wordInfo[i].AdjacentRight = wordInfo[i + 1];
-            }
-        }
-        public void LinkBlocks()
-        {
-            for (int i = 0; i < blocks.Count; i++)
-            {
-                if (i > 0) blocks[i].Left = blocks[i - 1];
-                if (i < blocks.Count - 1) blocks[i].Right = blocks[i + 1];
             }
         }
         private void LinkLeftBlock(CharacterBlock block)
@@ -273,32 +359,7 @@ namespace PLGL
                 }
             }
         }
-
-        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
-            string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
-        {
-            if (left != null && right != null)
-            {
-                if (current.Filter.Name.ToUpper() == currentFilter &&
-                    left.Filter.Name.ToUpper() == leftFilter &&
-                    right.Filter.Name.ToUpper() == rightFilter)
-                {
-                    if (current.Text == currentText)
-                    {
-                        current.Text = left.Text + current.Text + right.Text;
-                        current.Filter = Deconstruct.GetFilter(newFilter);
-
-                        left.IsAlive = false;
-                        right.IsAlive = false;
-
-                        LinkLeftBlock(current);
-                        LinkRightBlock(current);
-                    }
-                }
-            }
-        }
         #endregion
-
 
         #region Lexicon (and inflections) — Affixes, root extraction, custom words
         private void ProcessLexiconInflections(WordInfo word)

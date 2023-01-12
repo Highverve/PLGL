@@ -62,52 +62,6 @@ namespace PLGL
             });
         }
 
-        public void FILTER_Hide(LanguageGenerator lg, WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == filter)
-            {
-                word.IsProcessed = true;
-            }
-        }
-        /// <summary>
-        /// Applies to delimiters, undefined, etc.
-        /// </summary>
-        /// <param name="lg"></param>
-        /// <param name="word"></param>
-        /// <param name="filter"></param>
-        public void FILTER_KeepAsIs(LanguageGenerator lg, WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == filter)
-            {
-                word.WordFinal = word.WordActual;
-                word.IsProcessed = true;
-            }
-        }
-        /// <summary>
-        /// Almost exclusively applied to letter filters.
-        /// </summary>
-        /// <param name="lg"></param>
-        /// <param name="word"></param>
-        /// <param name="filter"></param>
-        public void FILTER_Generate(LanguageGenerator lg, WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == "LETTERS")
-            {
-                lg.Lexemes(word);
-                lg.SetRandom(word.WordRoot);
-
-                if (string.IsNullOrEmpty(word.WordGenerated))
-                    lg.GenerateWord(word);
-
-                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
-                word.IsProcessed = true;
-
-                lg.LexiconMemorize(word);
-
-                lg.SetCase(word);
-            }
-        }
-
         public OnDeconstruct Deconstruct;
         public OnConstruct ConstructFilter;
 

@@ -21,17 +21,32 @@ The initial thought that started this project was simple: using a word as a seed
 
 
 ### 3 — Theory & Process
-3.1 — **Generating sentences**. An overview at the code that parses your sentence, transforming it according to your constraints.
 
-3.2 — **Constructing**. Syllable count estimation, sigma structure generation, and letter pathways.
+The generation process can be divided into two parts: **Deconstruction** and **construction**. Deconstruction breaks down a sentence by character filters (such as letters, numbers, delimiters, punctuation marks, etc.), and merges any blocks necessary (more on this later). This greatly helps the construction process, which is responsible for handling how each filter category is manipulated. For example, the 'letters' filter should typically be generated into an entirely new word, whereas the language author may prefer to keep 'numbers' or 'punctuation' filters as is. Since filters and how they function are defined by the language author, there is immense flexibility.
 
-3.3 — **Deconstructing**. 
+#### 3.1 — **Deconstructing**. A look at how your sentence is split and parsed with CharacterFilter and CharacterBlock classes.
 
-3.4 — **Lexemes**. Handling affixes and extracting the root word.
+The first step is to add a character filter:
+```lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");```
 
-3.5 — **Punctuation**. Handling and processing punctuation marks.
+. The `Deconstructor` class loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block. With a delimiter and punctuation filter added, the returned list looks like this:
+```{LETTERS[0,1]: "My"}
+{DELIMITER[2,2]: " "}
+{LETTERS[3,6]: "name"}
+{DELIMITER[7,7]: " "}
+{LETTERS[8,9]: "is"}
+{DELIMITER[10,10]: " "}
+{LETTERS[11,16]: "Trevor"}
+{PUNCTUATION[17,17]: "."}```
 
-3.6 — **Flagging**. Custom flags for extra function (e.g., (X)SkipGenerate, (x)SkipLexemes).
+You could also write these block separations plainly as: "My| |name| |is| |Trevor|.|". It's from this list of character blocks that the constructor operates on (specifically, after they're added to a WordInfo class). You don't have to define a every character; however, any unlisted character will be included anyway under the "UNDEFINED" filter.
+
+
+#### 3.2 — **Constructing**. Using construct filters to process the sentence.
+
+#### 3.3 — **Generating sentences**. An overview at the code that parses your sentence, transforming it according to the language author's constraints.
 
 
 ### 4 — Setting Up
+
+4.1 Create your language.

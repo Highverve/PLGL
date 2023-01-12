@@ -68,3 +68,5 @@
     - Merged Construction and Deconstruction classes back into Language, because it didn't feel as clean.
     - CharacterBlocks can now be programatically merged with LanguageGenerator.EVENT_MergeBlocks. "Let's" and "10,000" are seen as one block by the generator instead of three.
     - Fixed a minor logical issue that caused capitalized single-letter words (such as "I") that generated into a word longer than one letter to be entirely uppercase rather than capitalized.
+### 2022-1-12:
+    - Cleaned up and split off the main LanguageGenerator.Generate method into clearer methods.
