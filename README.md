@@ -31,7 +31,7 @@ The first step is to add a character filter:
 lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
 ```
 
-. The `Deconstructor` class loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block. With a delimiter and punctuation filter added, the returned list looks like this:
+The `Deconstructor` class loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block. With a delimiter and punctuation filter added, the returned list looks like this:
 ```c#
 {LETTERS[0,1]: "My"}
 {DELIMITER[2,2]: " "}
@@ -44,6 +44,12 @@ lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 ```
 
 You could also write these block separations plainly as: "My| |name| |is| |Trevor|.|". It's from this list of character blocks that the constructor operates on (specifically, after they're added to a WordInfo class). You don't have to define every character; however, any unlisted character will be included anyway under the "UNDEFINED" filter, and will appear in the returned string.
+
+There are some circumstances where a character belongs in one filter, yet also really *should* be included in a different block based on certain conditions to help the generator process the block. Words such as "let's", or numbers with commas or decimals. I've included methods that help merge character blocks based on the specified criteria. Let's add one for the apostrophe.
+```c#
+lang.Deconstruct += (lg, current, left, right) => lg.EVENT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
+```
+The Deconstruct event is called after all of the characters in the string have been processed. It allows the language author greater control over how blocks behave around their neighbors. In this case, EVENT_MergeBlocks compares the current iterated character block (*PUNCTUATION* filter) to its friends on the left and right; if both are *LETTERS*, it then checks if the PUNCTUATION block is a single apostrophe '. If it is, the three blocks are merged into one, taking on the filter of the last string in the parameter. Without this, the three blocks are processed separately; for a number like $9,999.99, a *NUMBERS* filter would only see 9, 999, and 99—that's not ideal at all.
 
 ### 3.2 — **Construction**.
 
