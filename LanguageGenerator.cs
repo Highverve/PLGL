@@ -35,7 +35,7 @@ namespace PLGL
         List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
 
-        public void FILTER_Hide(WordInfo word, string filter)
+        public void CONSTRUCT_Hide(WordInfo word, string filter)
         {
             if (word.Filter.Name.ToUpper() == filter)
             {
@@ -47,7 +47,7 @@ namespace PLGL
         /// </summary>
         /// <param name="word"></param>
         /// <param name="filter"></param>
-        public void FILTER_KeepAsIs(WordInfo word, string filter)
+        public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
         {
             if (word.Filter.Name.ToUpper() == filter)
             {
@@ -60,7 +60,7 @@ namespace PLGL
         /// </summary>
         /// <param name="word"></param>
         /// <param name="filter"></param>
-        public void FILTER_Generate(WordInfo word, string filter)
+        public void CONSTRUCT_Generate(WordInfo word, string filter)
         {
             if (word.Filter.Name.ToUpper() == "LETTERS")
             {
