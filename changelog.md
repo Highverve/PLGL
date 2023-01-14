@@ -70,3 +70,6 @@
     - Fixed a minor logical issue that caused capitalized single-letter words (such as "I") that generated into a word longer than one letter to be entirely uppercase rather than capitalized.
 ### 2022-1-12:
     - Cleaned up and split off the main LanguageGenerator.Generate method into clearer methods.
+### 2022-1-13:
+    - Added the Examples folder, and the "Singsonglish" language.
+    - Tested and confirmed support for word escaping and simple flagging. Good foundation to improve upon.

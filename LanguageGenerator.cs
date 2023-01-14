@@ -26,7 +26,6 @@ namespace PLGL
     public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
     public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
 
-
     public class LanguageGenerator
     {
         public Deconstructor Deconstruct { get; private set; } = new Deconstructor();
@@ -102,6 +101,45 @@ namespace PLGL
                 }
             }
         }
+        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+            string currentFilter, string leftFilter, string rightFilter, string newFilter)
+        {
+            if (left != null && right != null)
+            {
+                if (current.Filter.Name.ToUpper() == currentFilter &&
+                    left.Filter.Name.ToUpper() == leftFilter &&
+                    right.Filter.Name.ToUpper() == rightFilter)
+                {
+                    current.Text = left.Text + current.Text + right.Text;
+                    current.Filter = Deconstruct.GetFilter(newFilter);
+
+                    left.IsAlive = false;
+                    right.IsAlive = false;
+
+                    LinkLeftBlock(current);
+                    LinkRightBlock(current);
+                }
+            }
+        }
+        /*public void EVENT_ContainWithin(CharacterBlock current, CharacterBlock right,
+            string currentFilter, string rightFilter, string newFilter)
+        {
+            if (left != null && right != null)
+            {
+                if (current.Filter.Name.ToUpper() == currentFilter &&
+                    right.Filter.Name.ToUpper() == rightFilter)
+                {
+                    current.Text = left.Text + current.Text + right.Text;
+                    current.Filter = Deconstruct.GetFilter(newFilter);
+
+                    left.IsAlive = false;
+                    right.IsAlive = false;
+
+                    LinkLeftBlock(current);
+                    LinkRightBlock(current);
+                }
+            }
+        }*/
 
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).

@@ -87,7 +87,7 @@ namespace PLGL
         /// </summary>
         public bool MatchCase { get; set; } = true;
         /// <summary>
-        /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD), it will be randomized (wOrD).
+        /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD), it will be randomized (wOrD). Default is true.
         /// </summary>
         public bool AllowRandomCase { get; set; } = true;
 
