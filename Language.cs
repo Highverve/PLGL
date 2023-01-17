@@ -85,9 +85,9 @@ namespace PLGL
         /// Attempts to match the generated word's case to the original word (lowercase, uppercase, capitalize, etc).
         /// Default is true.
         /// </summary>
-        public bool MatchCase { get; set; } = true;
+        public bool AllowAutomaticCasing { get; set; } = true;
         /// <summary>
-        /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD), it will be randomized (wOrD). Default is true.
+        /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD—lowercase, capitalized, uppercase), it will be randomized (wOrD). Default is true.
         /// </summary>
         public bool AllowRandomCase { get; set; } = true;
 

@@ -59,5 +59,10 @@ namespace PLGL.Construct.Elements
 
         public enum CaseType { Lowercase, Capitalize, Uppercase, RandomCase }
         public CaseType Case { get; set; } = CaseType.Lowercase;
+
+        public override string ToString()
+        {
+            return WordActual;
+        }
     }
 }

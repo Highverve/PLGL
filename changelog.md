@@ -73,3 +73,8 @@
 ### 2022-1-13:
     - Added the Examples folder, and the "Singsonglish" language.
     - Tested and confirmed support for word escaping and simple flagging. Good foundation to improve upon.
+### 2022-1-14:
+    - Renamed LanguageGenerator.EVENT_(...) methods to DECONSTRUCT_(...).
+    - Renamed LanguageOptions.MatchCase to AllowAutomaticCasing.
+    - Added DECONSTRUCT_ContainWithin. Merges all blocks within two blocks of the specified filter. It's Merge on steroids, and it's perfect for a "Flags" filter.
+    - Added CONSTRUCT_Within, for any single blocks that you need a substring of (such as an "Escape" filter).

@@ -36,8 +36,11 @@ namespace PLGL
 
         public void CONSTRUCT_Hide(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == filter)
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
+                word.WordFinal = string.Empty;
+                word.Prefixes = new Affix[0];
+                word.Suffixes = new Affix[0];
                 word.IsProcessed = true;
             }
         }
@@ -48,9 +51,17 @@ namespace PLGL
         /// <param name="filter"></param>
         public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == filter)
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
                 word.WordFinal = word.WordActual;
+                word.IsProcessed = true;
+            }
+        }
+        public void CONSTRUCT_Within(WordInfo word, string filter, int index, int subtract)
+        {
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+            {
+                word.WordFinal = word.WordActual.Substring(index, word.WordActual.Length - subtract);
                 word.IsProcessed = true;
             }
         }
@@ -61,7 +72,7 @@ namespace PLGL
         /// <param name="filter"></param>
         public void CONSTRUCT_Generate(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == "LETTERS")
+            if (word.Filter.Name.ToUpper() == "LETTERS" && word.IsProcessed == false)
             {
                 Lexemes(word);
                 SetRandom(word.WordRoot);
@@ -78,7 +89,7 @@ namespace PLGL
             }
         }
 
-        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+        public void DECONSTRUCT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
             string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
         {
             if (left != null && right != null)
@@ -101,7 +112,7 @@ namespace PLGL
                 }
             }
         }
-        public void EVENT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+        public void DECONSTRUCT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
             string currentFilter, string leftFilter, string rightFilter, string newFilter)
         {
             if (left != null && right != null)
@@ -121,25 +132,40 @@ namespace PLGL
                 }
             }
         }
-        /*public void EVENT_ContainWithin(CharacterBlock current, CharacterBlock right,
-            string currentFilter, string rightFilter, string newFilter)
+        public void DECONSTRUCT_ContainWithin(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+            string openFilter, string closeFilter, string newFilter)
         {
-            if (left != null && right != null)
+            string buildBlock = newFilter + "_Build";
+
+            //Process opening filter. The filter "eats" right adjacent blocks until it encounters it's filter again.
+            if (current.Filter.Name.ToUpper() == openFilter || current.Filter.Name.ToUpper() == buildBlock.ToUpper())
             {
-                if (current.Filter.Name.ToUpper() == currentFilter &&
-                    right.Filter.Name.ToUpper() == rightFilter)
+                //It's not the end; therefore, absorb the block.
+                if (right != null && right.Filter.Name.ToUpper() != closeFilter)
                 {
-                    current.Text = left.Text + current.Text + right.Text;
+                    right.Text = current.Text + right.Text;
+                    right.Filter = new CharacterFilter() { Characters = Deconstruct.Undefined.Characters, Name = buildBlock };
+
+                    current.IsAlive = false;
+
+                    LinkLeftBlock(right);
+                }
+            }
+            //Process end filter.
+            if (current.Filter.Name.ToUpper() == closeFilter)
+            {
+                //It's the wrapperFilter, and the left block is built on. Therefore, this means it's the end of the block.
+                if (left != null && left.Filter.Name.ToUpper() == buildBlock.ToUpper())
+                {
+                    current.Text = left.Text + current.Text;
                     current.Filter = Deconstruct.GetFilter(newFilter);
 
                     left.IsAlive = false;
-                    right.IsAlive = false;
 
                     LinkLeftBlock(current);
-                    LinkRightBlock(current);
                 }
             }
-        }*/
+        }
 
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
@@ -365,7 +391,7 @@ namespace PLGL
 
         public void SetCase(WordInfo word)
         {
-            if (Language.Options.MatchCase == true)
+            if (Language.Options.AllowAutomaticCasing == true)
             {
                 bool firstLetter = false;
                 int upper = 0;

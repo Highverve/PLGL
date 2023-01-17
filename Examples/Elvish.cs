@@ -1,5 +1,5 @@
-﻿using PLGL.Construct;
-using PLGL.Construct.Elements;
+﻿using PLGL.Construct.Elements;
+using PLGL.Construct;
 using PLGL.Deconstruct;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PLGL.Examples
 {
-    public class Singsonglish
+    public class Elvish
     {
         private Language lang;
         public Language Language()
@@ -17,8 +17,8 @@ namespace PLGL.Examples
             lang = new();
 
             lang.META_Author = "Highverve";
-            lang.META_Name = "Singsonglish";
-            lang.META_Description = "The songsinging language of the gnomes.";
+            lang.META_Name = "Elvish";
+            lang.META_Description = "An imagination of elvish written language.";
 
             SetOptions();
 
@@ -44,7 +44,7 @@ namespace PLGL.Examples
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
             lang.Options.MemorizeWords = false;
             lang.Options.SigmaSkewMin = 1.0;
-            lang.Options.SigmaSkewMax = 2.5;
+            lang.Options.SigmaSkewMax = 2.0;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -57,10 +57,7 @@ namespace PLGL.Examples
             lang.AddFilter("Numbers", "1234567890");
             lang.AddFilter("Delimiter", " ");
             lang.AddFilter("Punctuation", ".,?!;:'\"-#$%()");
-
-            lang.AddFilter("Flags", "");
-            lang.AddFilter("FlagsOpen", "{");
-            lang.AddFilter("FlagsClose", "}");
+            lang.AddFilter("Flags", "{}"); //[NOLEXEMES]
             lang.AddFilter("Escape", "[]"); //The word inside is skipped.
         }
         private void SetDeconstructEvents()
@@ -68,25 +65,14 @@ namespace PLGL.Examples
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
+            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "FLAGS", "FLAGS", "FLAGS");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
         }
         private void SetConstructEvents()
         {
             lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
             lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-            lang.ConstructFilter += (lg, word) =>
-            {
-                if (word.Filter.Name.ToUpper() == "NUMBERS")
-                {
-                    double number = double.Parse(word.WordActual.Replace(",", ""));
-
-                    number /= 10;
-
-                    word.WordFinal = number.ToString();
-                    word.IsProcessed = true;
-                }
-            };
+            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "NUMBERS");
             lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
             lang.ConstructFilter += (lg, word) =>
             {
@@ -107,75 +93,104 @@ namespace PLGL.Examples
             {
                 if (word.Filter.Name.ToUpper() == "FLAGS")
                 {
-                    string[] command = word.WordActual.Substring(1, word.WordActual.Length - 2).Split(',');
+                    string command = word.WordActual.Substring(1, word.WordActual.Length - 2);
 
-                    foreach (string s in command)
+                    if (word.AdjacentLeft != null && command.Contains("TACOFY"))
                     {
-                        if (word.AdjacentLeft != null && s.Contains("TACOFY"))
-                        {
-                            word.AdjacentLeft.WordFinal = "taco'd";
-                        }
-                        if (word.AdjacentLeft != null && s.Contains("SKIP"))
-                        {
-                            word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordActual;
-                            word.AdjacentLeft.IsProcessed = true;
-                        }
-                        if (word.AdjacentLeft != null && s.Contains("<HIDE"))
-                        {
-                            word.AdjacentLeft.WordFinal = string.Empty;
-                            word.AdjacentLeft.IsProcessed = true;
-                        }
-                        if (word.AdjacentRight != null && s.Contains("HIDE>"))
-                        {
-                            word.AdjacentRight.WordFinal = string.Empty;
-                            word.AdjacentRight.IsProcessed = true;
-                        }
+                        word.AdjacentLeft.WordFinal = "taco'd";
                     }
+
+                    word.IsProcessed = true;
                 }
             };
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
+            lang.ConstructFilter += (lg, word) =>
+            {
+                if (word.Filter.Name.ToUpper() == "ESCAPE")
+                {
+                    word.WordFinal = word.WordActual.Substring(1, word.WordActual.Length - 2);
+                    word.IsProcessed = true;
+                }
+            };
         }
         #endregion
 
         #region Structural
+
         private void SetLetters()
         {
-            lang.Alphabet.AddConsonant('l').StartWeight = 20.0;
-            lang.Alphabet.AddConsonant('d').StartWeight = 10.0;
-            lang.Alphabet.AddConsonant('s').StartWeight = 2.0;
+            lang.Alphabet.AddConsonant('m').StartWeight = 5.0;
+            lang.Alphabet.AddConsonant('n').StartWeight = 10.0;
+            //lang.Alphabet.AddConsonant('ŋ').StartWeight = 0.0;
 
-            lang.Alphabet.AddVowel('a').StartWeight = 8.0;
-            lang.Alphabet.AddVowel('e').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('i').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('o').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('u').StartWeight = 0.0;
+            lang.Alphabet.AddConsonant('p').StartWeight = 20.0;
+            lang.Alphabet.AddConsonant('b').StartWeight = 15.0;
+            lang.Alphabet.AddConsonant('t').StartWeight = 10.0;
+            lang.Alphabet.AddConsonant('d').StartWeight = 5.0;
+            lang.Alphabet.AddConsonant('k').StartWeight = 2.0;
+            lang.Alphabet.AddConsonant('g').StartWeight = 7.0;
+
+            lang.Alphabet.AddConsonant('f').StartWeight = 5.0;
+            lang.Alphabet.AddConsonant('v').StartWeight = 10.0;
+            lang.Alphabet.AddConsonant('s').StartWeight = 15.0;
+            lang.Alphabet.AddConsonant('k').StartWeight = 0.0;
+            lang.Alphabet.AddConsonant('h').StartWeight = 3.0;
+
+            lang.Alphabet.AddConsonant('r').StartWeight = 10.0;
+
+            lang.Alphabet.AddConsonant('w').StartWeight = 10.0;
+            lang.Alphabet.AddConsonant('y').StartWeight = 15.0;
+            lang.Alphabet.AddConsonant('l').StartWeight = 20.0;
+
+            lang.Alphabet.AddVowel('a').StartWeight = 15.0;
+            lang.Alphabet.AddVowel('e').StartWeight = 7.0;
+            lang.Alphabet.AddVowel('i').StartWeight = 10.0;
+            lang.Alphabet.AddVowel('o').StartWeight = 2.0;
+            lang.Alphabet.AddVowel('u').StartWeight = 5.0;
         }
         private void SetSigma()
         {
             lang.Structure.AddSigma("C", "V", "", new SigmaPath() { SelectionWeight = 20.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
+            lang.Structure.AddSigma("C", "VV", "", new SigmaPath() { SelectionWeight = 20.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
             lang.Structure.AddSigma("", "V", "", new SigmaPath() { SelectionWeight = 1.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
+            lang.Structure.AddSigma("CC", "V", "", new SigmaPath() { SelectionWeight = 3.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
         }
         private void SetPaths()
         {
             //Vowels
             lang.Structure.AddLetterPath('a', WordPosition.Any, SigmaPosition.Any,
-                ('a', 30.0), ('i', 2.0), ('o', 0.25), ('u', 1.0), ('l', 3.0), ('d', 5.0));
+                ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
+                ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
+                ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+
             lang.Structure.AddLetterPath('e', WordPosition.Any, SigmaPosition.Any,
-                ('e', 30.0), ('i', 5.0), ('l', 2.0), ('d', 10.0));
+                ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
+                ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
+                ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+
             lang.Structure.AddLetterPath('i', WordPosition.Any, SigmaPosition.Any,
-                ('a', 2.5), ('i', 30.0), ('e', 0.5), ('u', 1.0), ('l', 2.0), ('d', 10.0));
+                ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
+                ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
+                ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+
             lang.Structure.AddLetterPath('o', WordPosition.Any, SigmaPosition.Any,
-                ('a', 1.0), ('i', 2.5), ('e', 3.0), ('u', 5.0), ('o', 30.0), ('l', 2.0), ('d', 6.0));
+                ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
+                ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
+                ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+
             lang.Structure.AddLetterPath('u', WordPosition.Any, SigmaPosition.Any,
-                ('a', 2.5), ('e', 0.5), ('u', 1.0), ('l', 2.0), ('d', 8.0));
+                ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
+                ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
+                ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+
 
             //Consonants
             lang.Structure.AddLetterPath('l', WordPosition.Any, SigmaPosition.Any,
                 ('a', 15.0), ('i', 5.0), ('e', 10.0), ('u', 3.0), ('o', 5.0), ('l', 1.0));
-            lang.Structure.AddLetterPath('d', WordPosition.Any, SigmaPosition.Any,
-                ('a', 7.0), ('i', 10.0), ('e', 2.0), ('u', 2.0), ('o', 5.0), ('d', 1.0));
-            lang.Structure.AddLetterPath('s', WordPosition.Any, SigmaPosition.Any,
-                ('a', 10.0), ('i', 15.0), ('e', 5.0), ('u', 1.0), ('o', 3.0), ('s', 1.0));
         }
         #endregion
 
