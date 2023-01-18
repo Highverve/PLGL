@@ -25,6 +25,87 @@ namespace PLGL.Deconstruct
     {
         public Dictionary<string, Action<LanguageGenerator, WordInfo>> Actions { get; set; }
             = new Dictionary<string, Action<LanguageGenerator, WordInfo>>();
+
+        public void Add(string flagKey, Action<LanguageGenerator, WordInfo> action)
+        {
+            if (Actions.ContainsKey(flagKey) == false)
+                Actions.Add(flagKey, action);
+        }
+        public void Process(LanguageGenerator lg, WordInfo word, string filterName, string delimiter = ",", int substringIndex = 1, int substringSubtract = 2)
+        {
+            if (word.Filter.Name.ToUpper() == filterName)
+            {
+                string[] command = word.WordActual.Substring(substringIndex, word.WordActual.Length - substringSubtract).Split(delimiter);
+
+                foreach (string s in command)
+                {
+                    if (Actions.ContainsKey(s))
+                        Actions[s](lg, word);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Hides the left adjacent word.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        public void ACTION_HideLeft(LanguageGenerator lg, WordInfo word)
+        {
+            if (word.AdjacentLeft != null)
+            {
+                word.AdjacentLeft.WordFinal = string.Empty;
+                word.AdjacentLeft.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Hides the right adjacent word.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        public void ACTION_HideRight(LanguageGenerator lg, WordInfo word)
+        {
+            if (word.AdjacentRight != null)
+            {
+                word.AdjacentRight.WordFinal = string.Empty;
+                word.AdjacentRight.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Hides the left and right adjacent words.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        public void ACTION_HideAdjacents(LanguageGenerator lg, WordInfo word) { ACTION_HideLeft(lg, word); ACTION_HideRight(lg, word); }
+
+        /// <summary>
+        /// Sets the left adjacent word's final string to the actual (initial) string, effectively escaping the word out of generation.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        public void ACTION_NoGenerate(LanguageGenerator lg, WordInfo word)
+        {
+            if (word.AdjacentLeft != null)
+            {
+                word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordActual;
+                word.AdjacentLeft.IsProcessed = true;
+            }
+        }
+
+        /// <summary>
+        /// Replaces the left adjacent word with a dynamically compiled string. This may be helpful for player/character names.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        /// <param name="result"></param>
+        public void ACTION_Replace(LanguageGenerator lg, WordInfo word, Func<string> result)
+        {
+            if (word.AdjacentLeft != null)
+            {
+                word.AdjacentLeft.WordFinal = result();
+                word.AdjacentLeft.IsProcessed = true;
+            }
+        }
     }
 }
 

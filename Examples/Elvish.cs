@@ -70,11 +70,11 @@ namespace PLGL.Examples
         }
         private void SetConstructEvents()
         {
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "NUMBERS");
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
-            lang.ConstructFilter += (lg, word) =>
+            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "NUMBERS");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
+            lang.Construct += (lg, word) =>
             {
                 if (word.Filter.Name.ToUpper() == "PUNCTUATION")
                 {
@@ -89,7 +89,7 @@ namespace PLGL.Examples
                     word.IsProcessed = true;
                 }
             };
-            lang.ConstructFilter += (lg, word) =>
+            lang.Construct += (lg, word) =>
             {
                 if (word.Filter.Name.ToUpper() == "FLAGS")
                 {
@@ -103,7 +103,7 @@ namespace PLGL.Examples
                     word.IsProcessed = true;
                 }
             };
-            lang.ConstructFilter += (lg, word) =>
+            lang.Construct += (lg, word) =>
             {
                 if (word.Filter.Name.ToUpper() == "ESCAPE")
                 {

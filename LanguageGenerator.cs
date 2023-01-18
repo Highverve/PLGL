@@ -279,7 +279,7 @@ namespace PLGL
 
             //Loop through every word, applying the filters
             foreach (WordInfo word in wordInfo)
-                Language.ConstructFilter(this, word);
+                Language.Construct(this, word);
 
             return wordInfo;
         }

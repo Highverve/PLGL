@@ -11,6 +11,8 @@ namespace PLGL.Examples
 {
     public class Singsonglish
     {
+        public static string PlayerName { get; set; } = "Puppycat";
+
         private Language lang;
         public Language Language()
         {
@@ -53,15 +55,17 @@ namespace PLGL.Examples
         #region Processing
         private void SetFilters()
         {
+            lang.AddFilter("Delimiter", " ");
             lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
             lang.AddFilter("Numbers", "1234567890");
-            lang.AddFilter("Delimiter", " ");
+
             lang.AddFilter("Punctuation", ".,?!;:'\"-#$%()");
 
+            lang.AddFilter("Escape", "[]");
             lang.AddFilter("Flags", "");
             lang.AddFilter("FlagsOpen", "{");
             lang.AddFilter("FlagsClose", "}");
-            lang.AddFilter("Escape", "[]"); //The word inside is skipped.
+            lang.AddFilter("Placeholder", "`");
         }
         private void SetDeconstructEvents()
         {
@@ -73,9 +77,9 @@ namespace PLGL.Examples
         }
         private void SetConstructEvents()
         {
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-            lang.ConstructFilter += (lg, word) =>
+            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
+            lang.Construct += (lg, word) =>
             {
                 if (word.Filter.Name.ToUpper() == "NUMBERS")
                 {
@@ -87,53 +91,12 @@ namespace PLGL.Examples
                     word.IsProcessed = true;
                 }
             };
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
-            lang.ConstructFilter += (lg, word) =>
-            {
-                if (word.Filter.Name.ToUpper() == "PUNCTUATION")
-                {
-                    word.WordFinal = word.WordActual;
-                    if (word.WordActual.Contains(";"))
-                        word.WordFinal = word.WordActual.Replace(";", " ha·");
-                    if (word.WordActual.Contains("."))
-                        word.WordFinal = word.WordActual.Replace(".", " sa·");
-                    if (word.WordActual.Contains("!"))
-                        word.WordFinal = word.WordActual.Replace("!", " daaa·");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
 
-                    word.IsProcessed = true;
-                }
-            };
-            lang.ConstructFilter += (lg, word) =>
-            {
-                if (word.Filter.Name.ToUpper() == "FLAGS")
-                {
-                    string[] command = word.WordActual.Substring(1, word.WordActual.Length - 2).Split(',');
+            SetPunctuation();
+            SetFlagging();
 
-                    foreach (string s in command)
-                    {
-                        if (word.AdjacentLeft != null && s.Contains("TACOFY"))
-                        {
-                            word.AdjacentLeft.WordFinal = "taco'd";
-                        }
-                        if (word.AdjacentLeft != null && s.Contains("SKIP"))
-                        {
-                            word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordActual;
-                            word.AdjacentLeft.IsProcessed = true;
-                        }
-                        if (word.AdjacentLeft != null && s.Contains("<HIDE"))
-                        {
-                            word.AdjacentLeft.WordFinal = string.Empty;
-                            word.AdjacentLeft.IsProcessed = true;
-                        }
-                        if (word.AdjacentRight != null && s.Contains("HIDE>"))
-                        {
-                            word.AdjacentRight.WordFinal = string.Empty;
-                            word.AdjacentRight.IsProcessed = true;
-                        }
-                    }
-                }
-            };
-            lang.ConstructFilter += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
+            lang.Construct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
         }
         #endregion
 
@@ -197,6 +160,39 @@ namespace PLGL.Examples
             lang.Lexicon.Affixes.Add(new Affix("ly", "-dee", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
             lang.Lexicon.Affixes.Add(new Affix("ish", "-dei", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
         }
-        #endregion        
+        #endregion
+
+        #region Numbers
+        public void SetNumbers()
+        {
+
+        }
+        #endregion
+
+        #region Punctuation
+        private void SetPunctuation()
+        {
+            lang.Construct += (lg, word) => lang.Punctuation.Process(lg, word, "PUNCTUATION");
+
+            lang.Punctuation.Add(".", (w) => { return " ha·"; });
+            lang.Punctuation.Add("...", (w) => { return " haaa·"; });
+            lang.Punctuation.Add(",", (w) => { return " sa"; });
+            lang.Punctuation.Add(";", (w) => { return " sa·"; });
+            lang.Punctuation.Add("!", (w) => { return " daaa·"; });
+        }
+        #endregion
+
+        #region Flagging
+        public void SetFlagging()
+        {
+            lang.Construct += (lg, word) => lang.Flags.Process(lg, word, "FLAGS");
+
+            lang.Flags.Add("<HIDE", lang.Flags.ACTION_HideLeft);
+            lang.Flags.Add("HIDE>", lang.Flags.ACTION_HideRight);
+            lang.Flags.Add("<HIDE>", lang.Flags.ACTION_HideAdjacents);
+            lang.Flags.Add("NOGEN", lang.Flags.ACTION_NoGenerate);
+            lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_Replace(lg, word, () => { return PlayerName; }));
+        }
+        #endregion
     }
 }

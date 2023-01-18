@@ -40,9 +40,10 @@ namespace PLGL
 
         public Alphabet Alphabet { get; private set; }
         public Structure Structure { get; private set; }
+
         public Lexicon Lexicon { get; private set; }
         public Punctuation Punctuation { get; private set; }
-
+        public Flagging Flags { get; private set; }
 
         public List<CharacterFilter> Filters { get; set; } = new List<CharacterFilter>();
         public void AddFilter(string name, params char[] characters)
@@ -63,14 +64,16 @@ namespace PLGL
         }
 
         public OnDeconstruct Deconstruct;
-        public OnConstruct ConstructFilter;
+        public OnConstruct Construct;
 
         public Language()
         {
             Alphabet = new Alphabet();
             Structure = new Structure();
+
             Lexicon = new Lexicon();
             Punctuation = new Punctuation();
+            Flags = new Flagging();
         }
     }
     public class LanguageOptions
@@ -95,11 +98,6 @@ namespace PLGL
         /// If true, all inflections are added to the Lexicon class, skipping the generation stage for previously processed words.
         /// </summary>
         public bool MemorizeWords { get; set; } = true;
-        /// <summary>
-        /// Helps determine how the generator splits words for processing.
-        /// Default is just ' ' (space).
-        /// </summary>
-        public char[] Delimiters { get; set; } = new char[] { ' ' };
 
         public enum LetterPathing
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PLGL.Construct.Elements;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -19,13 +20,41 @@ namespace PLGL.Deconstruct
     /// </summary>
     public class Punctuation
     {
-        public Dictionary<string, string> Marks { get; set; } = new Dictionary<string, string>();
+        public SortedDictionary<string, Func<WordInfo, string>> Marks { get; set; }
+            = new SortedDictionary<string, Func<WordInfo, string>>(new LengthComparer());
 
-        /*public (string, string) GetMarks()
+        public void Process(LanguageGenerator lg, WordInfo word, string filterName)
         {
-            string key = string.Empty, result = string.Empty;
+            if (word.Filter.Name.ToUpper() == filterName)
+            {
+                foreach (string s in Marks.Keys)
+                {
+                    if (word.WordActual.Contains(s))
+                        word.WordFinal = word.WordActual.Replace(s, Marks[s](word));
+                }
+            }
+        }
 
+        public void Add(string key, Func<WordInfo, string> value)
+        {
+            if (Marks.ContainsKey(key) == false)
+            {
+                Marks.Add(key, value);
+            }
+        }
+    }
 
-        }*/
+    /// <summary>
+    /// Code borrowed from: https://stackoverflow.com/questions/20993877/how-to-sort-a-dictionary-by-key-string-length
+    /// Code author: Boluc Papuccuoglu
+    /// </summary>
+    internal class LengthComparer : IComparer<String>
+    {
+        public int Compare(string x, string y)
+        {
+            int lengthComparison = x.Length.CompareTo(y.Length);
+            if (lengthComparison == 0) return x.CompareTo(y);
+            else return lengthComparison;
+        }
     }
 }
