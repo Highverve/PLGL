@@ -21,6 +21,14 @@ namespace PLGL
     /// <param name="lg"></param>
     /// <param name="word"></param>
     public delegate void OnConstruct(LanguageGenerator lg, WordInfo word);
+    /// <summary>
+    /// Allows manipulation of the generated word's letters.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="word"></param>
+    /// <param name="letter"></param>
+    public delegate void OnGenerate(LanguageGenerator lg, WordInfo word, LetterInfo current, LetterInfo adjacentLeft, LetterInfo adjacentRight);
+
     //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
     //E.g, adding a vowel for smooth vocal transitions.
     public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
@@ -188,6 +196,14 @@ namespace PLGL
             w.WordFinal = result;
         };
 
+        public void LoopThroughLetters(WordInfo word, Action<char, int> action)
+        {
+            char[] array = word.WordFinal.ToCharArray();
+            for (int i = 0; i < array.Length; i++)
+            {
+            }
+        }
+
         #region Language management
         private Language language;
         public Language Language
@@ -265,14 +281,7 @@ namespace PLGL
                 Language.Deconstruct(this, current, current.Left, current.Right);
             }
 
-            for (int i = 0; i < blocks.Count; i++)
-            {
-                if (blocks[i].IsAlive == false)
-                {
-                    blocks.Remove(blocks[i]);
-                    i--;
-                }
-            }
+            blocks.RemoveAll((b) => b.IsAlive == false);
 
             AddWordInfo(blocks);
             LinkWords();
@@ -617,35 +626,68 @@ namespace PLGL
         {
             //Select starting letter according to letter weights.
             if (word.SigmaInfo[0].First().Type == SigmaType.Nucleus)
-                word.WordGenerated += SelectFirstVowel();
+                word.GeneratedLetters.Add(new LetterInfo(SelectFirstVowel()));
             else
-                word.WordGenerated += SelectFirstConsonant();
+                word.GeneratedLetters.Add(new LetterInfo(SelectFirstConsonant()));
 
             int onsetOffset = 0, nucleusOffset = 0;
             if (word.SigmaInfo.First().First().Type == SigmaType.Onset)
-                onsetOffset = word.WordGenerated.Length;
+                onsetOffset = word.GeneratedLetters.Count;
             if (word.SigmaInfo.First().First().Type == SigmaType.Nucleus)
-                nucleusOffset = word.WordGenerated.Length;
+                nucleusOffset = word.GeneratedLetters.Count;
 
             foreach (SigmaInfo s in word.SigmaInfo)
             {
                 for (int i = 0; i < s.Sigma.Onset.Count - onsetOffset; i++)
-                    s.Onset += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Onset, false);
+                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
                 word.WordGenerated += s.Onset;
 
                 for (int i = 0; i < s.Sigma.Nucleus.Count - nucleusOffset; i++)
-                    s.Nucleus += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Nucleus, true);
+                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
                 word.WordGenerated += s.Nucleus;
 
                 for (int i = 0; i < s.Sigma.Coda.Count; i++)
-                    s.Coda += SelectLetter(word.WordGenerated.LastOrDefault(), s.Position, SigmaPosition.Coda, false);
+                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
                 word.WordGenerated += s.Coda;
 
                 onsetOffset = 0;
                 nucleusOffset = 0;
             }
+
+            for (int i = 0; i < word.GeneratedLetters.Count; i++)
+            {
+                if (i != 0) word.GeneratedLetters[i].AdjacentLeft = word.GeneratedLetters[i - 1];
+                if (i < word.GeneratedLetters.Count - 1) word.GeneratedLetters[i].AdjacentRight = word.GeneratedLetters[i + 1];
+            }
+
+            for (int i = 0; i < word.GeneratedLetters.Count; i++)
+            {
+                int currentCount = word.GeneratedLetters.Count;
+
+                if (word.GeneratedLetters[i].IsProcessed == false)
+                {
+                    word.GeneratedLetters[i].IsProcessed = true;
+
+                    Language.Generate(this, word,
+                        word.GeneratedLetters[i],
+                        word.GeneratedLetters[i].AdjacentLeft,
+                        word.GeneratedLetters[i].AdjacentRight);
+
+                    LinkLeftLetter(word, word.GeneratedLetters[i]);
+                    LinkRightLetter(word, word.GeneratedLetters[i]);
+                }
+
+                //If there is a difference (e.g, a letter was added), return to 0.
+                if (currentCount != word.GeneratedLetters.Count)
+                    i = 0;
+            }
+
+            word.GeneratedLetters.RemoveAll((l) => l.IsAlive == false);
+
+            foreach (LetterInfo l in word.GeneratedLetters)
+                word.WordGenerated += l.Letter.Case.lower;
         }
-        private char SelectFirstVowel()
+        private Letter SelectFirstVowel()
         {
             double weight = Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
 
@@ -654,12 +696,12 @@ namespace PLGL
                 weight -= v.StartWeight;
 
                 if (weight <= 0)
-                    return v.Value;
+                    return v;
             }
 
-            return '_';
+            return null;
         }
-        private char SelectFirstConsonant()
+        private Letter SelectFirstConsonant()
         {
             double weight = Random.NextDouble() * Language.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
 
@@ -668,12 +710,12 @@ namespace PLGL
                 weight -= c.StartWeight;
 
                 if (weight <= 0)
-                    return c.Value;
+                    return c;
             }
 
-            return '_';
+            return null;
         }
-        private char SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
+        private LetterInfo SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
         {
             LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
             LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
@@ -689,7 +731,7 @@ namespace PLGL
                 weight -= l.Item2;
 
                 if (weight <= 0)
-                    return l.Item1;
+                    return new LetterInfo(Language.Alphabet.Find(l.Item1));
             }
 
             throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
@@ -699,6 +741,45 @@ namespace PLGL
         {
             SelectSigmaStructures(word);
             PopulateWord(word);
+        }
+
+        public void GENERATE_ReplaceLetter(WordInfo word, LetterInfo current, LetterInfo target, char letterKey)
+        {
+            int index = word.GeneratedLetters.IndexOf(current);
+            target.Letter = Language.Alphabet.Find(letterKey);
+        }
+        public void GENERATE_InsertLetter(WordInfo word, LetterInfo current, char letterKey, int indexOffset)
+        {
+            int index = word.GeneratedLetters.IndexOf(current);
+            Letter letter = Language.Alphabet.Find(letterKey);
+            word.GeneratedLetters.Insert(index + indexOffset, new LetterInfo(letter));
+        }
+
+        private void LinkLeftLetter(WordInfo word, LetterInfo letter)
+        {
+            int index = word.GeneratedLetters.IndexOf(letter);
+
+            for (int i = index - 1; i > 0; i--)
+            {
+                if (word.GeneratedLetters[i].IsAlive == true)
+                {
+                    letter.AdjacentLeft = word.GeneratedLetters[i];
+                    break;
+                }
+            }
+        }
+        private void LinkRightLetter(WordInfo word, LetterInfo letter)
+        {
+            int index = word.GeneratedLetters.IndexOf(letter);
+
+            for (int i = index + 1; i < word.GeneratedLetters.Count; i++)
+            {
+                if (word.GeneratedLetters[i].IsAlive == true)
+                {
+                    letter.AdjacentRight = word.GeneratedLetters[i];
+                    break;
+                }
+            }
         }
         #endregion
     }

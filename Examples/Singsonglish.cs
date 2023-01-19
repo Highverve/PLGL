@@ -65,7 +65,6 @@ namespace PLGL.Examples
             lang.AddFilter("Flags", "");
             lang.AddFilter("FlagsOpen", "{");
             lang.AddFilter("FlagsClose", "}");
-            lang.AddFilter("Placeholder", "`");
         }
         private void SetDeconstructEvents()
         {
@@ -103,15 +102,23 @@ namespace PLGL.Examples
         #region Structural
         private void SetLetters()
         {
-            lang.Alphabet.AddConsonant('l').StartWeight = 20.0;
-            lang.Alphabet.AddConsonant('d').StartWeight = 10.0;
-            lang.Alphabet.AddConsonant('s').StartWeight = 2.0;
+            lang.Alphabet.AddConsonant('l', ('l', 'L'), 20);
+            lang.Alphabet.AddConsonant('d', ('d', 'D'), 10);
+            lang.Alphabet.AddConsonant('s', ('s', 'S'), 2);
 
-            lang.Alphabet.AddVowel('a').StartWeight = 8.0;
-            lang.Alphabet.AddVowel('e').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('i').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('o').StartWeight = 0.0;
-            lang.Alphabet.AddVowel('u').StartWeight = 0.0;
+            lang.Alphabet.AddVowel('a', ('a', 'A'), 8);
+            lang.Alphabet.AddVowel('e', ('e', 'E'), 0);
+            lang.Alphabet.AddVowel('i', ('i', 'I'), 0);
+            lang.Alphabet.AddVowel('o', ('o', 'O'), 0);
+            lang.Alphabet.AddVowel('u', ('u', 'U'), 0);
+
+            lang.Generate += (lg, w, current, left, right) =>
+            {
+                if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.GeneratedLetters.IndexOf(current) > 1)
+                {
+                    lg.GENERATE_InsertLetter(w, current, 'l', 0);
+                }
+            };
         }
         private void SetSigma()
         {
@@ -191,7 +198,7 @@ namespace PLGL.Examples
             lang.Flags.Add("HIDE>", lang.Flags.ACTION_HideRight);
             lang.Flags.Add("<HIDE>", lang.Flags.ACTION_HideAdjacents);
             lang.Flags.Add("NOGEN", lang.Flags.ACTION_NoGenerate);
-            lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_Replace(lg, word, () => { return PlayerName; }));
+            lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_ReplaceCurrent(lg, word, () => { return PlayerName; }));
         }
         #endregion
     }

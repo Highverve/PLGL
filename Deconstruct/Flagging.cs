@@ -98,13 +98,38 @@ namespace PLGL.Deconstruct
         /// <param name="lg"></param>
         /// <param name="word"></param>
         /// <param name="result"></param>
-        public void ACTION_Replace(LanguageGenerator lg, WordInfo word, Func<string> result)
+        public void ACTION_ReplaceLeft(LanguageGenerator lg, WordInfo word, Func<string> result)
         {
             if (word.AdjacentLeft != null)
             {
                 word.AdjacentLeft.WordFinal = result();
                 word.AdjacentLeft.IsProcessed = true;
             }
+        }
+        /// <summary>
+        /// Replaces the right adjacent word with a dynamically compiled string. This may be helpful for player/character names.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        /// <param name="result"></param>
+        public void ACTION_ReplaceRight(LanguageGenerator lg, WordInfo word, Func<string> result)
+        {
+            if (word.AdjacentRight != null)
+            {
+                word.AdjacentRight.WordFinal = result();
+                word.AdjacentRight.IsProcessed = true;
+            }
+        }
+        /// <summary>
+        /// Replaces the current word with a dynamically compiled string. This may be helpful for player/character names.
+        /// </summary>
+        /// <param name="lg"></param>
+        /// <param name="word"></param>
+        /// <param name="result"></param>
+        public void ACTION_ReplaceCurrent(LanguageGenerator lg, WordInfo word, Func<string> result)
+        {
+            word.WordFinal = result();
+            word.IsProcessed = true;
         }
     }
 }

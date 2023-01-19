@@ -81,4 +81,11 @@
 ### 2022-1-17:
     - All code from Flagging has been deleted, and replaced it with drastically better code (and shorter!). Simply hook it up to the ConstructFilter, and add your flag actions.
     - Added the Punctuation class, which works very similarly to Flagging.
-    - Preliminary word in the Numbers class.
+    - Removed Delimiters property from Language.Options, as it was no longer needed.
+    - Renamed Language.ConstructFilter to Construct, brining its naming conventon inline with Deconstruct.
+    - Preliminary code added to the Numbers class.
+### 2022-1-18
+    - Updated the Letter class, adding Name, Description, and Pronunciation as string properties, and Case as a Tuple(char, char) for enhanced control over capitalization.
+    - Improvements to the Alphabet and LanguageGenerator classes which reflect the Letter class changes.
+    - Added the LetterInfo class (with adjacent properties), and List<LetterInfo> GeneratedLetters to WordInfo. The generation process now adds it's letters to this list instead to WordGenerated.
+    - Added OnGenerate delegate and event. This brings the level of generation control in line with the deconstruction and construction events.

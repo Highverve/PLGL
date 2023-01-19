@@ -63,8 +63,9 @@ namespace PLGL
             });
         }
 
-        public OnDeconstruct Deconstruct;
-        public OnConstruct Construct;
+        public OnDeconstruct Deconstruct { get; set; }
+        public OnConstruct Construct { get; set; }
+        public OnGenerate Generate { get; set; }
 
         public Language()
         {

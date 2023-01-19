@@ -8,26 +8,38 @@ namespace PLGL.Construct.Elements
 {
     public abstract class Letter
     {
-        public char Value { get; set; }
+        public string Name { get; private set; } = string.Empty;
+        public string Description { get; private set; } = string.Empty;
+        public string Pronunciation { get; private set; } = string.Empty;
+
+        public char Key { get; private set; }
+        public (char lower, char upper) Case { get; private set; }
+
         /// <summary>
         /// The likelihood this letter will start the next word.
         /// </summary>
-        public double StartWeight { get; set; }
+        public double StartWeight { get; private set; }
 
-        /// <summary>
-        /// Set by the Alphabet class when added to either Dictionary.
-        /// </summary>
-        public bool IsVowel { get; set; } = false;
-
-        public Letter(char Value, double StartWeight)
+        public Letter(string Name, char Key, (char lower, char upper) Case, string Pronunciation, double StartWeight)
         {
-            this.Value = char.ToLower(Value);
+            this.Name = Name;
+            this.Key = Key;
+            this.Case = Case;
             this.StartWeight = StartWeight;
+            this.Pronunciation = Pronunciation;
         }
-
-        public char Upper() { return char.ToUpper(Value); }
     }
 
-    public class Consonant : Letter { public Consonant(char Value, double Weight = 1) : base(Value, Weight) { } }
-    public class Vowel : Letter { public Vowel(char Value, double Weight = 1) : base(Value, Weight) { } }
+    public class Consonant : Letter
+    {
+        public Consonant(string Name, char Key, (char lower, char upper) Case,
+            string Pronunciation, double Weight = 1)
+            : base(Name, Key, Case, Pronunciation, Weight) { }
+    }
+    public class Vowel : Letter
+    {
+        public Vowel(string Name, char Key, (char lower, char upper) Case,
+            string Pronunciation, double Weight = 1)
+            : base(Name, Key, Case, Pronunciation, Weight) { }
+    }
 }

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace PLGL.Examples
 {
-    public class Elvish
+    public class Qim
     {
         private Language lang;
         public Language Language()
@@ -17,8 +17,8 @@ namespace PLGL.Examples
             lang = new();
 
             lang.META_Author = "Highverve";
-            lang.META_Name = "Elvish";
-            lang.META_Description = "An imagination of elvish written language.";
+            lang.META_Name = "Qim";
+            lang.META_Description = "The common language of the Rootfolk from Bälore and Boffer.";
 
             SetOptions();
 
@@ -116,36 +116,54 @@ namespace PLGL.Examples
 
         #region Structural
 
+
+        /// <summary>
+        /// Aa, Ee, Ii, Oo, Uu (short)
+        /// Ää, Ëë, Ïï, Öö, Üü (long)
+        /// Bb Pp, Dd Tt, Gg Kk
+        /// Mm Nn, Ŋŋ, Rr Ll
+        /// Ff, Vv, Ss, Ŝŝ, þÞ, Zz Żż
+        /// Ww, Yy, Hh, Qq
+        /// </summary>
         private void SetLetters()
         {
-            lang.Alphabet.AddConsonant('m').StartWeight = 5.0;
-            lang.Alphabet.AddConsonant('n').StartWeight = 10.0;
-            //lang.Alphabet.AddConsonant('ŋ').StartWeight = 0.0;
+            lang.Alphabet.AddVowel('a', ('a', 'A'), 15);
+            lang.Alphabet.AddVowel('e', ('e', 'E'), 7);
+            lang.Alphabet.AddVowel('i', ('i', 'I'), 10);
+            lang.Alphabet.AddVowel('o', ('o', 'O'), 2);
+            lang.Alphabet.AddVowel('u', ('u', 'U'), 5);
 
-            lang.Alphabet.AddConsonant('p').StartWeight = 20.0;
-            lang.Alphabet.AddConsonant('b').StartWeight = 15.0;
-            lang.Alphabet.AddConsonant('t').StartWeight = 10.0;
-            lang.Alphabet.AddConsonant('d').StartWeight = 5.0;
-            lang.Alphabet.AddConsonant('k').StartWeight = 2.0;
-            lang.Alphabet.AddConsonant('g').StartWeight = 7.0;
+            lang.Alphabet.AddVowel('ä', ('ä', 'Ä'), 7);
+            lang.Alphabet.AddVowel('ë', ('ë', 'Ë'), 3.5);
+            lang.Alphabet.AddVowel('ï', ('ï', 'Ï'), 5);
+            lang.Alphabet.AddVowel('ö', ('ö', 'Ö'), 1);
+            lang.Alphabet.AddVowel('ü', ('ü', 'Ü'), 2.5);
 
-            lang.Alphabet.AddConsonant('f').StartWeight = 5.0;
-            lang.Alphabet.AddConsonant('v').StartWeight = 10.0;
-            lang.Alphabet.AddConsonant('s').StartWeight = 15.0;
-            lang.Alphabet.AddConsonant('k').StartWeight = 0.0;
-            lang.Alphabet.AddConsonant('h').StartWeight = 3.0;
+            lang.Alphabet.AddConsonant('b', ('b', 'B'), 20);
+            lang.Alphabet.AddConsonant('p', ('p', 'P'), 15);
+            lang.Alphabet.AddConsonant('d', ('d', 'D'), 10);
+            lang.Alphabet.AddConsonant('t', ('t', 'T'), 5);
+            lang.Alphabet.AddConsonant('g', ('g', 'G'), 2);
+            lang.Alphabet.AddConsonant('k', ('k', 'K'), 2);
 
-            lang.Alphabet.AddConsonant('r').StartWeight = 10.0;
+            lang.Alphabet.AddConsonant('m', ('m', 'M'), 5);
+            lang.Alphabet.AddConsonant('n', ('n', 'N'), 5);
+            lang.Alphabet.AddConsonant('ŋ', ('ŋ', 'Ŋ'), 0); //Ng ŋ (endi-ng)
+            lang.Alphabet.AddConsonant('r', ('r', 'R'), 10);
+            lang.Alphabet.AddConsonant('l', ('l', 'L'), 20);
 
-            lang.Alphabet.AddConsonant('w').StartWeight = 10.0;
-            lang.Alphabet.AddConsonant('y').StartWeight = 15.0;
-            lang.Alphabet.AddConsonant('l').StartWeight = 20.0;
+            lang.Alphabet.AddConsonant('f', ('f', 'F'), 5);
+            lang.Alphabet.AddConsonant('v', ('v', 'V'), 10);
+            lang.Alphabet.AddConsonant('s', ('s', 'S'), 15);
+            lang.Alphabet.AddConsonant('ŝ', ('ŝ', 'Ŝ'), 10); //Sh ʃ (ship)
+            lang.Alphabet.AddConsonant('þ', ('þ', 'Þ'), 5); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('z', ('z', 'Z'), 5); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('ż', ('ż', 'Ż'), 5); //Th þ (thatch)
 
-            lang.Alphabet.AddVowel('a').StartWeight = 15.0;
-            lang.Alphabet.AddVowel('e').StartWeight = 7.0;
-            lang.Alphabet.AddVowel('i').StartWeight = 10.0;
-            lang.Alphabet.AddVowel('o').StartWeight = 2.0;
-            lang.Alphabet.AddVowel('u').StartWeight = 5.0;
+            lang.Alphabet.AddConsonant('w', ('w', 'W'), 10); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('y', ('y', 'Y'), 15); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('h', ('h', 'H'), 3); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('q', ('q', 'Q'), 0.1); //Th þ (thatch)
         }
         private void SetSigma()
         {
@@ -161,31 +179,31 @@ namespace PLGL.Examples
                 ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
                 ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
                 ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
-                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('l', 10.0), ('w', 10.0), ('y', 10.0));
 
             lang.Structure.AddLetterPath('e', WordPosition.Any, SigmaPosition.Any,
                 ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
                 ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
                 ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
-                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('l', 10.0), ('w', 10.0), ('y', 10.0));
 
             lang.Structure.AddLetterPath('i', WordPosition.Any, SigmaPosition.Any,
                 ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
                 ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
                 ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
-                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('l', 10.0), ('w', 10.0), ('y', 10.0));
 
             lang.Structure.AddLetterPath('o', WordPosition.Any, SigmaPosition.Any,
                 ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
                 ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
                 ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
-                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('l', 10.0), ('w', 10.0), ('y', 10.0));
 
             lang.Structure.AddLetterPath('u', WordPosition.Any, SigmaPosition.Any,
                 ('a', 2.0), ('e', 1.0), ('i', 10.0), ('o', 0.25), ('u', 7.0),
                 ('m', 10.0), ('n', 10.0), ('p', 10.0), ('p', 10.0), ('b', 10.0), ('t', 10.0),
                 ('d', 10.0), ('k', 10.0), ('g', 10.0), ('f', 10.0), ('v', 10.0), ('s', 10.0),
-                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('w', 10.0), ('y', 10.0), ('l', 10.0));
+                ('k', 10.0), ('h', 10.0), ('r', 10.0), ('l', 10.0), ('w', 10.0), ('y', 10.0));
 
 
             //Consonants

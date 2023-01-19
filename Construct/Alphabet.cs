@@ -12,17 +12,26 @@ namespace PLGL.Construct
         public Dictionary<char, Consonant> Consonants { get; private set; } = new Dictionary<char, Consonant>();
         public Dictionary<char, Vowel> Vowels { get; private set; } = new Dictionary<char, Vowel>();
 
-        public Consonant AddConsonant(char letter)
+        public Consonant AddConsonant(char key, (char lower, char upper) cases, double startWeight)
         {
-            if (Consonants.ContainsKey(letter) == false)
-                Consonants.Add(letter, new Consonant(letter));
-            return Consonants[letter];
+            return AddConsonant(string.Empty, key, cases, startWeight);
         }
-        public Vowel AddVowel(char letter)
+        public Vowel AddVowel(char key, (char lower, char upper) cases, double startWeight)
         {
-            if (Vowels.ContainsKey(letter) == false)
-                Vowels.Add(letter, new Vowel(letter) { IsVowel = true });
-            return Vowels[letter];
+            return AddVowel(string.Empty, key, cases, startWeight);
+        }
+
+        public Consonant AddConsonant(string name, char key, (char lower, char upper) cases, double startWeight, string pronunciation = "")
+        {
+            if (Consonants.ContainsKey(key) == false)
+                Consonants.Add(key, new Consonant(name, key, cases, pronunciation, startWeight));
+            return Consonants[key];
+        }
+        public Vowel AddVowel(string name, char key, (char lower, char upper) cases, double startWeight, string pronunciation = "")
+        {
+            if (Vowels.ContainsKey(key) == false)
+                Vowels.Add(key, new Vowel(name, key, cases, pronunciation, startWeight));
+            return Vowels[key];
         }
 
         public Letter? Find(char letter)
@@ -39,8 +48,7 @@ namespace PLGL.Construct
             result.AddRange(Consonants.Values);
             result.AddRange(Vowels.Values);
 
-            return result.OrderBy(l => l.Value).ToList();
+            return result.OrderBy(l => l.Key).ToList();
         }
-        public bool IsVowel(char c) { return Find(c).IsVowel; }
     }
 }
