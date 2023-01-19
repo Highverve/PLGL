@@ -1,3 +1,5 @@
+#### **NOTE**: The readme is a work in progress. I'm updating the code faster than I can update the readme (daily). Thank you for your patience.
+
 # (P)rocedural (L)anguage (G)eneration (L)ibrary
 
 > No language is justly studied merely as an aid to other purposes. It will in fact better serve other purposes, philological or historical, when it is studied for love, for itself. — J. R. R. Tolkien
