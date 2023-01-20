@@ -12,21 +12,29 @@ Procedural Language Generation Library (PLGL) is a code library designed for gam
 The initial thought that started this project was simple: using a word as a seed, could I procedurally generate an entirely different word? After a few obstacles and a necessary amount of feature creep, the first version of the PLGL is released.
 
 
-## 2 — Glossary
+## 2 — Contents
 
-• **Sigma**. The phonological symbol for syllable, containing the onset, nucleus, and coda.
-1. **Onset**. The start of a sigma, containing consonants.
-2. **Nucleus**. The middle of a sigma; vowels. This is always required.
-3. **Coda**. The end of a sigma; consonants, once again.
+1. **Introduction**
+2. **Contents**
+3. [Examples](https://github.com/Highverve/PLGL/edit/master/README.md#3--examples)
+4. [Theory & Process](https://github.com/Highverve/PLGL/edit/master/README.md#4--theory--process)
+    - 4.1 [Deconstruction](https://github.com/Highverve/PLGL/edit/master/README.md#41--deconstruction)
+    - 4.2 [Construction](https://github.com/Highverve/PLGL/edit/master/README.md#42--construction)
+    - 4.3 [Generating Sentences](https://github.com/Highverve/PLGL/edit/master/README.md#43--generating-sentences)
+5. [Setting Up](https://github.com/Highverve/PLGL/edit/master/README.md#5--setting-up)
+    - 5.1 [Detailed Overview](https://github.com/Highverve/PLGL/edit/master/README.md#51-detailed-overview)
+6. [Future Updates](https://github.com/Highverve/PLGL/edit/master/README.md#6--future-updates)
 
-• **Lexemes**. The different inflection a word may take (fly, flying, flied, etc.).
+## 3 — Examples
+
+Example languages will go here.
 
 
-## 3 — Theory & Process
+## 4 — Theory & Process
 
 The generation process can be divided into two parts: *Deconstruction* and *construction*. Deconstruction breaks down a sentence by character filters (primarily *letters*, *numbers*, *delimiters*, *punctuation marks*, etc.), and merges any desired blocks (more on this later). This greatly helps the construction process, which is responsible for handling how each filter block is manipulated. For example, the *letters* filter should typically be generated into an entirely new word, whereas the language author may prefer to keep 'numbers' or 'punctuation' filters as is. Since filters—and how they function—are defined by the language author, there is immense flexibility.
 
-### 3.1 — **Deconstruction**.
+### 4.1 — **Deconstruction**.
 
 The first step is to add a character filter:
 ```c#
@@ -53,7 +61,7 @@ lang.Deconstruct += (lg, current, left, right) => lg.EVENT_MergeBlocks(current, 
 ```
 The Deconstruct event is called after all of the characters in the string have been processed. It allows the language author greater control over how blocks behave around their neighbors. In this case, EVENT_MergeBlocks compares the current iterated character block (*PUNCTUATION* filter) to its friends on the left and right; if both are *LETTERS*, it then checks if the PUNCTUATION block is a single apostrophe '. If it is, the three blocks are merged into one, taking on the filter of the last string in the parameter. Without this, the three blocks are processed separately; for a number like $9,999.99, a *NUMBERS* filter would only see 9, 999, and 99—that's not ideal at all.
 
-### 3.2 — **Construction**.
+### 4.2 — **Construction**.
 
 The ConstructFilter event is the most crucial to implement. This is where you tell the generator how you want each filter to be processed. Here is a simple example (where `lang` is the Language class reference, and `lg` is the LanguageGenerator class):
 ```c#
@@ -76,14 +84,14 @@ public void FILTER_KeepAsIs(WordInfo word, string filter)
 
 The filter check is the most important part. If it's not included, the method is applied to every word. We'll look at `CONSTRUCT_Generate` in the next section.
 
-### 3.3 — **Generating sentences**.
+### 4.3 — **Generating Sentences**.
 
 An overview at the code that parses your sentence, transforming it according to the language author's constraints.
 
 
-## 4 — Setting Up
+## 5 — Setting Up
 
-### 4.1 Detailed Overview
+### 5.1 Detailed Overview
 
 1. Initial setup.
     - Add a class to your project with a Language field.
@@ -118,12 +126,12 @@ An overview at the code that parses your sentence, transforming it according to 
     - Add punctuation. Alternative punctuation marks, or a particle system, for stronger language style. `lang.Punctuation.Add(".", (w) => { return "·"; });`
     - Add flags (<Hide, Hide>, NoGen, ). There are a few default actions in the Language.Flags class. The result can be concatenated dynamically, if required. `lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_Replace(lg, word, () => { return PlayerName; }));`
 
-### 4.2 
+### 5.2 
 
 
-## 5 — Future Updates
+## 6 — Future Updates
 
 - [ ] **Number processing**: custom base conversion, custom numbers and names.
 - [ ] Stronger control over sigma selection.
-- [ ] Better control over letters (perhaps with consonant doubling, or diphthongs).
+- [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [ ] Easier, or less tedious, letter pathing—if at all possible.
