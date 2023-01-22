@@ -131,7 +131,15 @@ An overview at the code that parses your sentence, transforming it according to 
 
 ## 6 — Future Updates
 
-- [ ] **Number processing**: custom base conversion, custom numbers and names.
+- [ ] Improve how affixes are handled.
 - [ ] Stronger control over sigma selection.
 - [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [ ] Easier, or less tedious, letter pathing—if at all possible.
+- [ ] Custom base conversion for numbers.
+
+
+## 7 — Useful Resources
+
+1. Language construction.
+    - [https://en.wikipedia.org/wiki/Vowel](https://en.wikipedia.org/wiki/Vowel)
+    - [https://en.wikipedia.org/wiki/Pulmonic_consonant](https://en.wikipedia.org/wiki/Pulmonic_consonant)
