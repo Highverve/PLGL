@@ -44,6 +44,7 @@ namespace PLGL
         public Lexicon Lexicon { get; private set; }
         public Punctuation Punctuation { get; private set; }
         public Flagging Flags { get; private set; }
+        public Numbers Numbers { get; private set; }
 
         public List<CharacterFilter> Filters { get; set; } = new List<CharacterFilter>();
         public void AddFilter(string name, params char[] characters)
@@ -75,6 +76,7 @@ namespace PLGL
             Lexicon = new Lexicon();
             Punctuation = new Punctuation();
             Flags = new Flagging();
+            Numbers = new Numbers();
         }
     }
     public class LanguageOptions

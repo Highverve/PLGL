@@ -97,6 +97,7 @@ namespace PLGL.Examples
 
             lang.Construct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
         }
+
         #endregion
 
         #region Structural
@@ -116,7 +117,7 @@ namespace PLGL.Examples
             {
                 if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.GeneratedLetters.IndexOf(current) > 1)
                 {
-                    lg.GENERATE_InsertLetter(w, current, 'l', 0);
+                    //lg.GENERATE_InsertLetter(w, current, 'l', 0);
                 }
             };
         }

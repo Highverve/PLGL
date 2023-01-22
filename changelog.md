@@ -89,3 +89,5 @@
     - Improvements to the Alphabet and LanguageGenerator classes which reflect the Letter class changes.
     - Added the LetterInfo class (with adjacent properties), and List<LetterInfo> GeneratedLetters to WordInfo. The generation process now adds it's letters to this list instead to WordGenerated.
     - Added OnGenerate delegate and event. This brings the level of generation control in line with the deconstruction and construction events.
+### 2022-1-21
+    - Finished the Numbers class for handling custom numbers (except different base support).

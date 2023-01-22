@@ -80,7 +80,7 @@ namespace PLGL
         /// <param name="filter"></param>
         public void CONSTRUCT_Generate(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == "LETTERS" && word.IsProcessed == false)
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
                 Lexemes(word);
                 SetRandom(word.WordRoot);
@@ -509,8 +509,8 @@ namespace PLGL
         /// <param name="word"></param>
         private void SelectSigmaStructures(WordInfo word)
         {
-            int sigmaCount = (int)(SigmaCount(word.WordRoot) *
-                    NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax));
+            int sigmaCount = Math.Max((int)(SigmaCount(word.WordRoot) *
+                    NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax)), 1);
 
             //Generate sigma structure.
             for (int i = 0; i < sigmaCount; i++)
@@ -660,26 +660,29 @@ namespace PLGL
                 if (i < word.GeneratedLetters.Count - 1) word.GeneratedLetters[i].AdjacentRight = word.GeneratedLetters[i + 1];
             }
 
-            for (int i = 0; i < word.GeneratedLetters.Count; i++)
+            if (Language.Generate != null)
             {
-                int currentCount = word.GeneratedLetters.Count;
-
-                if (word.GeneratedLetters[i].IsProcessed == false)
+                for (int i = 0; i < word.GeneratedLetters.Count; i++)
                 {
-                    word.GeneratedLetters[i].IsProcessed = true;
+                    int currentCount = word.GeneratedLetters.Count;
 
-                    Language.Generate(this, word,
-                        word.GeneratedLetters[i],
-                        word.GeneratedLetters[i].AdjacentLeft,
-                        word.GeneratedLetters[i].AdjacentRight);
+                    if (word.GeneratedLetters[i].IsProcessed == false)
+                    {
+                        word.GeneratedLetters[i].IsProcessed = true;
 
-                    LinkLeftLetter(word, word.GeneratedLetters[i]);
-                    LinkRightLetter(word, word.GeneratedLetters[i]);
+                        Language.Generate(this, word,
+                            word.GeneratedLetters[i],
+                            word.GeneratedLetters[i].AdjacentLeft,
+                            word.GeneratedLetters[i].AdjacentRight);
+
+                        LinkLeftLetter(word, word.GeneratedLetters[i]);
+                        LinkRightLetter(word, word.GeneratedLetters[i]);
+                    }
+
+                    //If there is a difference (e.g, a letter was added), return to 0.
+                    if (currentCount != word.GeneratedLetters.Count)
+                        i = 0;
                 }
-
-                //If there is a difference (e.g, a letter was added), return to 0.
-                if (currentCount != word.GeneratedLetters.Count)
-                    i = 0;
             }
 
             word.GeneratedLetters.RemoveAll((l) => l.IsAlive == false);

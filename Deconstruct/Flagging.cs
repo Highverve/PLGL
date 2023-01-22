@@ -33,7 +33,7 @@ namespace PLGL.Deconstruct
         }
         public void Process(LanguageGenerator lg, WordInfo word, string filterName, string delimiter = ",", int substringIndex = 1, int substringSubtract = 2)
         {
-            if (word.Filter.Name.ToUpper() == filterName)
+            if (word.Filter.Name.ToUpper() == filterName && word.IsProcessed == false)
             {
                 string[] command = word.WordActual.Substring(substringIndex, word.WordActual.Length - substringSubtract).Split(delimiter);
 
@@ -56,6 +56,7 @@ namespace PLGL.Deconstruct
             {
                 word.AdjacentLeft.WordFinal = string.Empty;
                 word.AdjacentLeft.IsProcessed = true;
+                word.IsProcessed = true;
             }
         }
         /// <summary>
@@ -69,6 +70,7 @@ namespace PLGL.Deconstruct
             {
                 word.AdjacentRight.WordFinal = string.Empty;
                 word.AdjacentRight.IsProcessed = true;
+                word.IsProcessed = true;
             }
         }
         /// <summary>
@@ -88,7 +90,15 @@ namespace PLGL.Deconstruct
             if (word.AdjacentLeft != null)
             {
                 word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordActual;
-                word.AdjacentLeft.IsProcessed = true;
+                word.IsProcessed = true;
+            }
+        }
+        public void ACTION_NoAffixes(LanguageGenerator lg, WordInfo word)
+        {
+            if (word.AdjacentLeft != null)
+            {
+                word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordGenerated;
+                word.IsProcessed = true;
             }
         }
 
@@ -103,7 +113,7 @@ namespace PLGL.Deconstruct
             if (word.AdjacentLeft != null)
             {
                 word.AdjacentLeft.WordFinal = result();
-                word.AdjacentLeft.IsProcessed = true;
+                word.IsProcessed = true;
             }
         }
         /// <summary>
@@ -117,7 +127,7 @@ namespace PLGL.Deconstruct
             if (word.AdjacentRight != null)
             {
                 word.AdjacentRight.WordFinal = result();
-                word.AdjacentRight.IsProcessed = true;
+                word.IsProcessed = true;
             }
         }
         /// <summary>
