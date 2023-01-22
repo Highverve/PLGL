@@ -16,14 +16,15 @@ The initial thought that started this project was simple: using a word as a seed
 
 1. **Introduction**
 2. **Contents**
-3. [Examples](https://github.com/Highverve/PLGL/edit/master/README.md#3--examples)
-4. [Theory & Process](https://github.com/Highverve/PLGL/edit/master/README.md#4--theory--process)
-    - 4.1 [Deconstruction](https://github.com/Highverve/PLGL/edit/master/README.md#41--deconstruction)
-    - 4.2 [Construction](https://github.com/Highverve/PLGL/edit/master/README.md#42--construction)
-    - 4.3 [Generating Sentences](https://github.com/Highverve/PLGL/edit/master/README.md#43--generating-sentences)
-5. [Setting Up](https://github.com/Highverve/PLGL/edit/master/README.md#5--setting-up)
-    - 5.1 [Detailed Overview](https://github.com/Highverve/PLGL/edit/master/README.md#51-detailed-overview)
-6. [Future Updates](https://github.com/Highverve/PLGL/edit/master/README.md#6--future-updates)
+3. [Examples](https://github.com/Highverve/PLGL#3--examples)
+4. [Theory & Process](https://github.com/Highverve/PLGL#4--theory--process)
+    - 4.1 [Deconstruction](https://github.com/Highverve/PLGL#41--deconstruction)
+    - 4.2 [Construction](https://github.com/Highverve/PLGL#42--construction)
+    - 4.3 [Generating Sentences](https://github.com/Highverve/PLGL#43--generating-sentences)
+5. [Setting Up](https://github.com/Highverve/PLGL#5--setting-up)
+    - 5.1 [Detailed Overview](https://github.com/Highverve/PLGL#51-detailed-overview)
+6. [Future Updates](https://github.com/Highverve/PLGL#6--future-updates)
+7. [Useful Resources](https://github.com/Highverve/PLGL#7--useful-resources)
 
 ## 3 — Examples
 
