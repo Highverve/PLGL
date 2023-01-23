@@ -137,7 +137,9 @@ An overview at the code that parses your sentence, transforming it according to 
 - [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [ ] Easier, or less tedious, letter pathing—if at all possible.
 - [ ] Custom base conversion for numbers.
-
+- [ ] Add generation logging to help authors diagnose and fix their language.
+- [ ] Add path processing method, which output letter path probability of the input text file.
+- [ ] Add syllable rarity estimation, which returns the most (or least) likely syllables your language generates.
 
 ## 7 — Useful Resources
 
