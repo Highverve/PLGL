@@ -141,7 +141,6 @@ An overview at the code that parses your sentence, transforming it according to 
 
 ## 7 — Useful Resources
 
-1. Language construction.
-    - [https://en.wikipedia.org/wiki/Vowel](https://en.wikipedia.org/wiki/Vowel)
-    - Pulmonic consonants for human-centric phonemes. [https://en.wikipedia.org/wiki/Pulmonic_consonant](https://en.wikipedia.org/wiki/Pulmonic_consonant)
-    - "Identifying Types of Affixes in English and Bahasa Indonesia". [http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf](http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf)
+- Understanding vowels. [https://en.wikipedia.org/wiki/Vowel](https://en.wikipedia.org/wiki/Vowel)
+- Pulmonic consonants for human-centric phonemes. [https://en.wikipedia.org/wiki/Pulmonic_consonant](https://en.wikipedia.org/wiki/Pulmonic_consonant)
+- "Identifying Types of Affixes in English and Bahasa Indonesia". [http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf](http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf)
