@@ -1,11 +1,12 @@
-﻿using PLGL.Deconstruct;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PLGL.Data;
+using PLGL.Languages;
 
-namespace PLGL.Construct.Elements
+namespace PLGL.Processing
 {
     public class AffixInfo
     {

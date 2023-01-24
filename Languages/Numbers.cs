@@ -1,4 +1,5 @@
-﻿using PLGL.Construct.Elements;
+﻿using PLGL.Data;
+using PLGL.Processing;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -7,7 +8,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Deconstruct
+namespace PLGL.Languages
 {
     public class Numbers
     {
@@ -59,7 +60,7 @@ namespace PLGL.Deconstruct
 
             if (number.Contains(',')) result += "#" + Separator;
             result += "###";
-            if (number.Contains(Decimal)) result += Decimal +"##";
+            if (number.Contains(Decimal)) result += Decimal + "##";
 
             return result;
         }
@@ -98,7 +99,7 @@ namespace PLGL.Deconstruct
             }
             whole = Reverse(whole);
 
-            string result = whole + ((string.IsNullOrEmpty(fraction) == false) ? decimalSymbol + fraction : string.Empty);
+            string result = whole + (string.IsNullOrEmpty(fraction) == false ? decimalSymbol + fraction : string.Empty);
 
             foreach (Number n in Numerals)
                 result = result.Replace(n.Digit, n.Symbol);
@@ -144,7 +145,7 @@ namespace PLGL.Deconstruct
                 currentNumber = currentNumber / OutputBase();
             }
 
-            string result = new String(charArray, index + 1, BitsInLong - index - 1);
+            string result = new string(charArray, index + 1, BitsInLong - index - 1);
             if (decimalNumber < 0)
                 result = "-" + result;
 
@@ -158,13 +159,5 @@ namespace PLGL.Deconstruct
                 result += Numerals[i].Symbol;
             return result;
         }
-    }
-
-    public class Number
-    {
-        public char Digit { get; set; }
-        public char Symbol { get; set; }
-
-        public string Name { get; set; }
     }
 }

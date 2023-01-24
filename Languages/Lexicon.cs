@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Deconstruct
+namespace PLGL.Languages
 {
     /// <summary>
     /// A constraining class, that aims to answer a tricky question: "How do we handle lexemes?"
@@ -36,7 +36,7 @@ namespace PLGL.Deconstruct
         {
             List<Affix> results = new List<Affix>();
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
-            List<Affix> prefixes = Affixes.Where<Affix>(s => s.KeyLocation == Affix.AffixLocation.Prefix)
+            List<Affix> prefixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Prefix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             prefixes.Reverse();
 
@@ -55,7 +55,7 @@ namespace PLGL.Deconstruct
         {
             List<Affix> results = new List<Affix>();
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
-            List<Affix> suffixes = Affixes.Where<Affix>(s => s.KeyLocation == Affix.AffixLocation.Suffix)
+            List<Affix> suffixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Suffix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             suffixes.Reverse();
 

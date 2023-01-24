@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using PLGL.Construct.Elements;
 
-namespace PLGL.Construct
+namespace PLGL.Languages
 {
     public record class Alphabet
     {

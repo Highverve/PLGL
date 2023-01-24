@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Construct.Elements
+namespace PLGL.Data
 {
     public abstract class Letter
     {

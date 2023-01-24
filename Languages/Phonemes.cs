@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL
+namespace PLGL.Languages
 {
     /// <summary>
     /// An optional class, used to build a reference guide for pronunciation.
@@ -12,7 +12,7 @@ namespace PLGL
     /// </summary>
     public class Phonemes
     {
-        
+
     }
     public class Phoneme
     {

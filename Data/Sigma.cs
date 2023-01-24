@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Construct.Elements
+namespace PLGL.Data
 {
+    public enum SigmaType { Onset, Nucleus, Medial, Coda }
+
     public class Sigma
     {
         private int count = 0;
@@ -19,11 +21,6 @@ namespace PLGL.Construct.Elements
         /// The middle vowel(s) of a syllable. This should not be null!
         /// </summary>
         public SigmaBlock Nucleus { get; set; }
-        /// <summary>
-        /// The semivowel which links the boundary between the nucleus's vowels and the coda's consonants.
-        /// This is optional, and will be unimplemented for awhile.
-        /// </summary>
-        public SigmaBlock Medial { get; set; }
         /// <summary>
         /// The ending consonant(s) of a syllable. This can be left null.
         /// </summary>
@@ -44,8 +41,6 @@ namespace PLGL.Construct.Elements
                     structure += Onset.Template;
                 if (Nucleus != null)
                     structure += Nucleus.Template;
-                if (Medial != null)
-                    structure += Medial.Template;
                 if (Coda != null)
                     structure += Coda.Template;
             }
@@ -60,8 +55,6 @@ namespace PLGL.Construct.Elements
                     count += Onset.Count;
                 if (Nucleus != null)
                     count += Nucleus.Count;
-                if (Medial != null)
-                    count += Medial.Count;
                 if (Coda != null)
                     count += Coda.Count;
             }
@@ -78,7 +71,6 @@ namespace PLGL.Construct.Elements
         {
             this.Onset = new SigmaBlock() { Type = SigmaType.Onset };
             this.Nucleus = new SigmaBlock() { Type = SigmaType.Nucleus };
-            this.Medial = new SigmaBlock() { Type = SigmaType.Medial };
             this.Coda = new SigmaBlock() { Type = SigmaType.Coda };
 
             this.Onset.Template = Onset;
@@ -86,54 +78,6 @@ namespace PLGL.Construct.Elements
             this.Coda.Template = Coda;
         }
 
-        public override string ToString() { return Structure() +"[" + Count() + "]"; }
-    }
-
-    public enum SigmaType { Onset, Nucleus, Medial, Coda }
-    public class SigmaBlock
-    {
-        public SigmaType Type { get; internal set; }
-
-        /// <summary>
-        /// Determines how many consonants (Block Type.Onset or Type.Coda) or vowels (Block Type.Nucleus) the generator creates in this part of the sigma.
-        /// </summary>
-        public int Count { get; set; }
-        /// <summary>
-        /// How the block is laid out, such as "CC" if onset, or "V" if nucleus.
-        /// 
-        /// Get returns the length of Count as the block type (e.g, 'C' * Count, returning 'CC' if Count is 2).
-        /// Set equals the Count to the length of the string.
-        /// </summary>
-        public string Template
-        {
-            get { return (Type == SigmaType.Nucleus) ? new string('V', Count) : new string('C', Count); }
-            set { Count = value.Length; }
-        }
-    }
-
-    public class SigmaPath
-    {
-        /// <summary>
-        /// How likely the generator will choose this sigma. Default is 1.0.
-        /// </summary>
-        public double SelectionWeight { get; set; } = 1.0;
-
-        /// <summary>
-        /// How likely this sigma will start a word. Default is 1.0.
-        /// </summary>
-        public double StartingWeight { get; set; } = 1.0;
-        /// <summary>
-        /// How likely this sigma will end a word. Default is 1.0.
-        /// </summary>
-        public double EndingWeight { get; set; } = 1.0;
-
-        /// <summary>
-        /// How likely this sigma will follow a sigma that ends with a vowel. Default is 1.0.
-        /// </summary>
-        public double LastVowelWeight { get; set; } = 1.0;
-        /// <summary>
-        /// How likely this sigma will follow a sigma that ends with a consonant. Default is 1.0.
-        /// </summary>
-        public double LastConsonantWeight { get; set; } = 1.0;
+        public override string ToString() { return Structure() + "[" + Count() + "]"; }
     }
 }

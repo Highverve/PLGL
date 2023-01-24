@@ -1,4 +1,4 @@
-﻿using PLGL.Construct.Elements;
+﻿using PLGL.Processing;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PLGL.Deconstruct
+namespace PLGL.Languages
 {
     public class Punctuation
     {
@@ -38,7 +38,7 @@ namespace PLGL.Deconstruct
     /// Code borrowed from: https://stackoverflow.com/questions/20993877/how-to-sort-a-dictionary-by-key-string-length
     /// Code author: Boluc Papuccuoglu
     /// </summary>
-    internal class LengthComparer : IComparer<String>
+    internal class LengthComparer : IComparer<string>
     {
         public int Compare(string x, string y)
         {

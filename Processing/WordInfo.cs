@@ -1,12 +1,11 @@
-﻿using System;
+﻿using PLGL.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PLGL.Deconstruct;
-using PLGL.Construct;
 
-namespace PLGL.Construct.Elements
+namespace PLGL.Processing
 {
     //public enum Capitalization { First, all }
 

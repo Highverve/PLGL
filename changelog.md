@@ -102,4 +102,4 @@
     - The language generator now uses the cases specified by the Language, rather than just char.ToUpper. However, if a letter isn't found in your alphabet, it defaults to ToUpper.
     - Added three default casing methods: CASE_UpperDefault, CASE_CapitalizeDefault, and CASE_RandomDefault.
     - Changed the action case methods Uppercase, Capitalize, and RandomCase to follow other naming conventions: CASE_Upper, CASE_Capitalize, and CASE_Random.
-    - 
+    - Cleaned up folders and namespaces, and moved "subclasses" that were used by other classes into their own .cs file.

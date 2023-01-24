@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using PLGL.Data;
+using PLGL.Languages;
 
-namespace PLGL.Construct.Elements
+namespace PLGL.Processing
 {
     /// <summary>
     /// A class used by generation to fill with syllable information when constructing a word.
@@ -28,7 +30,6 @@ namespace PLGL.Construct.Elements
         public SigmaBlock Last()
         {
             if (Sigma.Coda != null && Sigma.Coda.Count > 0) return Sigma.Coda;
-            if (Sigma.Medial != null && Sigma.Medial.Count > 0) return Sigma.Medial;
             if (Sigma.Nucleus != null && Sigma.Nucleus.Count > 0) return Sigma.Nucleus;
             if (Sigma.Onset != null && Sigma.Onset.Count > 0) return Sigma.Onset;
 
@@ -39,7 +40,6 @@ namespace PLGL.Construct.Elements
         {
             if (Sigma.Onset != null && Sigma.Onset.Count > 0) return Sigma.Onset;
             if (Sigma.Nucleus != null && Sigma.Nucleus.Count > 0) return Sigma.Nucleus;
-            if (Sigma.Medial != null && Sigma.Medial.Count > 0) return Sigma.Medial;
             if (Sigma.Coda != null && Sigma.Coda.Count > 0) return Sigma.Coda;
 
             //If this is ever reached, the syllable wasn't set correctly!

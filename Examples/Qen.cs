@@ -1,12 +1,5 @@
-﻿using PLGL.Construct.Elements;
-using PLGL.Construct;
-using PLGL.Deconstruct;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Reflection.Metadata.Ecma335;
+﻿using PLGL.Data;
+using PLGL.Languages;
 
 namespace PLGL.Examples
 {
