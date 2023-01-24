@@ -30,10 +30,20 @@ namespace PLGL.Construct.Elements
         /// This will always be null for the last word in a sentence. Account for it.
         /// </summary>
         public WordInfo? AdjacentRight { get; set; } = null;
+
         /// <summary>
         /// Populated by the generator.
         /// </summary>
-        public List<SigmaInfo> SigmaInfo { get; set; } = new List<SigmaInfo>();
+        public List<SigmaInfo> Sigma { get; set; } = new List<SigmaInfo>();
+        public List<LetterInfo> Letters { get; set; } = new List<LetterInfo>();
+        /// <summary>
+        /// Populated during deconstruction lexeme discovery.
+        /// </summary>
+        public List<AffixInfo> Prefixes { get; set; }
+        /// <summary>
+        /// Populated during deconstruction lexeme discovery.
+        /// </summary>
+        public List<AffixInfo> Suffixes { get; set; }
 
         /// <summary>
         /// The character block, as it's been deconstructed from the sentence.
@@ -51,16 +61,11 @@ namespace PLGL.Construct.Elements
         /// The final, procedurally generated word.
         /// </summary>
         public string WordFinal { get; set; } = string.Empty;
-
-        public Affix[] Prefixes { get; set; }
-        public Affix[] Suffixes { get; set; }
         public string WordPrefixes { get; set; } = string.Empty;
         public string WordSuffixes { get; set; } = string.Empty;
 
         public enum CaseType { Lowercase, Capitalize, Uppercase, RandomCase }
         public CaseType Case { get; set; } = CaseType.Lowercase;
-
-        public List<LetterInfo> GeneratedLetters { get; set; } = new List<LetterInfo>();
 
         public override string ToString() { return WordActual; }
     }

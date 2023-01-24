@@ -21,17 +21,22 @@ namespace PLGL.Deconstruct
     /// </summary>
     public class Lexicon
     {
-        public List<(string[], string)> Lexemes { get; private set; } = new List<(string[], string)>();
+        //public List<(string[], string)> Lexemes { get; private set; } = new List<(string[], string)>();
         public Dictionary<string, string> Inflections { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Roots { get; private set; } = new Dictionary<string, string>();
 
         public List<Affix> Affixes { get; private set; } = new List<Affix>();
 
+        /// <summary>
+        /// If true, affixes are sorted by the language author's order. Otherwise, sorted to match the order the affixes are read. Default is false.
+        /// </summary>
+        public bool IsCustomOrder { get; set; } = false;
+
         public List<Affix> GetPrefixes(string word)
         {
             List<Affix> results = new List<Affix>();
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
-            List<Affix> prefixes = Affixes.Where<Affix>(s => s.Affixation == Affix.AffixType.Prefix)
+            List<Affix> prefixes = Affixes.Where<Affix>(s => s.KeyLocation == Affix.AffixLocation.Prefix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             prefixes.Reverse();
 
@@ -50,7 +55,7 @@ namespace PLGL.Deconstruct
         {
             List<Affix> results = new List<Affix>();
             //Double-check: If it's not from longest to shortest: ordered.Reverse();
-            List<Affix> suffixes = Affixes.Where<Affix>(s => s.Affixation == Affix.AffixType.Suffix)
+            List<Affix> suffixes = Affixes.Where<Affix>(s => s.KeyLocation == Affix.AffixLocation.Suffix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             suffixes.Reverse();
 
@@ -71,37 +76,25 @@ namespace PLGL.Deconstruct
         public string Key { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
 
-        public enum AffixType { Prefix, Suffix }
-        public enum LocationType { Start, End }
+        public enum AffixLocation { Prefix, Suffix }
         public int Order { get; set; }
-        public bool IsGenerated { get; set; } = false;
 
         /// <summary>
         /// What type of affix is it? This tells the generator where to look for the affix.
         /// </summary>
-        public AffixType Affixation { get; set; }
+        public AffixLocation KeyLocation { get; set; }
         /// <summary>
         /// This tells the generator where the Value should be added at the end of the generation process.
         /// </summary>
-        public LocationType Location { get; set; }
+        public AffixLocation ValueLocation { get; set; }
 
-        public Affix(string Key, string Value, AffixType Affixation, LocationType Location, int Order)
+        public Affix(string Key, string Value, AffixLocation KeyLocation, AffixLocation ValueLocation, int Order = 0)
         {
             this.Key = Key;
             this.Value = Value;
-            this.Affixation = Affixation;
-            this.Location = Location;
+            this.KeyLocation = KeyLocation;
+            this.ValueLocation = ValueLocation;
             this.Order = Order;
-        }
-        /// <summary>
-        /// With this constructor, the affix's value will be procedurally generated, like a regular word.
-        /// </summary>
-        /// <param name="Key"></param>
-        /// <param name="Affixation"></param>
-        /// <param name="Location"></param>
-        public Affix(string Key, AffixType Affixation, LocationType Location, int Order) : this(Key, "", Affixation, Location, Order)
-        {
-            IsGenerated = true;
         }
     }
 }

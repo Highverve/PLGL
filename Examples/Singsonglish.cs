@@ -115,7 +115,7 @@ namespace PLGL.Examples
 
             lang.Generate += (lg, w, current, left, right) =>
             {
-                if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.GeneratedLetters.IndexOf(current) > 1)
+                if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.Letters.IndexOf(current) > 1)
                 {
                     //lg.GENERATE_InsertLetter(w, current, 'l', 0);
                 }
@@ -163,10 +163,10 @@ namespace PLGL.Examples
         }
         private void SetAffixes()
         {
-            lang.Lexicon.Affixes.Add(new Affix("'s", "-doo", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
-            lang.Lexicon.Affixes.Add(new Affix("s", "-da", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
-            lang.Lexicon.Affixes.Add(new Affix("ly", "-dee", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
-            lang.Lexicon.Affixes.Add(new Affix("ish", "-dei", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
+            lang.Lexicon.Affixes.Add(new Affix("'s", "-doo", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, 0));
+            lang.Lexicon.Affixes.Add(new Affix("s", "-da", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, 0));
+            lang.Lexicon.Affixes.Add(new Affix("ly", "-dee", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, 0));
+            lang.Lexicon.Affixes.Add(new Affix("ish", "-dei", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, 0));
         }
         #endregion
 

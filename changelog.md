@@ -79,7 +79,7 @@
     - Added DECONSTRUCT_ContainWithin. Merges all blocks within two blocks of the specified filter. It's Merge on steroids, and it's perfect for a "Flags" filter.
     - Added CONSTRUCT_Within, for any single blocks that you need a substring of (such as an "Escape" filter).
 ### 2022-1-17:
-    - All code from Flagging has been deleted, and replaced it with drastically better code (and shorter!). Simply hook it up to the ConstructFilter, and add your flag actions.
+    - All code from Flagging has been deleted, and replaced with drastically better code (and shorter!). Simply hook it up to the ConstructFilter, and add your flag actions.
     - Added the Punctuation class, which works very similarly to Flagging.
     - Removed Delimiters property from Language.Options, as it was no longer needed.
     - Renamed Language.ConstructFilter to Construct, brining its naming conventon inline with Deconstruct.
@@ -91,3 +91,10 @@
     - Added OnGenerate delegate and event. This brings the level of generation control in line with the deconstruction and construction events.
 ### 2022-1-21
     - Finished the Numbers class for handling custom numbers (except different base support).
+### 2022-1-23
+    - Moved Language management to it's own class.
+    - Improved how affixes are handled, and added the new AffixInfo class.
+    - Affixes can now have a custom order, and can change position (suffix to prefix or prefix to suffix).
+    - Added support for OnPrefix and OnSuffix events. While affixes are intiailly processed prior to word generation, these events are called afterward.
+    - Added two support methods for modifying suffixes through OnSuffix: SUFFIX_Insert and SUFFIX_Remove.
+    - OnSuffix support methods have slightly different behaviour compared to other events, with a boolean parameter called "condition". SUFFIX_ReturnMatch, _ReturnConsonant, and _ReturnVowel should be passed here.

@@ -31,8 +31,8 @@ namespace PLGL
 
     //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
     //E.g, adding a vowel for smooth vocal transitions.
-    public delegate void OnPrefix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
-    public delegate void OnSuffix(WordInfo word, Affix current, Affix adjacentLeft, Affix adjacentRight);
+    public delegate void OnPrefix(LanguageGenerator lg, WordInfo word, AffixInfo current);
+    public delegate void OnSuffix(LanguageGenerator lg, WordInfo word, AffixInfo current);
 
     public class LanguageGenerator
     {
@@ -47,8 +47,8 @@ namespace PLGL
             if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
                 word.WordFinal = string.Empty;
-                word.Prefixes = new Affix[0];
-                word.Suffixes = new Affix[0];
+                if (word.Prefixes != null) word.Prefixes.Clear();
+                if (word.Suffixes != null) word.Suffixes.Clear();
                 word.IsProcessed = true;
             }
         }
@@ -83,10 +83,15 @@ namespace PLGL
             if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
                 Lexemes(word);
+                ExtractAffixes(word);
+
                 SetRandom(word.WordRoot);
 
                 if (string.IsNullOrEmpty(word.WordGenerated))
                     GenerateWord(word);
+
+                ProcessAffixes(word);
+                AssembleAffixes(word);
 
                 word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
                 word.IsProcessed = true;
@@ -97,6 +102,22 @@ namespace PLGL
             }
         }
 
+        public void DECONSTRUCT_ChangeFilter(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+            string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
+        {
+            if (left != null && right != null)
+            {
+                if (current.Filter.Name.ToUpper() == currentFilter &&
+                    left.Filter.Name.ToUpper() == leftFilter &&
+                    right.Filter.Name.ToUpper() == rightFilter)
+                {
+                    if (current.Text == currentText)
+                    {
+                        current.Filter = Deconstruct.GetFilter(newFilter);
+                    }
+                }
+            }
+        }
         public void DECONSTRUCT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
             string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
         {
@@ -175,6 +196,89 @@ namespace PLGL
             }
         }
 
+        public void SUFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert, int insertIndex, bool condition)
+        {
+            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            {
+                if (condition)
+                {
+                    current.AffixText = current.AffixText.Insert(insertIndex, insert);
+                    current.IsProcessed = true;
+                }
+            }
+        }
+        public void SUFFIX_Remove(WordInfo word, AffixInfo current, string affixKey, int index, int length, bool condition)
+        {
+            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            {
+                if (condition)
+                {
+                    current.AffixText = current.AffixText.Remove(index, length);
+                    current.IsProcessed = true;
+                }
+            }
+        }
+
+        public bool SUFFIX_ReturnMatch(WordInfo word, AffixInfo current, char symbol)
+        {
+            char last = char.MinValue;
+
+            if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
+            else last = word.WordGenerated.Last();
+
+            Letter? compare = Language.Alphabet.Find(last);
+
+            if (compare != null)
+                return symbol == compare.Case.lower || symbol == compare.Case.upper;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent left suffix or generated word ends in a vowel.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool SUFFIX_ReturnVowel(WordInfo word, AffixInfo current)
+        {
+            char last = SUFFIX_LastChar(word, current);
+
+            if (Language.Alphabet.Vowels.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent left suffix or generated word ends in a consonant.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool SUFFIX_ReturnConsonant(WordInfo word, AffixInfo current)
+        {
+            char last = SUFFIX_LastChar(word, current);
+
+            if (Language.Alphabet.Consonants.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns the adjacent left or generated word's last character. A common method used by other SUFFIX_ methods; you probably don't need this, but I left it public just in case.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public char SUFFIX_LastChar(WordInfo word, AffixInfo current)
+        {
+            char last = char.MinValue;
+
+            if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
+            else last = word.WordGenerated.Last();
+
+            return last;
+        }
+
         /// <summary>
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
         /// </summary>
@@ -196,15 +300,6 @@ namespace PLGL
             w.WordFinal = result;
         };
 
-        public void LoopThroughLetters(WordInfo word, Action<char, int> action)
-        {
-            char[] array = word.WordFinal.ToCharArray();
-            for (int i = 0; i < array.Length; i++)
-            {
-            }
-        }
-
-        #region Language management
         private Language language;
         public Language Language
         {
@@ -215,21 +310,6 @@ namespace PLGL
                 Deconstruct.Language = Language;
             }
         }
-        public Dictionary<string, Language> Languages { get; private set; } = new Dictionary<string, Language>();
-
-        public void AddLanguage(string key, Language language)
-        {
-            if (Languages.ContainsKey(key) == false)
-                Languages.Add(key, language);
-        }
-        public void AddLanguage(Language language) { AddLanguage(language.META_Nickname, language); }
-        public void SelectLanguage(string nickname)
-        {
-            if (Languages.ContainsKey(nickname))
-                Language = Languages[nickname];
-        }
-        public void SelectLanguage(Language language) { Language = language; }
-        #endregion
 
         #region Random management
         public int Seed { get; private set; }
@@ -314,14 +394,7 @@ namespace PLGL
         /// <param name="language"></param>
         /// <param name="sentence"></param>
         /// <returns></returns>
-        public string GenerateClean(Language language, string sentence) { SelectLanguage(language); return GenerateClean(sentence); }
-        /// <summary>
-        /// Switches to the specified language and generates a new sentence.
-        /// </summary>
-        /// <param name="language"></param>
-        /// <param name="sentence"></param>
-        /// <returns></returns>
-        public string GenerateClean(string language, string sentence) { SelectLanguage(language); return GenerateClean(sentence); }
+        public string GenerateClean(Language language, string sentence) { Language = language; return GenerateClean(sentence); }
         /// <summary>
         /// Does the same as GenerateClean, while also returning the list of WordInfo.
         /// </summary>
@@ -445,32 +518,125 @@ namespace PLGL
             if (Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
                 word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
         }
-        
+
+        private List<Affix> affixes = new List<Affix>();
         /// <summary>
         /// The lexemes are processed, stripping the actual word down to its root.
         /// </summary>
         /// <param name="word"></param>
-        private void ProcessLexemes(WordInfo word)
+        private void ExtractAffixes(WordInfo word)
         {
-            //Extract affixes.
-            word.Prefixes = Language.Lexicon.GetPrefixes(word.WordActual).ToArray();
-            word.Suffixes = Language.Lexicon.GetSuffixes(word.WordActual).ToArray();
+            affixes.Clear();
 
-            //Strip word to root.
-            int prefixLength = word.Prefixes.Sum((a) => a.Key.Length);
-            int suffixLength = word.Suffixes.Sum((a) => a.Key.Length);
-            word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
+            //Extract affixes.
+            affixes.AddRange(Language.Lexicon.GetPrefixes(word.WordActual));
+            affixes.AddRange(Language.Lexicon.GetSuffixes(word.WordActual));
+
+            if (affixes.Count > 0)
+            {
+                word.Prefixes = new List<AffixInfo>();
+                word.Suffixes = new List<AffixInfo>();
+
+                int suffixIndex = 0, prefixIndex = 0;
+                AffixInfo current;
+
+                for (int i = 0; i < affixes.Count; i++)
+                {
+                    if (affixes[i].ValueLocation == Affix.AffixLocation.Prefix)
+                    {
+                        word.Prefixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
+
+                        if (Language.Lexicon.IsCustomOrder == false)
+                        {
+                            prefixIndex++;
+                            current.Order = prefixIndex;
+                        }
+                        else
+                            current.Order = current.Affix.Order;
+                    }
+
+                    if (affixes[i].ValueLocation == Affix.AffixLocation.Suffix)
+                    {
+                        word.Suffixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
+
+                        if (Language.Lexicon.IsCustomOrder == false)
+                        {
+                            suffixIndex++;
+                            current.Order = suffixIndex;
+                        }
+                        else
+                            current.Order = current.Affix.Order;
+                    }
+                }
+
+                if (Language.Lexicon.IsCustomOrder == false)
+                {
+                    word.Prefixes = word.Prefixes.OrderByDescending((p) => p.Order).ToList();
+                    word.Suffixes = word.Suffixes.OrderByDescending((s) => s.Order).ToList();
+                }
+
+                //Strip word to root.
+                int prefixLength = affixes.Where((a) => a.KeyLocation == Affix.AffixLocation.Prefix).Sum((a) => a.Key.Length);
+                int suffixLength = affixes.Where((a) => a.KeyLocation == Affix.AffixLocation.Suffix).Sum((a) => a.Key.Length);
+                word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
+            }
+            else
+                word.WordRoot = word.WordActual;
         }
         /// <summary>
         /// The affixes are assembled and set in order.
         /// </summary>
         /// <param name="word"></param>
-        private void AssembleLexemes(WordInfo word)
+        private void AssembleAffixes(WordInfo word)
         {
-            foreach (Affix p in word.Prefixes)
-                word.WordPrefixes += p.Value;
-            foreach (Affix s in word.Suffixes)
-                word.WordSuffixes += s.Value;
+            if (word.Prefixes != null)
+            {
+                foreach (AffixInfo p in word.Prefixes)
+                {
+                    word.WordPrefixes += p.AffixText;
+                }
+            }
+            if (word.Suffixes != null)
+            {
+                foreach (AffixInfo s in word.Suffixes)
+                    word.WordSuffixes += s.AffixText;
+            }
+        }
+
+        private void ProcessAffixes(WordInfo word)
+        {
+            if (word.Prefixes != null && Language.OnPrefix != null)
+            {
+                for (int i = 0; i < word.Prefixes.Count; i++)
+                {
+                    if (i > 0)
+                        word.Prefixes[i].AdjacentLeft = word.Prefixes[i - 1];
+                    if (i != word.Prefixes.Count - 1)
+                        word.Prefixes[i].AdjacentRight = word.Prefixes[i + 1];
+                }
+
+                for (int i = 0; i < word.Prefixes.Count; i++)
+                {
+                    if (word.Prefixes[i].Affix.ValueLocation == Affix.AffixLocation.Prefix)
+                        Language.OnPrefix(this, word, word.Prefixes[i]);
+                }
+            }
+
+            if (word.Suffixes != null && Language.OnSuffix != null)
+            {
+                for (int i = 0; i < word.Suffixes.Count; i++)
+                {
+                    if (i > 0)
+                        word.Suffixes[i].AdjacentLeft = word.Suffixes[i - 1];
+                    if (i != word.Suffixes.Count - 1)
+                        word.Suffixes[i].AdjacentRight = word.Suffixes[i + 1];
+                }
+                for (int i = 0; i < word.Suffixes.Count; i++)
+                {
+                    if (word.Suffixes[i].Affix.ValueLocation == Affix.AffixLocation.Suffix)
+                        Language.OnSuffix(this, word, word.Suffixes[i]);
+                }
+            }
         }
 
         /// <summary>
@@ -496,8 +662,6 @@ namespace PLGL
         public void Lexemes(WordInfo word)
         {
             ProcessLexiconInflections(word);
-            ProcessLexemes(word);
-            AssembleLexemes(word);
             ProcessLexiconRoots(word);
         }
         #endregion
@@ -518,7 +682,7 @@ namespace PLGL
                 //5.1 Select sigma by sigma's weights and the language's sigma options.
                 SigmaInfo info = new SigmaInfo();
 
-                Sigma last = word.SigmaInfo.LastOrDefault() != null ? word.SigmaInfo.LastOrDefault().Sigma : null;
+                Sigma last = word.Sigma.LastOrDefault() != null ? word.Sigma.LastOrDefault().Sigma : null;
                 Sigma sigma = SelectSigma(i, last);
 
                 if (i == 0) info.Position = WordPosition.First;
@@ -526,16 +690,16 @@ namespace PLGL
                 else info.Position = WordPosition.Middle;
 
                 info.Sigma = sigma;
-                word.SigmaInfo.Add(info);
+                word.Sigma.Add(info);
             }
 
             //Link adjacent sigma.
-            for (int i = 0; i < word.SigmaInfo.Count; i++)
+            for (int i = 0; i < word.Sigma.Count; i++)
             {
                 if (i != 0)
-                    word.SigmaInfo[i].AdjacentLeft = word.SigmaInfo[i - 1];
-                if (i != word.SigmaInfo.Count - 1)
-                    word.SigmaInfo[i].AdjacentRight = word.SigmaInfo[i + 1];
+                    word.Sigma[i].AdjacentLeft = word.Sigma[i - 1];
+                if (i != word.Sigma.Count - 1)
+                    word.Sigma[i].AdjacentRight = word.Sigma[i + 1];
             }
         }
         private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
@@ -625,69 +789,69 @@ namespace PLGL
         private void PopulateWord(WordInfo word)
         {
             //Select starting letter according to letter weights.
-            if (word.SigmaInfo[0].First().Type == SigmaType.Nucleus)
-                word.GeneratedLetters.Add(new LetterInfo(SelectFirstVowel()));
+            if (word.Sigma[0].First().Type == SigmaType.Nucleus)
+                word.Letters.Add(new LetterInfo(SelectFirstVowel()));
             else
-                word.GeneratedLetters.Add(new LetterInfo(SelectFirstConsonant()));
+                word.Letters.Add(new LetterInfo(SelectFirstConsonant()));
 
             int onsetOffset = 0, nucleusOffset = 0;
-            if (word.SigmaInfo.First().First().Type == SigmaType.Onset)
-                onsetOffset = word.GeneratedLetters.Count;
-            if (word.SigmaInfo.First().First().Type == SigmaType.Nucleus)
-                nucleusOffset = word.GeneratedLetters.Count;
+            if (word.Sigma.First().First().Type == SigmaType.Onset)
+                onsetOffset = word.Letters.Count;
+            if (word.Sigma.First().First().Type == SigmaType.Nucleus)
+                nucleusOffset = word.Letters.Count;
 
-            foreach (SigmaInfo s in word.SigmaInfo)
+            foreach (SigmaInfo s in word.Sigma)
             {
                 for (int i = 0; i < s.Sigma.Onset.Count - onsetOffset; i++)
-                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
+                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
                 word.WordGenerated += s.Onset;
 
                 for (int i = 0; i < s.Sigma.Nucleus.Count - nucleusOffset; i++)
-                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
+                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
                 word.WordGenerated += s.Nucleus;
 
                 for (int i = 0; i < s.Sigma.Coda.Count; i++)
-                    word.GeneratedLetters.Add(SelectLetter(word.GeneratedLetters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
+                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
                 word.WordGenerated += s.Coda;
 
                 onsetOffset = 0;
                 nucleusOffset = 0;
             }
 
-            for (int i = 0; i < word.GeneratedLetters.Count; i++)
+            for (int i = 0; i < word.Letters.Count; i++)
             {
-                if (i != 0) word.GeneratedLetters[i].AdjacentLeft = word.GeneratedLetters[i - 1];
-                if (i < word.GeneratedLetters.Count - 1) word.GeneratedLetters[i].AdjacentRight = word.GeneratedLetters[i + 1];
+                if (i != 0) word.Letters[i].AdjacentLeft = word.Letters[i - 1];
+                if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];
             }
 
             if (Language.Generate != null)
             {
-                for (int i = 0; i < word.GeneratedLetters.Count; i++)
+                for (int i = 0; i < word.Letters.Count; i++)
                 {
-                    int currentCount = word.GeneratedLetters.Count;
+                    int currentCount = word.Letters.Count;
 
-                    if (word.GeneratedLetters[i].IsProcessed == false)
+                    if (word.Letters[i].IsProcessed == false)
                     {
-                        word.GeneratedLetters[i].IsProcessed = true;
+                        word.Letters[i].IsProcessed = true;
 
                         Language.Generate(this, word,
-                            word.GeneratedLetters[i],
-                            word.GeneratedLetters[i].AdjacentLeft,
-                            word.GeneratedLetters[i].AdjacentRight);
+                            word.Letters[i],
+                            word.Letters[i].AdjacentLeft,
+                            word.Letters[i].AdjacentRight);
 
-                        LinkLeftLetter(word, word.GeneratedLetters[i]);
-                        LinkRightLetter(word, word.GeneratedLetters[i]);
+                        LinkLeftLetter(word, word.Letters[i]);
+                        LinkRightLetter(word, word.Letters[i]);
                     }
 
                     //If there is a difference (e.g, a letter was added), return to 0.
-                    if (currentCount != word.GeneratedLetters.Count)
+                    if (currentCount != word.Letters.Count)
                         i = 0;
                 }
             }
 
-            word.GeneratedLetters.RemoveAll((l) => l.IsAlive == false);
+            word.Letters.RemoveAll((l) => l.IsAlive == false);
 
-            foreach (LetterInfo l in word.GeneratedLetters)
+            foreach (LetterInfo l in word.Letters)
                 word.WordGenerated += l.Letter.Case.lower;
         }
         private Letter SelectFirstVowel()
@@ -748,38 +912,38 @@ namespace PLGL
 
         public void GENERATE_ReplaceLetter(WordInfo word, LetterInfo current, LetterInfo target, char letterKey)
         {
-            int index = word.GeneratedLetters.IndexOf(current);
+            int index = word.Letters.IndexOf(current);
             target.Letter = Language.Alphabet.Find(letterKey);
         }
         public void GENERATE_InsertLetter(WordInfo word, LetterInfo current, char letterKey, int indexOffset)
         {
-            int index = word.GeneratedLetters.IndexOf(current);
+            int index = word.Letters.IndexOf(current);
             Letter letter = Language.Alphabet.Find(letterKey);
-            word.GeneratedLetters.Insert(index + indexOffset, new LetterInfo(letter));
+            word.Letters.Insert(index + indexOffset, new LetterInfo(letter));
         }
 
         private void LinkLeftLetter(WordInfo word, LetterInfo letter)
         {
-            int index = word.GeneratedLetters.IndexOf(letter);
+            int index = word.Letters.IndexOf(letter);
 
             for (int i = index - 1; i > 0; i--)
             {
-                if (word.GeneratedLetters[i].IsAlive == true)
+                if (word.Letters[i].IsAlive == true)
                 {
-                    letter.AdjacentLeft = word.GeneratedLetters[i];
+                    letter.AdjacentLeft = word.Letters[i];
                     break;
                 }
             }
         }
         private void LinkRightLetter(WordInfo word, LetterInfo letter)
         {
-            int index = word.GeneratedLetters.IndexOf(letter);
+            int index = word.Letters.IndexOf(letter);
 
-            for (int i = index + 1; i < word.GeneratedLetters.Count; i++)
+            for (int i = index + 1; i < word.Letters.Count; i++)
             {
-                if (word.GeneratedLetters[i].IsAlive == true)
+                if (word.Letters[i].IsAlive == true)
                 {
-                    letter.AdjacentRight = word.GeneratedLetters[i];
+                    letter.AdjacentRight = word.Letters[i];
                     break;
                 }
             }

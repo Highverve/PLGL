@@ -19,6 +19,7 @@ namespace PLGL.Examples
 
             lang.META_Author = "Highverve";
             lang.META_Name = "Qen";
+            lang.META_Nickname = "Qen";
             lang.META_Description = "The common language of the Rootfolk from Bälore and Boffer.";
 
             SetOptions();
@@ -55,6 +56,8 @@ namespace PLGL.Examples
         private void SetFilters()
         {
             lang.AddFilter("Delimiter", " ");
+            lang.AddFilter("Compound", "");
+
             lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
             lang.AddFilter("Numbers", "1234567890");
 
@@ -71,6 +74,7 @@ namespace PLGL.Examples
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
+            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ChangeFilter(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "-", "COMPOUND");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
             lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
         }
@@ -78,6 +82,8 @@ namespace PLGL.Examples
         {
             lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
             lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
+            lang.Construct += (lg, word) => lg.CONSTRUCT_Hide(word, "COMPOUND");
+
             lang.Construct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
 
             SetPunctuation();
@@ -439,9 +445,14 @@ namespace PLGL.Examples
         }
         private void SetAffixes()
         {
-            lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
-            lang.Lexicon.Affixes.Add(new Affix("ly", "'ila", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
-            lang.Lexicon.Affixes.Add(new Affix("less", "'aŋ", Affix.AffixType.Suffix, Affix.LocationType.End, 0));
+            lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("ly", "ila", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("s", "im", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Prefix));
+
+            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Remove(word, current, "ly", 0, 1, lg.SUFFIX_ReturnVowel(word, current));
+            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Insert(word, current, "s", "l", 0, lg.SUFFIX_ReturnVowel(word, current));
+            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Remove(word, current, "less", 0, 1, lg.SUFFIX_ReturnConsonant(word, current));
         }
         #endregion
 
@@ -468,7 +479,7 @@ namespace PLGL.Examples
             lang.Flags.Add("HIDE>", lang.Flags.ACTION_HideRight);
             lang.Flags.Add("<HIDE>", lang.Flags.ACTION_HideAdjacents);
             lang.Flags.Add("NOGEN", lang.Flags.ACTION_NoGenerate);
-            lang.Flags.Add("NOPLURAL", (lg, word) => lang.Flags.ACTION_NoAffixes(lg, word));
+            lang.Flags.Add("NOPLURAL", lang.Flags.ACTION_NoAffixes);
         }
         #endregion
 
