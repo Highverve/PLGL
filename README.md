@@ -132,7 +132,7 @@ An overview at the code that parses your sentence, transforming it according to 
 
 ## 6 — Future Updates
 
-- [ ] Improve how affixes are handled.
+- [x] Improve how affixes are handled.
 - [ ] Stronger control over sigma selection.
 - [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [ ] Easier, or less tedious, letter pathing—if at all possible.
