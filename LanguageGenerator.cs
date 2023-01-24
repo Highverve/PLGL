@@ -283,22 +283,36 @@ namespace PLGL
         /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
         /// </summary>
         public Func<string, int> SigmaCount { get; set; }
-        public Action<WordInfo> Capitalize { get; set; } = (w) => { w.WordFinal = char.ToUpper(w.WordFinal[0]) + w.WordFinal.Substring(1); };
-        public Action<WordInfo> Uppercase { get; set; } = (w) => { w.WordFinal = w.WordFinal.ToUpper(); };
-        public Action<WordInfo> RandomCase { get; set; } = (w) =>
+
+        public Action<WordInfo> CASE_Capitalize { get; set; }
+        public Action<WordInfo> CASE_Uppercase { get; set; }
+        public Action<WordInfo> CASE_Random { get; set; }
+        public void CASE_CapitalizeDefault(WordInfo word)
+        {
+            string result = word.WordFinal.Substring(1);
+            word.WordFinal = Language.Alphabet.Upper(word.WordFinal[0]) + result;
+        }
+        public void CASE_UpperDefault(WordInfo word)
+        {
+            string result = string.Empty;
+            for (int i = 0; i < word.WordFinal.Length; i++)
+                result += Language.Alphabet.Upper(word.WordFinal[i]);
+            word.WordFinal = result;
+        }
+        public void CASE_RandomDefault(WordInfo word)
         {
             Random random = new Random();
 
             string result = string.Empty;
-            for (int i = 0; i < w.WordFinal.Length; i++)
+            for (int i = 0; i < word.WordFinal.Length; i++)
             {
                 if (random.Next(100) > 50)
-                    result += char.ToUpper(w.WordFinal[i]);
+                    result += Language.Alphabet.Upper(word.WordFinal[i]);//Language.Alphabet.Upper(w.WordFinal[i]);
                 else
-                    result += w.WordFinal[i];
+                    result += word.WordFinal[i];
             }
-            w.WordFinal = result;
-        };
+            word.WordFinal = result;
+        }
 
         private Language language;
         public Language Language
@@ -334,8 +348,14 @@ namespace PLGL
         private double NextDouble(double minimum, double maximum) { return Random.NextDouble() * (maximum - minimum) + minimum; }
         #endregion
 
-        public LanguageGenerator() { SigmaCount = (s) => EnglishSigmaCount(s); }
-        public LanguageGenerator(Language Language) : base() { this.Language = Language; }
+        public LanguageGenerator()
+        {
+            SigmaCount = EnglishSigmaCount;
+
+            CASE_Capitalize = CASE_CapitalizeDefault;
+            CASE_Uppercase = CASE_UpperDefault;
+            CASE_Random = CASE_RandomDefault;
+        }
 
         #region Generation — Main method and overloads
         /// <summary>
@@ -499,9 +519,9 @@ namespace PLGL
 
                 switch (word.Case)
                 {
-                    case WordInfo.CaseType.Capitalize: Capitalize(word); break;
-                    case WordInfo.CaseType.Uppercase: Uppercase(word); break;
-                    case WordInfo.CaseType.RandomCase: RandomCase(word); break;
+                    case WordInfo.CaseType.Capitalize: CASE_Capitalize(word); break;
+                    case WordInfo.CaseType.Uppercase: CASE_Uppercase(word); break;
+                    case WordInfo.CaseType.RandomCase: CASE_Random(word); break;
                 }
             }
         }

@@ -462,11 +462,10 @@ namespace PLGL.Examples
             lang.Construct += (lg, word) => lang.Punctuation.Process(lg, word, "PUNCTUATION");
 
             lang.Punctuation.Add(".", (w) => { return "৹"; });
-            lang.Punctuation.Add("...", (w) => { return "৹"; });
-            lang.Punctuation.Add(",", (w) => { return "⩪"; });
-            lang.Punctuation.Add(";", (w) => { return "⩫"; });
-            lang.Punctuation.Add("!", (w) => { return "⨎"; });
-            lang.Punctuation.Add("$", (w) => { return "؋"; });
+            lang.Punctuation.Add(",", (w) => { return ","; });
+            lang.Punctuation.Add(";", (w) => { return ";"; });
+            lang.Punctuation.Add("!", (w) => { return "!"; });
+            lang.Punctuation.Add("$", (w) => { return "$"; });
         }
         #endregion
 

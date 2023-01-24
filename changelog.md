@@ -98,3 +98,8 @@
     - Added support for OnPrefix and OnSuffix events. While affixes are intiailly processed prior to word generation, these events are called afterward.
     - Added two support methods for modifying suffixes through OnSuffix: SUFFIX_Insert and SUFFIX_Remove.
     - OnSuffix support methods have slightly different behaviour compared to other events, with a boolean parameter called "condition". SUFFIX_ReturnMatch, _ReturnConsonant, and _ReturnVowel should be passed here.
+### 2022-1-24
+    - The language generator now uses the cases specified by the Language, rather than just char.ToUpper. However, if a letter isn't found in your alphabet, it defaults to ToUpper.
+    - Added three default casing methods: CASE_UpperDefault, CASE_CapitalizeDefault, and CASE_RandomDefault.
+    - Changed the action case methods Uppercase, Capitalize, and RandomCase to follow other naming conventions: CASE_Upper, CASE_Capitalize, and CASE_Random.
+    - 

@@ -34,13 +34,25 @@ namespace PLGL.Construct
             return Vowels[key];
         }
 
-        public Letter? Find(char letter)
+        public Letter? Find(char key)
         {
-            if (Consonants.ContainsKey(letter))
-                return Consonants[letter];
-            else if (Vowels.ContainsKey(letter))
-                return Vowels[letter];
+            if (Consonants.ContainsKey(key))
+                return Consonants[key];
+            else if (Vowels.ContainsKey(key))
+                return Vowels[key];
             return null;
+        }
+        /// <summary>
+        /// Returns the custom upper case of the letter key. If none are found, it returns char.ToUpper.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public char Upper(char key)
+        {
+            Letter l = Find(key);
+            if (l != null)
+                return l.Case.upper;
+            return char.ToUpper(key);
         }
         public List<Letter> Letters()
         {
@@ -50,7 +62,5 @@ namespace PLGL.Construct
 
             return result.OrderBy(l => l.Key).ToList();
         }
-
-        
     }
 }
