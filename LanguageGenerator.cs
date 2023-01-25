@@ -36,12 +36,24 @@ namespace PLGL
 
     public class LanguageGenerator
     {
+        private Language language;
+        public Language Language
+        {
+            get { return language; }
+            set
+            {
+                language = value;
+                Deconstruct.Language = Language;
+            }
+        }
+
         public Deconstructor Deconstruct { get; private set; } = new Deconstructor();
 
         StringBuilder sentenceBuilder = new StringBuilder();
         List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
 
+        #region CONSTRUCT_ methods
         public void CONSTRUCT_Hide(WordInfo word, string filter)
         {
             if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
@@ -82,13 +94,17 @@ namespace PLGL
         {
             if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
-                Lexemes(word);
+                ProcessLexiconInflections(word);
+                ProcessLexiconRoots(word);
                 ExtractAffixes(word);
 
-                SetRandom(word.WordRoot);
+                Random = SetRandom(word.WordRoot);
 
                 if (string.IsNullOrEmpty(word.WordGenerated))
-                    GenerateWord(word);
+                {
+                    SelectSigmaStructures(word);
+                    PopulateWord(word);
+                }
 
                 ProcessAffixes(word);
                 AssembleAffixes(word);
@@ -101,7 +117,9 @@ namespace PLGL
                 SetCase(word);
             }
         }
+        #endregion
 
+        #region DECONSTRUCT_ methods
         public void DECONSTRUCT_ChangeFilter(CharacterBlock current, CharacterBlock left, CharacterBlock right,
             string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
         {
@@ -195,7 +213,9 @@ namespace PLGL
                 }
             }
         }
+        #endregion
 
+        #region PREFIX_, SUFFIX_ methods
         public void SUFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert, int insertIndex, bool condition)
         {
             if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
@@ -219,6 +239,7 @@ namespace PLGL
             }
         }
 
+        //Boolean conditions
         public bool SUFFIX_ReturnMatch(WordInfo word, AffixInfo current, char symbol)
         {
             char last = char.MinValue;
@@ -278,12 +299,23 @@ namespace PLGL
 
             return last;
         }
+        #endregion
 
-        /// <summary>
-        /// Sets how the generator count's a root's syllables. Default is EnglishSigmaCount (C/V border checking).
-        /// </summary>
-        public Func<string, int> SigmaCount { get; set; }
+        #region GENERATE_ methods
+        public void GENERATE_ReplaceLetter(WordInfo word, LetterInfo current, LetterInfo target, char letterKey)
+        {
+            int index = word.Letters.IndexOf(current);
+            target.Letter = Language.Alphabet.Find(letterKey);
+        }
+        public void GENERATE_InsertLetter(WordInfo word, LetterInfo current, char letterKey, int indexOffset)
+        {
+            int index = word.Letters.IndexOf(current);
+            Letter letter = Language.Alphabet.Find(letterKey);
+            word.Letters.Insert(index + indexOffset, new LetterInfo(letter));
+        }
+        #endregion
 
+        #region CASE_ methods
         public Action<WordInfo> CASE_Capitalize { get; set; }
         public Action<WordInfo> CASE_Uppercase { get; set; }
         public Action<WordInfo> CASE_Random { get; set; }
@@ -313,17 +345,74 @@ namespace PLGL
             }
             word.WordFinal = result;
         }
+        #endregion
 
-        private Language language;
-        public Language Language
+        #region Syllable counting
+        /// <summary>
+        /// Sets how the generator counts a root's syllables. Default is EnglishSigmaCount (C/V border checking).
+        /// </summary>
+        public Func<string, int> SigmaCount { get; set; }
+        /// <summary>
+        /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int EnglishSigmaCount(string word)
         {
-            get { return language; }
-            set
+            string cv = string.Empty;
+
+            foreach (char c in word)
             {
-                language = value;
-                Deconstruct.Language = Language;
+                if (Language.Options.InputConsonants.Contains(c)) cv += 'c';
+                if (Language.Options.InputVowels.Contains(c)) cv += 'v';
             }
+
+            int result = 0;
+            while (cv.Length > 1)
+            {
+
+                //Check for consonant-vowel border.
+                if (cv[0] == 'c' && cv[1] == 'v' ||
+                    cv[0] == 'v' && cv[1] == 'c')
+                {
+                    result++;
+                    cv = cv.Remove(0, Math.Min(cv.Length, 2));
+                }
+
+                if (cv.Length <= 1)
+                    break;
+
+                //If double consonant or vowel, remove one.
+                if (cv[0] == 'c' && cv[1] == 'c' ||
+                    cv[0] == 'v' && cv[1] == 'v')
+                {
+                    cv = cv.Remove(0, 1);
+                }
+            }
+
+            if (word.Length > 0 && result == 0)
+                result = 1;
+
+            return result;
         }
+        /// <summary>
+        /// Counts each valid character found in Language.Options.InputConsonants and InputVowels. More ideal for languages where each letter may be a syllable.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int CharacterSigmaCount(string word)
+        {
+            int result = 0;
+
+            foreach (char c in word)
+            {
+                if (Language.Options.InputConsonants.Contains(c)) result++;
+                if (Language.Options.InputVowels.Contains(c)) result++;
+            }
+
+            return result;
+        }
+        #endregion
 
         #region Random management
         public int Seed { get; private set; }
@@ -335,17 +424,17 @@ namespace PLGL
         /// This should be set to the root word.
         /// </summary>
         /// <param name="word"></param>
-        public void SetRandom(string word)
+        public Random SetRandom(string word)
         {
             Seed = WordSeed(word.ToUpper());
-            Random = new Random(Seed);
+            return new Random(Seed);
         }
         private int WordSeed(string word)
         {
             using var a = System.Security.Cryptography.SHA1.Create();
             return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word))) + Language.Options.SeedOffset;
         }
-        private double NextDouble(double minimum, double maximum) { return Random.NextDouble() * (maximum - minimum) + minimum; }
+        public double NextDouble(double minimum, double maximum) { return Random.NextDouble() * (maximum - minimum) + minimum; }
         #endregion
 
         public LanguageGenerator()
@@ -435,7 +524,7 @@ namespace PLGL
         }
         #endregion
 
-        #region Other methods
+        #region CharacterBlock — Processing and handling
         /// <summary>
         /// Loops through each word, and adds it to wordInfo.
         /// </summary>
@@ -491,6 +580,10 @@ namespace PLGL
             }
         }
 
+        /// <summary>
+        /// Called by CONSTRUCT_Generate to determine the input word's case; then, it sets and applies the case to the finalized word.
+        /// </summary>
+        /// <param name="word"></param>
         public void SetCase(WordInfo word)
         {
             if (Language.Options.AllowAutomaticCasing == true)
@@ -528,17 +621,36 @@ namespace PLGL
         #endregion
 
         #region Lexicon (and inflections) — Affixes, root extraction, custom words
+        /// <summary>
+        /// Checks for matching actual words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
+        /// </summary>
+        /// <param name="word"></param>
         private void ProcessLexiconInflections(WordInfo word)
         {
             if (Language.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
                 word.WordGenerated = Language.Lexicon.Inflections[word.WordActual.ToLower()];
         }
-        private void ProcessLexiconRoots(WordInfo word)
+        /// <summary>
+        /// Checks for matching root words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
+        /// </summary>
+        /// <param name="word"></param>
+        public void ProcessLexiconRoots(WordInfo word)
         {
             if (Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
                 word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
         }
+        /// <summary>
+        /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Inflections.
+        /// </summary>
+        /// <param name="word"></param>
+        public void LexiconMemorize(WordInfo word)
+        {
+            if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
+                Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
+        }
+        #endregion
 
+        #region Affixes
         private List<Affix> affixes = new List<Affix>();
         /// <summary>
         /// The lexemes are processed, stripping the actual word down to its root.
@@ -612,9 +724,7 @@ namespace PLGL
             if (word.Prefixes != null)
             {
                 foreach (AffixInfo p in word.Prefixes)
-                {
                     word.WordPrefixes += p.AffixText;
-                }
             }
             if (word.Suffixes != null)
             {
@@ -622,7 +732,10 @@ namespace PLGL
                     word.WordSuffixes += s.AffixText;
             }
         }
-
+        /// <summary>
+        /// Assigns all AffixInfo's left and right neighbours, and calls Language.OnPrefix/OnSuffix.
+        /// </summary>
+        /// <param name="word"></param>
         private void ProcessAffixes(WordInfo word)
         {
             if (word.Prefixes != null && Language.OnPrefix != null)
@@ -657,32 +770,6 @@ namespace PLGL
                         Language.OnSuffix(this, word, word.Suffixes[i]);
                 }
             }
-        }
-
-        /// <summary>
-        /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Inflections.
-        /// </summary>
-        /// <param name="word"></param>
-        public void LexiconMemorize(WordInfo word)
-        {
-            if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
-                Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
-        }
-
-        /// <summary>
-        /// Add this to an if statement that surrounds word generation.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public bool LexiconContains(WordInfo word)
-        {
-            return Language.Lexicon.Inflections.ContainsKey(word.WordActual) &&
-                    Language.Lexicon.Roots.ContainsKey(word.WordRoot);
-        }
-        public void Lexemes(WordInfo word)
-        {
-            ProcessLexiconInflections(word);
-            ProcessLexiconRoots(word);
         }
         #endregion
 
@@ -740,66 +827,6 @@ namespace PLGL
             }
 
             return null;
-        }
-        /// <summary>
-        /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public int EnglishSigmaCount(string word)
-        {
-            string cv = string.Empty;
-
-            foreach (char c in word)
-            {
-                if (Language.Options.InputConsonants.Contains(c)) cv += 'c';
-                if (Language.Options.InputVowels.Contains(c)) cv += 'v';
-            }
-
-            int result = 0;
-            while (cv.Length > 1)
-            {
-
-                //Check for consonant-vowel border.
-                if (cv[0] == 'c' && cv[1] == 'v' ||
-                    cv[0] == 'v' && cv[1] == 'c')
-                {
-                    result++;
-                    cv = cv.Remove(0, Math.Min(cv.Length, 2));
-                }
-
-                if (cv.Length <= 1)
-                    break;
-
-                //If double consonant or vowel, remove one.
-                if (cv[0] == 'c' && cv[1] == 'c' ||
-                    cv[0] == 'v' && cv[1] == 'v')
-                {
-                    cv = cv.Remove(0, 1);
-                }
-            }
-
-            if (word.Length > 0 && result == 0)
-                result = 1;
-
-            return result;
-        }
-        /// <summary>
-        /// Counts each valid character found in Language.Options.InputConsonants and InputVowels. More ideal for languages where each letter may be a syllable.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public int CharacterSigmaCount(string word)
-        {
-            int result = 0;
-
-            foreach (char c in word)
-            {
-                if (Language.Options.InputConsonants.Contains(c)) result++;
-                if (Language.Options.InputVowels.Contains(c)) result++;
-            }
-
-            return result;
         }
 
         /// <summary>
@@ -922,24 +949,6 @@ namespace PLGL
             }
 
             throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
-        }
-
-        public void GenerateWord(WordInfo word)
-        {
-            SelectSigmaStructures(word);
-            PopulateWord(word);
-        }
-
-        public void GENERATE_ReplaceLetter(WordInfo word, LetterInfo current, LetterInfo target, char letterKey)
-        {
-            int index = word.Letters.IndexOf(current);
-            target.Letter = Language.Alphabet.Find(letterKey);
-        }
-        public void GENERATE_InsertLetter(WordInfo word, LetterInfo current, char letterKey, int indexOffset)
-        {
-            int index = word.Letters.IndexOf(current);
-            Letter letter = Language.Alphabet.Find(letterKey);
-            word.Letters.Insert(index + indexOffset, new LetterInfo(letter));
         }
 
         private void LinkLeftLetter(WordInfo word, LetterInfo letter)

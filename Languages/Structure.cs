@@ -29,8 +29,6 @@ namespace PLGL.Languages
         public void AddSigmaCV(string onset, string nucleus, SigmaPath weights) { Templates.Add(new Sigma(onset, nucleus, string.Empty) { Weight = weights }); }
         public void AddSigmaV(string nucleus, SigmaPath weights) { Templates.Add(new Sigma(string.Empty, nucleus, string.Empty) { Weight = weights }); }
 
-        public List<LetterPath> SigmaPaths { get; private set; } = new List<LetterPath>();
-
         public void AddSigmaPath(Sigma previous, WordPosition position, params (Sigma, double)[] sigmaWeights)
         {
 

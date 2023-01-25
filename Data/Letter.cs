@@ -8,9 +8,10 @@ namespace PLGL.Data
 {
     public abstract class Letter
     {
-        public string Name { get; private set; } = string.Empty;
-        public string Description { get; private set; } = string.Empty;
-        public string Pronunciation { get; private set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string Pronunciation { get; set; } = string.Empty;
+        public string Group { get; set; } = string.Empty;
 
         public char Key { get; private set; }
         public (char lower, char upper) Case { get; private set; }
