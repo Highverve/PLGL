@@ -71,10 +71,10 @@ lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
 
 The LanguageGenerator comes with a few common generation methods to speed up language authoring: `CONSTRUCT_Hide`, `CONSTRUCT_KeepAsIs`, `CONSTRUCT_Generate`. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
 ```c#
-public void FILTER_KeepAsIs(WordInfo word, string filter)
+public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
 {
-    //Make sure the filter matches.
-    if (word.Filter.Name.ToUpper() == filter)
+    //Make sure the filter matches and the word hasn't already been processed.
+    if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
     {
         //Set the final word to what the word started as.
         word.WordFinal = word.WordActual;
