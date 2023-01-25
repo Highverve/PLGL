@@ -145,4 +145,5 @@ An overview at the code that parses your sentence, transforming it according to 
 
 - Understanding vowels. [https://en.wikipedia.org/wiki/Vowel](https://en.wikipedia.org/wiki/Vowel)
 - Pulmonic consonants for human-centric phonemes. [https://en.wikipedia.org/wiki/Pulmonic_consonant](https://en.wikipedia.org/wiki/Pulmonic_consonant)
+- English phonology. [https://en.wikipedia.org/wiki/English_phonology](https://en.wikipedia.org/wiki/English_phonology)
 - "Identifying Types of Affixes in English and Bahasa Indonesia". [http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf](http://eprints.binadarma.ac.id/12808/1/723-775-1-PB.pdf)
