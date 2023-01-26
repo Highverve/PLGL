@@ -454,9 +454,9 @@ namespace PLGL.Examples
             lang.Lexicon.Affixes.Add(new Affix("s", "im", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
 
-            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Remove(word, current, "ly", 0, 1, lg.SUFFIX_ReturnVowel(word, current));
-            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Insert(word, current, "s", "l", 0, lg.SUFFIX_ReturnVowel(word, current));
-            lang.OnSuffix += (lg, word, current) => lg.SUFFIX_Remove(word, current, "less", 0, 1, lg.SUFFIX_ReturnConsonant(word, current));
+            lang.OnSuffix += (lg, word, current) => lg.AFFIX_Remove(word, current, "ly", 0, 1, lg.AFFIX_VowelLast(word, current));
+            lang.OnSuffix += (lg, word, current) => lg.AFFIX_Insert(word, current, "s", "l", 0, lg.AFFIX_VowelLast(word, current));
+            lang.OnSuffix += (lg, word, current) => lg.AFFIX_Remove(word, current, "less", 0, 1, lg.AFFIX_ConsonantLast(word, current));
         }
         #endregion
 

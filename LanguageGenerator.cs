@@ -29,9 +29,19 @@ namespace PLGL
     /// <param name="letter"></param>
     public delegate void OnGenerate(LanguageGenerator lg, WordInfo word, LetterInfo current, LetterInfo adjacentLeft, LetterInfo adjacentRight);
 
-    //For modifying affixes with relative context. Called nearly at the end of the process, just before the affixes are assembled.
-    //E.g, adding a vowel for smooth vocal transitions.
+    /// <summary>
+    /// Allows manipulation of the word's prefixes. Called after word generation.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="word"></param>
+    /// <param name="current"></param>
     public delegate void OnPrefix(LanguageGenerator lg, WordInfo word, AffixInfo current);
+    /// <summary>
+    /// Allows manipulation of the word's suffixes. Called after word generation.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="word"></param>
+    /// <param name="current"></param>
     public delegate void OnSuffix(LanguageGenerator lg, WordInfo word, AffixInfo current);
 
     public class LanguageGenerator
@@ -52,72 +62,6 @@ namespace PLGL
         StringBuilder sentenceBuilder = new StringBuilder();
         List<CharacterBlock> blocks = new List<CharacterBlock>();
         List<WordInfo> wordInfo = new List<WordInfo>();
-
-        #region CONSTRUCT_ methods
-        public void CONSTRUCT_Hide(WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
-            {
-                word.WordFinal = string.Empty;
-                if (word.Prefixes != null) word.Prefixes.Clear();
-                if (word.Suffixes != null) word.Suffixes.Clear();
-                word.IsProcessed = true;
-            }
-        }
-        /// <summary>
-        /// Applies to delimiters, undefined, etc.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <param name="filter"></param>
-        public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
-            {
-                word.WordFinal = word.WordActual;
-                word.IsProcessed = true;
-            }
-        }
-        public void CONSTRUCT_Within(WordInfo word, string filter, int index, int subtract)
-        {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
-            {
-                word.WordFinal = word.WordActual.Substring(index, word.WordActual.Length - subtract);
-                word.IsProcessed = true;
-            }
-        }
-        /// <summary>
-        /// Almost exclusively applied to letter filters.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <param name="filter"></param>
-        public void CONSTRUCT_Generate(WordInfo word, string filter)
-        {
-            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
-            {
-                ProcessLexiconInflections(word);
-                ProcessLexiconRoots(word);
-                ExtractAffixes(word);
-
-                Random = SetRandom(word.WordRoot);
-
-                if (string.IsNullOrEmpty(word.WordGenerated))
-                {
-                    SelectSigmaStructures(word);
-                    PopulateWord(word);
-                }
-
-                ProcessAffixes(word);
-                AssembleAffixes(word);
-
-                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
-                word.IsProcessed = true;
-
-                LexiconMemorize(word);
-
-                SetCase(word);
-            }
-        }
-        #endregion
 
         #region DECONSTRUCT_ methods
         public void DECONSTRUCT_ChangeFilter(CharacterBlock current, CharacterBlock left, CharacterBlock right,
@@ -215,89 +159,69 @@ namespace PLGL
         }
         #endregion
 
-        #region PREFIX_, SUFFIX_ methods
-        public void SUFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert, int insertIndex, bool condition)
+        #region CONSTRUCT_ methods
+        public void CONSTRUCT_Hide(WordInfo word, string filter)
         {
-            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
-                if (condition)
-                {
-                    current.AffixText = current.AffixText.Insert(insertIndex, insert);
-                    current.IsProcessed = true;
-                }
+                word.WordFinal = string.Empty;
+                if (word.Prefixes != null) word.Prefixes.Clear();
+                if (word.Suffixes != null) word.Suffixes.Clear();
+                word.IsProcessed = true;
             }
         }
-        public void SUFFIX_Remove(WordInfo word, AffixInfo current, string affixKey, int index, int length, bool condition)
+        /// <summary>
+        /// Applies to delimiters, undefined, etc.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
         {
-            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
-                if (condition)
-                {
-                    current.AffixText = current.AffixText.Remove(index, length);
-                    current.IsProcessed = true;
-                }
+                word.WordFinal = word.WordActual;
+                word.IsProcessed = true;
             }
         }
-
-        //Boolean conditions
-        public bool SUFFIX_ReturnMatch(WordInfo word, AffixInfo current, char symbol)
+        public void CONSTRUCT_Within(WordInfo word, string filter, int index, int subtract)
         {
-            char last = char.MinValue;
-
-            if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
-            else last = word.WordGenerated.Last();
-
-            Letter? compare = Language.Alphabet.Find(last);
-
-            if (compare != null)
-                return symbol == compare.Case.lower || symbol == compare.Case.upper;
-
-            return false;
+            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+            {
+                word.WordFinal = word.WordActual.Substring(index, word.WordActual.Length - subtract);
+                word.IsProcessed = true;
+            }
         }
         /// <summary>
-        /// Returns true if the adjacent left suffix or generated word ends in a vowel.
+        /// Almost exclusively applied to letter filters.
         /// </summary>
         /// <param name="word"></param>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        public bool SUFFIX_ReturnVowel(WordInfo word, AffixInfo current)
+        /// <param name="filter"></param>
+        public void CONSTRUCT_Generate(WordInfo word, string filter)
         {
-            char last = SUFFIX_LastChar(word, current);
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
+            {
+                ProcessLexiconInflections(word);
+                ProcessLexiconRoots(word);
+                ExtractAffixes(word);
 
-            if (Language.Alphabet.Vowels.ContainsKey(last))
-                return true;
+                Random = SetRandom(word.WordRoot);
 
-            return false;
-        }
-        /// <summary>
-        /// Returns true if the adjacent left suffix or generated word ends in a consonant.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        public bool SUFFIX_ReturnConsonant(WordInfo word, AffixInfo current)
-        {
-            char last = SUFFIX_LastChar(word, current);
+                if (string.IsNullOrEmpty(word.WordGenerated))
+                {
+                    SelectSigmaStructures(word);
+                    PopulateWord(word);
+                }
 
-            if (Language.Alphabet.Consonants.ContainsKey(last))
-                return true;
+                ProcessAffixes(word);
+                AssembleAffixes(word);
 
-            return false;
-        }
-        /// <summary>
-        /// Returns the adjacent left or generated word's last character. A common method used by other SUFFIX_ methods; you probably don't need this, but I left it public just in case.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        public char SUFFIX_LastChar(WordInfo word, AffixInfo current)
-        {
-            char last = char.MinValue;
+                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+                word.IsProcessed = true;
 
-            if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
-            else last = word.WordGenerated.Last();
+                LexiconMemorize(word);
 
-            return last;
+                SetCase(word);
+            }
         }
         #endregion
 
@@ -312,6 +236,175 @@ namespace PLGL
             int index = word.Letters.IndexOf(current);
             Letter letter = Language.Alphabet.Find(letterKey);
             word.Letters.Insert(index + indexOffset, new LetterInfo(letter));
+        }
+        #endregion
+
+        #region AFFIX_ methods
+        /// <summary>
+        /// Inserts the text into the current affix if the condition is true. Set condition to AFFIX_MatchLast, AFFIX_VowelFirst, etc.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <param name="affixKey"></param>
+        /// <param name="insert"></param>
+        /// <param name="insertIndex"></param>
+        /// <param name="condition"></param>
+        public void AFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert, int insertIndex, bool condition)
+        {
+            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            {
+                if (condition)
+                {
+                    current.AffixText = current.AffixText.Insert(insertIndex, insert);
+                    current.IsProcessed = true;
+                }
+            }
+        }
+        /// <summary>
+        /// Removes part of the current affix if the condition is true. Set condition to AFFIX_MatchLast, AFFIX_VowelFirst, etc.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <param name="affixKey"></param>
+        /// <param name="index"></param>
+        /// <param name="length"></param>
+        /// <param name="condition"></param>
+        public void AFFIX_Remove(WordInfo word, AffixInfo current, string affixKey, int index, int length, bool condition)
+        {
+            if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
+            {
+                if (condition)
+                {
+                    current.AffixText = current.AffixText.Remove(index, length);
+                    current.IsProcessed = true;
+                }
+            }
+        }
+
+        //Boolean conditions
+        /// <summary>
+        /// Returns true is the adjacent left affix or generated word ends in the matching symbol.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public bool AFFIX_MatchLast(WordInfo word, AffixInfo current, char symbol)
+        {
+            Letter? compare = Language.Alphabet.Find(AFFIX_LastChar(word, current));
+
+            if (compare != null)
+                return symbol == compare.Case.lower || symbol == compare.Case.upper;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent left suffix or generated word ends in a vowel.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool AFFIX_VowelLast(WordInfo word, AffixInfo current)
+        {
+            char last = AFFIX_LastChar(word, current);
+
+            if (Language.Alphabet.Vowels.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent left suffix or generated word ends in a consonant.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool AFFIX_ConsonantLast(WordInfo word, AffixInfo current)
+        {
+            char last = AFFIX_LastChar(word, current);
+
+            if (Language.Alphabet.Consonants.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns true is the adjacent right affix or generated word starts with the matching symbol.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public bool AFFIX_MatchFirst(WordInfo word, AffixInfo current, char symbol)
+        {
+            Letter? compare = Language.Alphabet.Find(AFFIX_FirstChar(word, current));
+
+            if (compare != null)
+                return symbol == compare.Case.lower || symbol == compare.Case.upper;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent right affix or generated word starts with a vowel.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool AFFIX_VowelFirst(WordInfo word, AffixInfo current)
+        {
+            char last = AFFIX_FirstChar(word, current);
+
+            if (Language.Alphabet.Vowels.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the adjacent right affix or generated word starts with a consonant.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public bool AFFIX_ConsonantFirst(WordInfo word, AffixInfo current)
+        {
+            char last = AFFIX_FirstChar(word, current);
+
+            if (Language.Alphabet.Consonants.ContainsKey(last))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Returns the adjacent left or generated word's last character. A common method used by other SUFFIX_ methods; you probably don't need this, but I left it public just in case.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public char AFFIX_LastChar(WordInfo word, AffixInfo current)
+        {
+            char last = char.MinValue;
+
+            if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
+            else last = word.WordGenerated.Last();
+
+            return last;
+        }
+        /// <summary>
+        /// Returns the adjacent right or generated word's first character. A common method used by other PREFIX_ methods; you probably don't need this, but I left it public just in case.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        public char AFFIX_FirstChar(WordInfo word, AffixInfo current)
+        {
+            char last = char.MinValue;
+
+            if (current.AdjacentRight != null) last = current.AdjacentRight.AffixText.First();
+            else last = word.WordGenerated.First();
+
+            return last;
         }
         #endregion
 

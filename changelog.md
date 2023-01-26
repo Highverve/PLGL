@@ -53,54 +53,56 @@
 - Deleted RandomGenerator, moving it's components into LanguageGenerator.
 - Moved LanguageGenerator a level above the Operators folder, and deleted that folder.
 - Cleaned up the LanguageGenerator.Generate method even further. A few aspects of the method have been separated out into new methods for enhanced clarity.
-### 2022-1-9:
+### 2023-1-9:
 - Added simple weight distribution to sigma selection.
 - Outdated: Improved flagging. Now it actually works, and plays nicely with lexeme deconstruction.
 - Radically improved how a sentence is deconstructed with the *Deconstructor* class. Custom filters (with name and char array).
 - Added delegates/events to LanguageGenerator, for customizable behavior. I just need to hook them up properly.
 - Removed flagging from LanguageGenerator. Punctuation is effectively handled through the deconstruction process; yet custom changes to punctuation will look very similar to how lexemes are processed.
-### 2022-1-10:
+### 2023-1-10:
 - Hooked up a few events into the word generation method. You can now effectively decide what happens to which filter types, as defined by the user. Very powerful, flexible, and well-defined. Feels good.
 - Generated words match the case of the original word as closely as possible: lowercase (default), uppercase, capitalize, or random case.
-### 2022-1-11:
+### 2023-1-11:
 - Added default OnConstruct filter methods to Language.Construction: Generate processes the text, whereas KeepAsIs doesn't.
 - Added two booleans to Language.Options: MatchCase, and AllowRandomCase.
 - Merged Construction and Deconstruction classes back into Language, because it didn't feel as clean.
 - CharacterBlocks can now be programatically merged with LanguageGenerator.EVENT_MergeBlocks. "Let's" and "10,000" are seen as one block by the generator instead of three.
 - Fixed a minor logical issue that caused capitalized single-letter words (such as "I") that generated into a word longer than one letter to be entirely uppercase rather than capitalized.
-### 2022-1-12:
+### 2023-1-12:
 - Cleaned up and split off the main LanguageGenerator.Generate method into clearer methods.
-### 2022-1-13:
+### 2023-1-13:
 - Added the Examples folder, and the "Singsonglish" language.
 - Tested and confirmed support for word escaping and simple flagging. Good foundation to improve upon.
-### 2022-1-16:
+### 2023-1-16:
 - Renamed LanguageGenerator.EVENT_(...) methods to DECONSTRUCT_(...).
 - Renamed LanguageOptions.MatchCase to AllowAutomaticCasing.
 - Added DECONSTRUCT_ContainWithin. Merges all blocks within two blocks of the specified filter. It's Merge on steroids, and it's perfect for a "Flags" filter.
 - Added CONSTRUCT_Within, for any single blocks that you need a substring of (such as an "Escape" filter).
-### 2022-1-17:
+### 2023-1-17:
 - All code from Flagging has been deleted, and replaced with drastically better code (and shorter!). Simply hook it up to the ConstructFilter, and add your flag actions.
 - Added the Punctuation class, which works very similarly to Flagging.
 - Removed Delimiters property from Language.Options, as it was no longer needed.
 - Renamed Language.ConstructFilter to Construct, brining its naming conventon inline with Deconstruct.
 - Preliminary code added to the Numbers class.
-### 2022-1-18
+### 2023-1-18
 - Updated the Letter class, adding Name, Description, and Pronunciation as string properties, and Case as a Tuple(char, char) for enhanced control over capitalization.
 - Improvements to the Alphabet and LanguageGenerator classes which reflect the Letter class changes.
 - Added the LetterInfo class (with adjacent properties), and List<LetterInfo> GeneratedLetters to WordInfo. The generation process now adds it's letters to this list instead to WordGenerated.
 - Added OnGenerate delegate and event. This brings the level of generation control in line with the deconstruction and construction events.
-### 2022-1-21
+### 2023-1-21
 - Finished the Numbers class for handling custom numbers (except different base support).
-### 2022-1-23
+### 2023-1-23
 - Moved Language management to it's own class.
 - Improved how affixes are handled, and added the new AffixInfo class.
 - Affixes can now have a custom order, and can change position (suffix to prefix or prefix to suffix).
 - Added support for OnPrefix and OnSuffix events. While affixes are intiailly processed prior to word generation, these events are called afterward.
 - Added two support methods for modifying suffixes through OnSuffix: SUFFIX_Insert and SUFFIX_Remove.
 - OnSuffix support methods have slightly different behaviour compared to other events, with a boolean parameter called "condition". SUFFIX_ReturnMatch, _ReturnConsonant, and _ReturnVowel should be passed here.
-### 2022-1-24
-- The language generator now uses the cases specified by the Language, rather than just char.ToUpper. However, if a letter isn't found in your alphabet, it defaults to ToUpper.
+### 2023-1-24
+- The language generator now uses the cases specified by the Language, rather than just char.ToUpper. However, if the letter key isn't found in your alphabet, it defaults to ToUpper.
 - Added three default casing methods: CASE_UpperDefault, CASE_CapitalizeDefault, and CASE_RandomDefault.
 - Changed the action case methods Uppercase, Capitalize, and RandomCase to follow other naming conventions: CASE_Upper, CASE_Capitalize, and CASE_Random.
 - Cleaned up folders and namespaces, and moved "subclasses" that were used by other classes into their own .cs file.
 - Code clean-up in aisle LanguageGenerator.
+### 2023-1-25
+- Renamed SUFFIX_ methods to AFFIX_, as I realized these methods function perfectly for both prefixes and suffixes.
