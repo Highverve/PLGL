@@ -40,6 +40,7 @@ namespace PLGL.Examples
             lang.Options.MemorizeWords = false;
             lang.Options.SigmaSkewMin = 0.8;
             lang.Options.SigmaSkewMax = 2;
+            lang.Options.SeedOffset = 2;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -142,6 +143,34 @@ namespace PLGL.Examples
             lang.Alphabet.AddConsonant('ŝ', ('ŝ', 'Ŝ'), 10); //Sh ŝ (ship)
             lang.Alphabet.AddConsonant('Þ', ('Þ', 'þ'), 7); //Th þ (thatch)
             lang.Alphabet.AddConsonant('ż', ('ż', 'Ż'), 1); //Ezh ʒ (azure)
+
+            lang.Structure.AddGroup('V', "Vowels", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0),
+                                                           ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
+            lang.Structure.AddGroup('o', "Vowels (short)", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0));
+            lang.Structure.AddGroup('O', "Vowels (long)", ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
+
+            lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0));
+            lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 3.0));
+            lang.Structure.AddGroup('P', "Plosive", ('b', 3.0), ('p', 4.0), ('d', 7.0), ('t', 1.0), ('g', 6.0), ('k', 2.0));
+            lang.Structure.AddGroup('p', "Plosive higher", ('p', 4.0), ('t', 1.0), ('k', 2.0));
+            lang.Structure.AddGroup('F', "Fricative", ('f', 1.0), ('v', 1.0), ('s', 1.0), ('z', 1.0));
+            lang.Structure.AddGroup('S', "Fricative common", ('s', 30.0), ('ŝ', 1.0));
+            lang.Structure.AddGroup('A', "Approximant", ('w', 1.0), ('y', 1.0), ('h', 1.0));
+            lang.Structure.AddGroup('R', "R/L", ('r', 66), ('l', 33));
+
+            lang.Structure.AddSyllable("VR", 1.0);
+
+            lang.Structure.AddSyllable("VP", 1.0);
+            lang.Structure.AddSyllable("NVP", 2.0);
+            lang.Structure.AddSyllable("SpVN", 3.0);
+
+            lang.Structure.AddSyllable("PV", 1.0);
+            lang.Structure.AddSyllable("PVR", 5.0);
+            lang.Structure.AddSyllable("PVN", 2.0);
+
+            lang.Structure.AddSyllable("VN", 1.0);
+            lang.Structure.AddSyllable("AV", 1.0);
+            lang.Structure.AddSyllable("on", 0.5);
         }
         private void SetSigma()
         {
@@ -149,6 +178,8 @@ namespace PLGL.Examples
             lang.Structure.AddSigma("", "V", "", new SigmaPath() { SelectionWeight = 3.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
             lang.Structure.AddSigma("CC", "V", "", new SigmaPath() { SelectionWeight = 2.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
             lang.Structure.AddSigma("C", "V", "C", new SigmaPath() { SelectionWeight = 10.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
+
+
         }
 
         /// <summary>

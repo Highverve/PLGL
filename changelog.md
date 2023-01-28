@@ -106,3 +106,6 @@
 - Code clean-up in aisle LanguageGenerator.
 ### 2023-1-25
 - Renamed SUFFIX_ methods to AFFIX_, as I realized these methods function perfectly for both prefixes and suffixes.
+### 2023-1-26
+- Added Syllable, SyllableInfo, LetterGroup classes.
+- Replaced old syllable and letter generation code in LanguageGenerator with a stronger system.

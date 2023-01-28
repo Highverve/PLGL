@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace PLGL.Languages
 {
@@ -77,6 +79,70 @@ namespace PLGL.Languages
                 .Where((l) => l.WordPosition == wordPos || l.WordPosition == WordPosition.Any)
                 .Where((l) => l.SigmaPosition == sigmaPos || l.SigmaPosition == SigmaPosition.Any)
                 .OrderBy(l => l.WordPosition.CompareTo(wordPos)).ThenBy(l => l.SigmaPosition.CompareTo(sigmaPos)).ToArray();
+        }
+
+        public LetterPath[] GetPotentialPaths(char previous, WordPosition wordPos)
+        {
+            //Filters the list by:
+            //  1. The operating letter ("previous").
+            //  2. The word positon matches, or is any.
+            //  3. The sigma position matches, or is any.
+            //Then, it orders it by:
+            //  1. Word position.
+            //  2. Sigma position.
+
+            return LetterPaths.Where(l => l.Previous == previous)
+                .Where((l) => l.WordPosition == wordPos || l.WordPosition == WordPosition.Any)
+                .OrderBy(l => l.WordPosition.CompareTo(wordPos)).ToArray();
+        }
+
+        //New code
+
+        private Language language;
+        public Structure(Language language) { this.language = language; }
+
+        public Dictionary<char, LetterGroup> LetterGroups { get; set; } = new Dictionary<char, LetterGroup>();
+        public Dictionary<string, Syllable> Syllables { get; set; } = new Dictionary<string, Syllable>();
+
+        public void AddGroup(char key, string name, params (char letter, double weight)[] letters)
+        {
+            if (LetterGroups.ContainsKey(key) == false)
+            {
+                LetterGroup group = new LetterGroup(name, key, letters);
+
+                List<(Letter l, double w)> list = new List<(Letter l, double w)>();
+                for (int i = 0; i < group.Letters.Length; i++)
+                {
+                    Letter l = language.Alphabet.Find(group.Letters[i].letter);
+                    if (l != null)
+                        list.Add(new(l, group.Letters[i].weight));
+                    else
+                    {
+                        //Output not found issue to debug log.
+                    }
+                }
+
+                LetterGroups.Add(key, group);
+            }
+        }
+        public void AddSyllable(string groups, double weight)
+        {
+            if (Syllables.ContainsKey(groups) == false)
+            {
+                Syllable s = new Syllable(groups, weight);
+
+                for (int i = 0; i < s.Groups.Length; i++)
+                {
+                    if (LetterGroups.ContainsKey(s.Groups[i]))
+                        s.Template.Add(LetterGroups[s.Groups[i]]);
+                    else
+                    {
+                        //Output issue
+                    }
+                }
+
+                Syllables.Add(groups, s);
+            }
         }
     }
 }

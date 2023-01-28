@@ -30,9 +30,8 @@ namespace PLGL.Processing
         /// </summary>
         public WordInfo? AdjacentRight { get; set; } = null;
 
-        /// <summary>
-        /// Populated by the generator.
-        /// </summary>
+        public List<SyllableInfo>? Syllables { get; set; }
+
         public List<SigmaInfo> Sigma { get; set; } = new List<SigmaInfo>();
         public List<LetterInfo> Letters { get; set; } = new List<LetterInfo>();
         /// <summary>

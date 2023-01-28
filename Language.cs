@@ -72,7 +72,7 @@ namespace PLGL
         public Language()
         {
             Alphabet = new Alphabet();
-            Structure = new Structure();
+            Structure = new Structure(this);
 
             Lexicon = new Lexicon();
             Punctuation = new Punctuation();

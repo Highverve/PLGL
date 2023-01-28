@@ -1,10 +1,6 @@
-﻿using PLGL.Processing;
-using PLGL.Languages;
-using System.Linq;
-using System.Runtime.CompilerServices;
+﻿using PLGL.Data;
+using PLGL.Processing;
 using System.Text;
-using System.Text.RegularExpressions;
-using PLGL.Data;
 
 namespace PLGL
 {
@@ -208,8 +204,8 @@ namespace PLGL
 
                 if (string.IsNullOrEmpty(word.WordGenerated))
                 {
-                    SelectSigmaStructures(word);
-                    PopulateWord(word);
+                    PopulateSyllableStructure(word);
+                    PopulateLetters(word);
                 }
 
                 ProcessAffixes(word);
@@ -867,6 +863,106 @@ namespace PLGL
         #endregion
 
         #region Word construction — Sigma structuring and word population
+        private void PopulateSyllableStructure(WordInfo word)
+        {
+            word.Syllables = new List<SyllableInfo>();
+
+            int count = Math.Max((int)(SigmaCount(word.WordRoot) *
+                NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax)), 1);
+
+            for (int i = 0; i < count; i++)
+            {
+                SyllableInfo syllable = new SyllableInfo();
+                syllable.Syllable = SelectSyllable();
+
+                word.Syllables.Add(syllable);
+            }
+
+            //Link adjacent syllables.
+            for (int i = 0; i < word.Syllables.Count; i++)
+            {
+                if (i != 0)
+                    word.Syllables[i].AdjacentLeft = word.Syllables[i - 1];
+                if (i != word.Syllables.Count - 1)
+                    word.Syllables[i].AdjacentRight = word.Syllables[i + 1];
+            }
+        }
+        public Syllable SelectSyllable()
+        {
+            double weight = Random.NextDouble() * Language.Structure.Syllables.Sum(s => s.Value.Weight);
+
+            foreach (Syllable s in Language.Structure.Syllables.Values)
+            {
+                weight -= s.Weight;
+
+                if (weight <= 0)
+                    return s;
+            }
+
+            return null;
+        }
+
+        public void PopulateLetters(WordInfo word)
+        {
+            //Generate the letters according to the syllable structure.
+            foreach (SyllableInfo s in word.Syllables)
+            {
+                for (int i = 0; i < s.Syllable.Template.Count; i++)
+                {
+                    double weight = Random.NextDouble() * s.Syllable.Template[i].Letters.Sum(w => w.weight);
+
+                    foreach ((char, double) l in s.Syllable.Template[i].Letters)
+                    {
+                        weight -= l.Item2;
+
+                        if (weight <= 0)
+                        {
+                            word.Letters.Add(new LetterInfo(Language.Alphabet.Find(l.Item1)));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            //Link adjacent letters.
+            for (int i = 0; i < word.Letters.Count; i++)
+            {
+                if (i != 0) word.Letters[i].AdjacentLeft = word.Letters[i - 1];
+                if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];
+            }
+
+
+            if (Language.Generate != null)
+            {
+                for (int i = 0; i < word.Letters.Count; i++)
+                {
+                    int currentCount = word.Letters.Count;
+
+                    if (word.Letters[i].IsProcessed == false)
+                    {
+                        word.Letters[i].IsProcessed = true;
+
+                        Language.Generate(this, word,
+                            word.Letters[i],
+                            word.Letters[i].AdjacentLeft,
+                            word.Letters[i].AdjacentRight);
+
+                        LinkLeftLetter(word, word.Letters[i]);
+                        LinkRightLetter(word, word.Letters[i]);
+                    }
+
+                    //If there is a difference (e.g, a letter was added), return to 0.
+                    if (currentCount != word.Letters.Count)
+                        i = 0;
+                }
+            }
+
+            word.Letters.RemoveAll((l) => l.IsAlive == false);
+
+            foreach (LetterInfo l in word.Letters)
+                word.WordGenerated += l.Letter.Case.lower;
+        }
+
         /// <summary>
         /// Estimate sigma count and generate sigma structure.
         /// </summary>
@@ -926,7 +1022,7 @@ namespace PLGL
         /// Populates the sigma structures according to the language's letter pathing.
         /// </summary>
         /// <param name="word"></param>
-        private void PopulateWord(WordInfo word)
+        private void PopulateWordOLD(WordInfo word)
         {
             //Select starting letter according to letter weights.
             if (word.Sigma[0].First().Type == SigmaType.Nucleus)
@@ -943,15 +1039,15 @@ namespace PLGL
             foreach (SigmaInfo s in word.Sigma)
             {
                 for (int i = 0; i < s.Sigma.Onset.Count - onsetOffset; i++)
-                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
+                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
                 word.WordGenerated += s.Onset;
 
                 for (int i = 0; i < s.Sigma.Nucleus.Count - nucleusOffset; i++)
-                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
+                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
                 word.WordGenerated += s.Nucleus;
 
                 for (int i = 0; i < s.Sigma.Coda.Count; i++)
-                    word.Letters.Add(SelectLetter(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
+                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
                 word.WordGenerated += s.Coda;
 
                 onsetOffset = 0;
@@ -1022,7 +1118,7 @@ namespace PLGL
 
             return null;
         }
-        private LetterInfo SelectLetter(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
+        private LetterInfo SelectLetterOLD(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
         {
             LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
             LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
