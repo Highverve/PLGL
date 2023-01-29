@@ -18,53 +18,51 @@ namespace PLGL.Processing
         /// <summary>
         /// Set by the generator after it's been fully processed.
         /// </summary>
-        public bool IsProcessed { get; set; }
+        public bool IsProcessed { get; set; } = false;
 
-        public CharacterFilter Filter { get; set; }
+        public CharacterFilter? Filter { get; set; }
         /// <summary>
         /// This will always be null for the first word in a sentence. Account for it.
         /// </summary>
-        public WordInfo? AdjacentLeft { get; set; } = null;
+        public WordInfo? AdjacentLeft { get; set; }
         /// <summary>
         /// This will always be null for the last word in a sentence. Account for it.
         /// </summary>
-        public WordInfo? AdjacentRight { get; set; } = null;
+        public WordInfo? AdjacentRight { get; set; }
 
         public List<SyllableInfo>? Syllables { get; set; }
-
-        public List<SigmaInfo> Sigma { get; set; } = new List<SigmaInfo>();
-        public List<LetterInfo> Letters { get; set; } = new List<LetterInfo>();
+        public List<LetterInfo>? Letters { get; set; }
         /// <summary>
         /// Populated during deconstruction lexeme discovery.
         /// </summary>
-        public List<AffixInfo> Prefixes { get; set; }
+        public List<AffixInfo>? Prefixes { get; set; }
         /// <summary>
         /// Populated during deconstruction lexeme discovery.
         /// </summary>
-        public List<AffixInfo> Suffixes { get; set; }
+        public List<AffixInfo>? Suffixes { get; set; }
 
         /// <summary>
         /// The character block, as it's been deconstructed from the sentence.
         /// </summary>
-        public string WordActual { get; set; } = string.Empty;
+        public string? WordActual { get; set; }
         /// <summary>
         /// The word, split of all affixes.
         /// </summary>
-        public string WordRoot { get; set; } = string.Empty;
+        public string? WordRoot { get; set; }
         /// <summary>
         /// The generated word, lexemes unincluded.
         /// </summary>
-        public string WordGenerated { get; set; } = string.Empty;
+        public string? WordGenerated { get; set; }
         /// <summary>
         /// The final, procedurally generated word.
         /// </summary>
-        public string WordFinal { get; set; } = string.Empty;
-        public string WordPrefixes { get; set; } = string.Empty;
-        public string WordSuffixes { get; set; } = string.Empty;
+        public string? WordFinal { get; set; }
+        public string? WordPrefixes { get; set; }
+        public string? WordSuffixes { get; set; }
 
         public enum CaseType { Lowercase, Capitalize, Uppercase, RandomCase }
         public CaseType Case { get; set; } = CaseType.Lowercase;
 
-        public override string ToString() { return WordActual; }
+        public override string ToString() { return WordActual!; }
     }
 }

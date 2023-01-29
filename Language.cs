@@ -63,9 +63,10 @@ namespace PLGL
             });
         }
 
-        public OnDeconstruct Deconstruct { get; set; }
-        public OnConstruct Construct { get; set; }
-        public OnGenerate Generate { get; set; }
+        public OnDeconstruct OnDeconstruct { get; set; }
+        public OnConstruct OnConstruct { get; set; }
+        public OnSyllable OnSyllable { get; set; }
+        public OnLetter OnLetter { get; set; }
         public OnPrefix OnPrefix { get; set; }
         public OnSuffix OnSuffix { get; set; }
 

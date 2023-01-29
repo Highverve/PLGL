@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace PLGL.Data
 {
-    public class SigmaPath
+    public class SyllablePath
     {
         /// <summary>
         /// How likely the generator will choose this sigma. Default is 1.0.

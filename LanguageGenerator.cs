@@ -17,14 +17,14 @@ namespace PLGL
     /// <param name="lg"></param>
     /// <param name="word"></param>
     public delegate void OnConstruct(LanguageGenerator lg, WordInfo word);
+    public delegate void OnSyllable(LanguageGenerator lg, WordInfo word, SyllableInfo syllable);
     /// <summary>
     /// Allows manipulation of the generated word's letters.
     /// </summary>
     /// <param name="lg"></param>
     /// <param name="word"></param>
     /// <param name="letter"></param>
-    public delegate void OnGenerate(LanguageGenerator lg, WordInfo word, LetterInfo current, LetterInfo adjacentLeft, LetterInfo adjacentRight);
-
+    public delegate void OnLetter(LanguageGenerator lg, WordInfo word, LetterInfo current, LetterInfo adjacentLeft, LetterInfo adjacentRight);
     /// <summary>
     /// Allows manipulation of the word's prefixes. Called after word generation.
     /// </summary>
@@ -204,7 +204,7 @@ namespace PLGL
 
                 if (string.IsNullOrEmpty(word.WordGenerated))
                 {
-                    PopulateSyllableStructure(word);
+                    PopulateSyllables(word);
                     PopulateLetters(word);
                 }
 
@@ -556,7 +556,7 @@ namespace PLGL
                 if (i > 0) LinkLeftBlock(current);
                 if (i < blocks.Count - 1) LinkRightBlock(current);
 
-                Language.Deconstruct(this, current, current.Left, current.Right);
+                Language.OnDeconstruct(this, current, current.Left, current.Right);
             }
 
             blocks.RemoveAll((b) => b.IsAlive == false);
@@ -566,7 +566,7 @@ namespace PLGL
 
             //Loop through every word, applying the filters
             foreach (WordInfo word in wordInfo)
-                Language.Construct(this, word);
+                Language.OnConstruct(this, word);
 
             return wordInfo;
         }
@@ -709,7 +709,7 @@ namespace PLGL
         }
         #endregion
 
-        #region Lexicon (and inflections) — Affixes, root extraction, custom words
+        #region Lexicon (and inflections) — Custom words, word memorizing
         /// <summary>
         /// Checks for matching actual words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
         /// </summary>
@@ -725,7 +725,7 @@ namespace PLGL
         /// <param name="word"></param>
         public void ProcessLexiconRoots(WordInfo word)
         {
-            if (Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
+            if (string.IsNullOrEmpty(word.WordRoot) == false && Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
                 word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
         }
         /// <summary>
@@ -739,7 +739,7 @@ namespace PLGL
         }
         #endregion
 
-        #region Affixes
+        #region Affixes — Root extraction, affix processing and assemblying
         private List<Affix> affixes = new List<Affix>();
         /// <summary>
         /// The lexemes are processed, stripping the actual word down to its root.
@@ -862,8 +862,8 @@ namespace PLGL
         }
         #endregion
 
-        #region Word construction — Sigma structuring and word population
-        private void PopulateSyllableStructure(WordInfo word)
+        #region Word construction — Syllable structuring and letter population
+        public void PopulateSyllables(WordInfo word)
         {
             word.Syllables = new List<SyllableInfo>();
 
@@ -886,6 +886,15 @@ namespace PLGL
                 if (i != word.Syllables.Count - 1)
                     word.Syllables[i].AdjacentRight = word.Syllables[i + 1];
             }
+
+            if (Language.OnSyllable != null)
+            {
+                for (int i = 0; i < word.Syllables.Count; i++)
+                {
+                    if (word.Syllables[i].IsProcessed == false)
+                        Language.OnSyllable(this, word, word.Syllables[i]);
+                }
+            }
         }
         public Syllable SelectSyllable()
         {
@@ -904,6 +913,8 @@ namespace PLGL
 
         public void PopulateLetters(WordInfo word)
         {
+            word.Letters = new List<LetterInfo>();
+
             //Generate the letters according to the syllable structure.
             foreach (SyllableInfo s in word.Syllables)
             {
@@ -932,7 +943,7 @@ namespace PLGL
             }
 
 
-            if (Language.Generate != null)
+            if (Language.OnLetter != null)
             {
                 for (int i = 0; i < word.Letters.Count; i++)
                 {
@@ -942,7 +953,7 @@ namespace PLGL
                     {
                         word.Letters[i].IsProcessed = true;
 
-                        Language.Generate(this, word,
+                        Language.OnLetter(this, word,
                             word.Letters[i],
                             word.Letters[i].AdjacentLeft,
                             word.Letters[i].AdjacentRight);
@@ -962,184 +973,6 @@ namespace PLGL
             foreach (LetterInfo l in word.Letters)
                 word.WordGenerated += l.Letter.Case.lower;
         }
-
-        /// <summary>
-        /// Estimate sigma count and generate sigma structure.
-        /// </summary>
-        /// <param name="word"></param>
-        private void SelectSigmaStructures(WordInfo word)
-        {
-            int sigmaCount = Math.Max((int)(SigmaCount(word.WordRoot) *
-                    NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax)), 1);
-
-            //Generate sigma structure.
-            for (int i = 0; i < sigmaCount; i++)
-            {
-                //5.1 Select sigma by sigma's weights and the language's sigma options.
-                SigmaInfo info = new SigmaInfo();
-
-                Sigma last = word.Sigma.LastOrDefault() != null ? word.Sigma.LastOrDefault().Sigma : null;
-                Sigma sigma = SelectSigma(i, last);
-
-                if (i == 0) info.Position = WordPosition.First;
-                else if (i == sigmaCount - 1) info.Position = WordPosition.Last;
-                else info.Position = WordPosition.Middle;
-
-                info.Sigma = sigma;
-                word.Sigma.Add(info);
-            }
-
-            //Link adjacent sigma.
-            for (int i = 0; i < word.Sigma.Count; i++)
-            {
-                if (i != 0)
-                    word.Sigma[i].AdjacentLeft = word.Sigma[i - 1];
-                if (i != word.Sigma.Count - 1)
-                    word.Sigma[i].AdjacentRight = word.Sigma[i + 1];
-            }
-        }
-        private Sigma SelectSigma(int sigmaPosition, Sigma lastSigma)
-        {
-            double weight = 0;
-
-            //if (lastSigma.Coda != null || lastSigma.Coda.Count > 0)
-
-
-            weight = Random.NextDouble() * Language.Structure.Templates.Sum(s => s.Weight.SelectionWeight);
-
-            foreach (Sigma s in Language.Structure.Templates)
-            {
-                weight -= s.Weight.SelectionWeight;
-
-                if (weight <= 0)
-                    return s;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// Populates the sigma structures according to the language's letter pathing.
-        /// </summary>
-        /// <param name="word"></param>
-        private void PopulateWordOLD(WordInfo word)
-        {
-            //Select starting letter according to letter weights.
-            if (word.Sigma[0].First().Type == SigmaType.Nucleus)
-                word.Letters.Add(new LetterInfo(SelectFirstVowel()));
-            else
-                word.Letters.Add(new LetterInfo(SelectFirstConsonant()));
-
-            int onsetOffset = 0, nucleusOffset = 0;
-            if (word.Sigma.First().First().Type == SigmaType.Onset)
-                onsetOffset = word.Letters.Count;
-            if (word.Sigma.First().First().Type == SigmaType.Nucleus)
-                nucleusOffset = word.Letters.Count;
-
-            foreach (SigmaInfo s in word.Sigma)
-            {
-                for (int i = 0; i < s.Sigma.Onset.Count - onsetOffset; i++)
-                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Onset, false));
-                word.WordGenerated += s.Onset;
-
-                for (int i = 0; i < s.Sigma.Nucleus.Count - nucleusOffset; i++)
-                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Nucleus, true));
-                word.WordGenerated += s.Nucleus;
-
-                for (int i = 0; i < s.Sigma.Coda.Count; i++)
-                    word.Letters.Add(SelectLetterOLD(word.Letters.Last().Letter.Key, s.Position, SigmaPosition.Coda, false));
-                word.WordGenerated += s.Coda;
-
-                onsetOffset = 0;
-                nucleusOffset = 0;
-            }
-
-            for (int i = 0; i < word.Letters.Count; i++)
-            {
-                if (i != 0) word.Letters[i].AdjacentLeft = word.Letters[i - 1];
-                if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];
-            }
-
-            if (Language.Generate != null)
-            {
-                for (int i = 0; i < word.Letters.Count; i++)
-                {
-                    int currentCount = word.Letters.Count;
-
-                    if (word.Letters[i].IsProcessed == false)
-                    {
-                        word.Letters[i].IsProcessed = true;
-
-                        Language.Generate(this, word,
-                            word.Letters[i],
-                            word.Letters[i].AdjacentLeft,
-                            word.Letters[i].AdjacentRight);
-
-                        LinkLeftLetter(word, word.Letters[i]);
-                        LinkRightLetter(word, word.Letters[i]);
-                    }
-
-                    //If there is a difference (e.g, a letter was added), return to 0.
-                    if (currentCount != word.Letters.Count)
-                        i = 0;
-                }
-            }
-
-            word.Letters.RemoveAll((l) => l.IsAlive == false);
-
-            foreach (LetterInfo l in word.Letters)
-                word.WordGenerated += l.Letter.Case.lower;
-        }
-        private Letter SelectFirstVowel()
-        {
-            double weight = Random.NextDouble() * Language.Alphabet.Vowels.Values.Sum(w => w.StartWeight);
-
-            foreach (Vowel v in Language.Alphabet.Vowels.Values)
-            {
-                weight -= v.StartWeight;
-
-                if (weight <= 0)
-                    return v;
-            }
-
-            return null;
-        }
-        private Letter SelectFirstConsonant()
-        {
-            double weight = Random.NextDouble() * Language.Alphabet.Consonants.Values.Sum(w => w.StartWeight);
-
-            foreach (Consonant c in Language.Alphabet.Consonants.Values)
-            {
-                weight -= c.StartWeight;
-
-                if (weight <= 0)
-                    return c;
-            }
-
-            return null;
-        }
-        private LetterInfo SelectLetterOLD(char last, WordPosition wordPos, SigmaPosition sigmaPos, bool isVowel)
-        {
-            LetterPath[] potentials = Language.Structure.GetPotentialPaths(last, wordPos, sigmaPos);
-            LetterPath chosen = potentials[0]; //Add failsafes for errors. See Language.Pathing for guidelines.
-
-            List<(char, double)> filter = isVowel ?
-                chosen.Next.Where(x => Language.Alphabet.Vowels.ContainsKey(x.Item1)).ToList() :
-                chosen.Next.Where(x => Language.Alphabet.Consonants.ContainsKey(x.Item1)).ToList();
-
-            double weight = Random.NextDouble() * filter.Sum(w => w.Item2);
-
-            foreach ((char, double) l in filter)
-            {
-                weight -= l.Item2;
-
-                if (weight <= 0)
-                    return new LetterInfo(Language.Alphabet.Find(l.Item1));
-            }
-
-            throw new Exception(string.Format("Letter pathing match not found: {0}, {1}, {2}, {3}", last, wordPos, sigmaPos));
-        }
-
         private void LinkLeftLetter(WordInfo word, LetterInfo letter)
         {
             int index = word.Letters.IndexOf(letter);

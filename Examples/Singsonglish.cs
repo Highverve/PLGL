@@ -30,8 +30,7 @@ namespace PLGL.Examples
 
             //Structural
             SetLetters();
-            SetSigma();
-            SetPaths();
+            SetStructure();
 
             //Lexemes
             SetInflections();
@@ -67,17 +66,17 @@ namespace PLGL.Examples
         }
         private void SetDeconstructEvents()
         {
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
-            lang.Deconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
+            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
+            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
+            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
+            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
+            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
         }
         private void SetConstructEvents()
         {
-            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
-            lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-            lang.Construct += (lg, word) =>
+            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
+            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
+            lang.OnConstruct += (lg, word) =>
             {
                 if (word.Filter.Name.ToUpper() == "NUMBERS")
                 {
@@ -89,12 +88,12 @@ namespace PLGL.Examples
                     word.IsProcessed = true;
                 }
             };
-            lang.Construct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
+            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
 
             SetPunctuation();
             SetFlagging();
 
-            lang.Construct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
+            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
         }
 
         #endregion
@@ -112,7 +111,7 @@ namespace PLGL.Examples
             lang.Alphabet.AddVowel('o', ('o', 'O'), 0);
             lang.Alphabet.AddVowel('u', ('u', 'U'), 0);
 
-            lang.Generate += (lg, w, current, left, right) =>
+            lang.OnLetter += (lg, w, current, left, right) =>
             {
                 if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.Letters.IndexOf(current) > 1)
                 {
@@ -120,32 +119,14 @@ namespace PLGL.Examples
                 }
             };
         }
-        private void SetSigma()
+        public void SetStructure()
         {
-            lang.Structure.AddSigma("C", "V", "", new SigmaPath() { SelectionWeight = 20.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
-            lang.Structure.AddSigma("", "V", "", new SigmaPath() { SelectionWeight = 1.0, StartingWeight = 1.0, EndingWeight = 1.0, LastConsonantWeight = 1.5 });
-        }
-        private void SetPaths()
-        {
-            //Vowels
-            lang.Structure.AddLetterPath('a', WordPosition.Any, SigmaPosition.Any,
-                ('a', 30.0), ('i', 2.0), ('o', 0.25), ('u', 1.0), ('l', 3.0), ('d', 5.0));
-            lang.Structure.AddLetterPath('e', WordPosition.Any, SigmaPosition.Any,
-                ('e', 30.0), ('i', 5.0), ('l', 2.0), ('d', 10.0));
-            lang.Structure.AddLetterPath('i', WordPosition.Any, SigmaPosition.Any,
-                ('a', 2.5), ('i', 30.0), ('e', 0.5), ('u', 1.0), ('l', 2.0), ('d', 10.0));
-            lang.Structure.AddLetterPath('o', WordPosition.Any, SigmaPosition.Any,
-                ('a', 1.0), ('i', 2.5), ('e', 3.0), ('u', 5.0), ('o', 30.0), ('l', 2.0), ('d', 6.0));
-            lang.Structure.AddLetterPath('u', WordPosition.Any, SigmaPosition.Any,
-                ('a', 2.5), ('e', 0.5), ('u', 1.0), ('l', 2.0), ('d', 8.0));
+            lang.Structure.AddGroup('V', "Vowels", ('a', 1.0), ('e', 1.0), ('i', 1.0), ('o', 1.0), ('u', 1.0));
+            lang.Structure.AddGroup('C', "Consonants", ('l', 5.0), ('d', 3.0), ('s', 0.5));
 
-            //Consonants
-            lang.Structure.AddLetterPath('l', WordPosition.Any, SigmaPosition.Any,
-                ('a', 15.0), ('i', 5.0), ('e', 10.0), ('u', 3.0), ('o', 5.0), ('l', 1.0));
-            lang.Structure.AddLetterPath('d', WordPosition.Any, SigmaPosition.Any,
-                ('a', 7.0), ('i', 10.0), ('e', 2.0), ('u', 2.0), ('o', 5.0), ('d', 1.0));
-            lang.Structure.AddLetterPath('s', WordPosition.Any, SigmaPosition.Any,
-                ('a', 10.0), ('i', 15.0), ('e', 5.0), ('u', 1.0), ('o', 3.0), ('s', 1.0));
+            lang.Structure.AddSyllable("CV", 10.0);
+            lang.Structure.AddSyllable("CVV", 2.0);
+            lang.Structure.AddSyllable("VC", 0.25);
         }
         #endregion
 
@@ -179,7 +160,7 @@ namespace PLGL.Examples
         #region Punctuation
         private void SetPunctuation()
         {
-            lang.Construct += (lg, word) => lang.Punctuation.Process(lg, word, "PUNCTUATION");
+            lang.OnConstruct += (lg, word) => lang.Punctuation.Process(lg, word, "PUNCTUATION");
 
             lang.Punctuation.Add(".", (w) => { return " ha·"; });
             lang.Punctuation.Add("...", (w) => { return " haaa·"; });
@@ -192,7 +173,7 @@ namespace PLGL.Examples
         #region Flagging
         public void SetFlagging()
         {
-            lang.Construct += (lg, word) => lang.Flags.Process(lg, word, "FLAGS");
+            lang.OnConstruct += (lg, word) => lang.Flags.Process(lg, word, "FLAGS");
 
             lang.Flags.Add("<HIDE", lang.Flags.ACTION_HideLeft);
             lang.Flags.Add("HIDE>", lang.Flags.ACTION_HideRight);
