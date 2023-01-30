@@ -133,9 +133,10 @@ An overview at the code that parses your sentence, transforming it according to 
 ## 6 — Future Updates
 
 - [x] Improve how affixes are handled.
-- [ ] Stronger control over sigma selection.
+- [x] Stronger control over sigma selection.
 - [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
-- [ ] Easier, or less tedious, letter pathing—if at all possible.
+- [x] Easier, or less tedious, letter pathing—if at all possible.
+- [ ] Add syllable costs.
 - [ ] Custom base conversion for numbers.
 - [ ] Add generation logging to help authors diagnose and fix their language.
 - [ ] Add path processing method, which output letter path probability of the input text file.
