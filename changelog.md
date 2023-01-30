@@ -112,3 +112,7 @@
 ### 2023-1-28
 - Erased old syllable classes and selection code: LetterPath, Sigma, SigmaBlock, SigmaPath, SigmaInfo.
 - Renamed OnConstruct to OnLetter, and added OnSyllable.
+### 2023-1-29
+- Renamed GENERATE_ methods to LETTER_, and added two new condition methods: LETTER_Contains and LETTER_Syllable.
+- Added SyllableInfo reference to LetterInfo for use by language events. This is set when the letter is chosen.
+- 

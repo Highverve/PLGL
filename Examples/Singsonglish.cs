@@ -111,9 +111,9 @@ namespace PLGL.Examples
             lang.Alphabet.AddVowel('o', ('o', 'O'), 0);
             lang.Alphabet.AddVowel('u', ('u', 'U'), 0);
 
-            lang.OnLetter += (lg, w, current, left, right) =>
+            lang.OnLetter += (lg, w, current) =>
             {
-                if (left != null && (left.Letter.Key == 'l' && current.Letter.Key != 'l') && w.Letters.IndexOf(current) > 1)
+                if (current.AdjacentLeft != null && (current.AdjacentLeft.Letter.Key == 'l' && current.Letter.Key != 'l') && w.Letters.IndexOf(current) > 1)
                 {
                     //lg.GENERATE_InsertLetter(w, current, 'l', 0);
                 }

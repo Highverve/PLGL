@@ -1,6 +1,7 @@
 ﻿using PLGL.Data;
 using PLGL.Processing;
 using System.Text;
+using System.Threading.Tasks.Dataflow;
 
 namespace PLGL
 {
@@ -24,7 +25,7 @@ namespace PLGL
     /// <param name="lg"></param>
     /// <param name="word"></param>
     /// <param name="letter"></param>
-    public delegate void OnLetter(LanguageGenerator lg, WordInfo word, LetterInfo current, LetterInfo adjacentLeft, LetterInfo adjacentRight);
+    public delegate void OnLetter(LanguageGenerator lg, WordInfo word, LetterInfo current);
     /// <summary>
     /// Allows manipulation of the word's prefixes. Called after word generation.
     /// </summary>
@@ -221,18 +222,62 @@ namespace PLGL
         }
         #endregion
 
-        #region GENERATE_ methods
-        public void GENERATE_ReplaceLetter(WordInfo word, LetterInfo current, LetterInfo target, char letterKey)
+        #region SYLLABLE_ methods
+
+
+        #endregion
+
+        #region LETTER_ methods
+        public void LETTER_Replace(WordInfo word, LetterInfo current, LetterInfo target, char letterKey, bool condition)
         {
-            int index = word.Letters.IndexOf(current);
-            target.Letter = Language.Alphabet.Find(letterKey);
+            if (condition && target != null)
+                target.Letter = Language.Alphabet.Find(letterKey);
         }
-        public void GENERATE_InsertLetter(WordInfo word, LetterInfo current, char letterKey, int indexOffset)
+        public void LETTER_Insert(WordInfo word, LetterInfo current, char letterKey, int indexOffset, bool condition)
         {
-            int index = word.Letters.IndexOf(current);
-            Letter letter = Language.Alphabet.Find(letterKey);
-            word.Letters.Insert(index + indexOffset, new LetterInfo(letter));
+            if (condition)
+            {
+                int index = word.Letters.IndexOf(current);
+                Letter letter = Language.Alphabet.Find(letterKey);
+                word.Letters.Insert(index + indexOffset, new LetterInfo(letter) { IsProcessed = true });
+            }
         }
+
+        /// <summary>
+        /// Returns true if the target letter is any of the keys listed.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public bool LETTER_Contains(LetterInfo target, params char[] keys)
+        {
+            if (target != null)
+            {
+                foreach (char k in keys)
+                {
+                    if (target.Letter.Key == k)
+                        return true;
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the target's syllable matches the group pattern.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        public bool LETTER_Syllable(LetterInfo target, params string[] group)
+        {
+            if (target != null)
+            {
+                foreach (string s in group)
+                    if (target.Syllable.Syllable.Groups == s)
+                        return true;
+            }
+            return false;
+        }
+
         #endregion
 
         #region AFFIX_ methods
@@ -928,7 +973,10 @@ namespace PLGL
 
                         if (weight <= 0)
                         {
-                            word.Letters.Add(new LetterInfo(Language.Alphabet.Find(l.Item1)));
+                            LetterInfo letter = new LetterInfo(Language.Alphabet.Find(l.Item1));
+                            letter.Syllable = s;
+
+                            word.Letters.Add(letter);
                             break;
                         }
                     }
@@ -953,10 +1001,7 @@ namespace PLGL
                     {
                         word.Letters[i].IsProcessed = true;
 
-                        Language.OnLetter(this, word,
-                            word.Letters[i],
-                            word.Letters[i].AdjacentLeft,
-                            word.Letters[i].AdjacentRight);
+                        Language.OnLetter(this, word, word.Letters[i]);
 
                         LinkLeftLetter(word, word.Letters[i]);
                         LinkRightLetter(word, word.Letters[i]);

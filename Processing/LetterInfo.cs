@@ -10,6 +10,7 @@ namespace PLGL.Processing
     public class LetterInfo
     {
         public Letter Letter { get; set; }
+        public SyllableInfo Syllable { get; set; }
         public LetterInfo AdjacentLeft { get; set; }
         public LetterInfo AdjacentRight { get; set; }
 
