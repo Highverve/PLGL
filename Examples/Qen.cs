@@ -39,7 +39,7 @@ namespace PLGL.Examples
             lang.Options.MemorizeWords = false;
             lang.Options.SigmaSkewMin = 0.8;
             lang.Options.SigmaSkewMax = 1.5;
-            lang.Options.SeedOffset = 2;
+            lang.Options.SeedOffset = 1;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -145,14 +145,14 @@ namespace PLGL.Examples
         }
         private void SetStructure()
         {
-            lang.Structure.AddGroup('V', "Vowels", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0),
-                                               ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
+            lang.Structure.AddGroup('V', "Vowels", ('a', 5.0), ('e', 7.0), ('i', 3.0), ('o', 5.0), ('u', 7.0),
+                                               ('ä', 2.0), ('ë', 5.0), ('ï', 3.0), ('ö', 6.0), ('ü', 1.0));
             lang.Structure.AddGroup('o', "Vowels (short)", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0));
             lang.Structure.AddGroup('O', "Vowels (long)", ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
 
             lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0));
             lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 3.0));
-            lang.Structure.AddGroup('P', "Plosive", ('b', 3.0), ('p', 4.0), ('d', 7.0), ('t', 1.0), ('g', 6.0), ('k', 2.0));
+            lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
             lang.Structure.AddGroup('p', "Plosive higher", ('p', 4.0), ('t', 1.0), ('k', 2.0));
             lang.Structure.AddGroup('F', "Fricative", ('f', 1.0), ('v', 1.0), ('s', 1.0), ('z', 1.0));
             lang.Structure.AddGroup('S', "S/SH", ('s', 30.0), ('ŝ', 1.0));
@@ -170,19 +170,18 @@ namespace PLGL.Examples
             lang.Structure.AddSyllable("TVR", 0.75);
             lang.Structure.AddSyllable("TVn", 0.25);
 
-
-            lang.Structure.AddSyllable("VS", 0.25);
-
             lang.Structure.AddSyllable("PV", 1.0);
             lang.Structure.AddSyllable("PVR", 5.0);
             lang.Structure.AddSyllable("PVN", 2.0);
 
+            lang.Structure.AddSyllable("VS", 0.25);
             lang.Structure.AddSyllable("VN", 1.0);
             lang.Structure.AddSyllable("AVR", 1.0);
             lang.Structure.AddSyllable("on", 0.5);
 
             lang.OnLetter += (lg, word, letter) =>
-                lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü', lg.LETTER_Contains(letter.AdjacentLeft, 'u'));
+                lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
+                    lg.LETTER_Contains(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
 
             //Manual consonant doubling, depending on syllable condition—group type, letter type ('l'), syllable location.
             //(where "T" is th/sh letters, "V" are vowels, and "R" is r or l.
@@ -202,7 +201,7 @@ namespace PLGL.Examples
         {
             lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("ly", "ila", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("s", "im", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("s", "s", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
 
             lang.OnSuffix += (lg, word, current) => lg.AFFIX_Remove(word, current, "ly", 0, 1, lg.AFFIX_VowelLast(word, current));

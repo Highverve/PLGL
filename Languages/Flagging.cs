@@ -42,6 +42,8 @@ namespace PLGL.Languages
                     if (Actions.ContainsKey(s))
                         Actions[s](lg, word);
                 }
+
+                lg.Diagnostics.LogBuilder.AppendLine();
             }
         }
 
@@ -57,6 +59,9 @@ namespace PLGL.Languages
                 word.AdjacentLeft.WordFinal = string.Empty;
                 word.AdjacentLeft.IsProcessed = true;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentLeft.WordActual} is hidden.");
             }
         }
         /// <summary>
@@ -71,6 +76,9 @@ namespace PLGL.Languages
                 word.AdjacentRight.WordFinal = string.Empty;
                 word.AdjacentRight.IsProcessed = true;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentRight.WordActual} is hidden.");
             }
         }
         /// <summary>
@@ -91,6 +99,9 @@ namespace PLGL.Languages
             {
                 word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordActual;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentLeft.WordActual} generated word is set to actual.");
             }
         }
         public void ACTION_NoAffixes(LanguageGenerator lg, WordInfo word)
@@ -99,6 +110,9 @@ namespace PLGL.Languages
             {
                 word.AdjacentLeft.WordFinal = word.AdjacentLeft.WordGenerated;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentLeft.WordActual} affixes removed.");
             }
         }
 
@@ -112,8 +126,12 @@ namespace PLGL.Languages
         {
             if (word.AdjacentLeft != null)
             {
-                word.AdjacentLeft.WordFinal = result();
+                string r = result();
+                word.AdjacentLeft.WordFinal = r;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentLeft.WordActual} replaced with {r}.");
             }
         }
         /// <summary>
@@ -126,8 +144,12 @@ namespace PLGL.Languages
         {
             if (word.AdjacentRight != null)
             {
-                word.AdjacentRight.WordFinal = result();
+                string r = result();
+                word.AdjacentRight.WordFinal = r;
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    FlagLog(lg, $"{word.AdjacentRight.WordActual} replaced with {r}.");
             }
         }
         /// <summary>
@@ -138,9 +160,15 @@ namespace PLGL.Languages
         /// <param name="result"></param>
         public void ACTION_ReplaceCurrent(LanguageGenerator lg, WordInfo word, Func<string> result)
         {
-            word.WordFinal = result();
+            string r = result();
+            word.WordFinal = r;
             word.IsProcessed = true;
+
+            if (lg.Diagnostics.IsConstructEventLog && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                FlagLog(lg, $"{word.WordActual} replaced with {r}.");
         }
+
+        public void FlagLog(LanguageGenerator lg, string info) { lg.Diagnostics.LOG_Subheader($"FLAG: {info}"); }
     }
 }
 

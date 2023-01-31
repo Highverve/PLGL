@@ -2,6 +2,7 @@
 using PLGL.Processing;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -20,6 +21,8 @@ namespace PLGL.Languages
 
         public Dictionary<char, LetterGroup> LetterGroups { get; set; } = new Dictionary<char, LetterGroup>();
         public Dictionary<string, Syllable> Syllables { get; set; } = new Dictionary<string, Syllable>();
+        public List<Syllable> SortedSyllables { get; set; } = new List<Syllable>();
+        private void SortList() { SortedSyllables = Syllables.Values.OrderBy((s) => s.Groups).ToList(); }
 
         public void AddGroup(char key, string name, params (char letter, double weight)[] letters)
         {
@@ -59,6 +62,7 @@ namespace PLGL.Languages
                 }
 
                 Syllables.Add(groups, s);
+                SortList();
             }
         }
 

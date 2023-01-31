@@ -11,7 +11,9 @@ namespace PLGL
     {
         private CharacterFilter undefined = new CharacterFilter() { Characters = new char[0], Name = "Undefined" };
         public CharacterFilter Undefined { get { return undefined; } }
+        
         public Language Language { get; set; }
+        public Diagnostics Diagnostics { get; set; }
 
         public Deconstructor() { }
 
@@ -43,6 +45,8 @@ namespace PLGL
         /// <returns></returns>
         public List<CharacterBlock> Deconstruct(string sentence)
         {
+            Diagnostics.LOG_Subheader("FILTER BLOCKS");
+
             List<CharacterBlock> result = new List<CharacterBlock>();
 
             CharacterFilter lastFilter = null, filter = null;
@@ -79,7 +83,16 @@ namespace PLGL
                     result[i].Left = result[i - 1];
                 if (i != result.Count - 1)
                     result[i].Right = result[i + 1];
+
+                if (Diagnostics.IsDeconstructLog == true && Diagnostics.DeconstructExclusion.Contains(result[i].Filter.Name) == false)
+                {
+                    Diagnostics.LogBuilder.AppendLine($"Added {result[i].Filter.Name}: " +
+                        $"{result[i].Text} [{result[i].IndexFirst},{result[i].IndexLast}]");
+                }
             }
+
+            if (Diagnostics.IsDeconstructLog == true)
+                Diagnostics.LogBuilder.AppendLine();
 
             return result;
         }

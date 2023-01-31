@@ -54,7 +54,8 @@ namespace PLGL
             }
         }
 
-        public Deconstructor Deconstruct { get; private set; } = new Deconstructor();
+        public Deconstructor Deconstruct { get; private set; }
+        public Diagnostics Diagnostics { get; private set; }
 
         StringBuilder sentenceBuilder = new StringBuilder();
         List<CharacterBlock> blocks = new List<CharacterBlock>();
@@ -72,7 +73,17 @@ namespace PLGL
                 {
                     if (current.Text == currentText)
                     {
-                        current.Filter = Deconstruct.GetFilter(newFilter);
+                        CharacterFilter filter = Deconstruct.GetFilter(newFilter);
+
+                        if (filter != null)
+                        {
+                            current.Filter = filter;
+
+                            if (Diagnostics.IsDeconstructLog == true)
+                                Diagnostics.LogBuilder.AppendLine($"{currentFilter}[{currentText}] changed to {filter.Name} [left:{leftFilter}, current:{currentFilter}, right:{rightFilter}]");
+                        }
+                        else if (Diagnostics.IsDeconstructLog == true)
+                            Diagnostics.LogBuilder.AppendLine($"Couldn't find {newFilter} filter to change {current.Text} of {current.Filter.Name}.");
                     }
                 }
             }
@@ -88,8 +99,16 @@ namespace PLGL
                 {
                     if (current.Text == currentText)
                     {
+                        CharacterFilter filter = Deconstruct.GetFilter(newFilter);
+                        if (Diagnostics.IsDeconstructEventLog == true)
+                        {
+                            if (filter == Deconstruct.Undefined && newFilter != Deconstruct.Undefined.Name.ToUpper())
+                                Diagnostics.LogBuilder.AppendLine($"Couldn't find {newFilter} filter. Defaulting to Undefined.");
+                            Diagnostics.LOG_Subheader($"DECONSTRUCT: Merged {leftFilter}[{left.Text}] and {rightFilter}[{right.Text}] to {currentFilter}[{currentText}] under the new filter: {newFilter}");
+                        }
+
                         current.Text = left.Text + current.Text + right.Text;
-                        current.Filter = Deconstruct.GetFilter(newFilter);
+                        current.Filter = filter;
 
                         left.IsAlive = false;
                         right.IsAlive = false;
@@ -161,6 +180,9 @@ namespace PLGL
         {
             if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
+                if (Diagnostics.IsConstructEventLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LogBuilder.AppendLine($"{word.WordActual} of {word.Filter.Name} has been hidden.");
+
                 word.WordFinal = string.Empty;
                 if (word.Prefixes != null) word.Prefixes.Clear();
                 if (word.Suffixes != null) word.Suffixes.Clear();
@@ -176,6 +198,9 @@ namespace PLGL
         {
             if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
             {
+                if (Diagnostics.IsConstructEventLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LogBuilder.AppendLine($"{word.WordActual} of {word.Filter.Name} has been kept as is.");
+
                 word.WordFinal = word.WordActual;
                 word.IsProcessed = true;
             }
@@ -186,6 +211,9 @@ namespace PLGL
             {
                 word.WordFinal = word.WordActual.Substring(index, word.WordActual.Length - subtract);
                 word.IsProcessed = true;
+
+                if (Diagnostics.IsConstructEventLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LogBuilder.AppendLine($"{word.WordActual} of {word.Filter.Name} has been set to substring[{index},{subtract}].");
             }
         }
         /// <summary>
@@ -197,11 +225,16 @@ namespace PLGL
         {
             if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_Subheader($"GENERATING: {word.WordActual}");
+
                 ProcessLexiconInflections(word);
                 ProcessLexiconRoots(word);
                 ExtractAffixes(word);
 
                 Random = SetRandom(word.WordRoot);
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_NestLine(2, $"Seed set to {Seed}");
 
                 if (string.IsNullOrEmpty(word.WordGenerated))
                 {
@@ -214,6 +247,9 @@ namespace PLGL
 
                 word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
                 word.IsProcessed = true;
+
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LogBuilder.AppendLine($"Finalized word: {word.WordActual} -> {word.WordFinal}" + Environment.NewLine);
 
                 LexiconMemorize(word);
 
@@ -277,7 +313,6 @@ namespace PLGL
             }
             return false;
         }
-
         #endregion
 
         #region AFFIX_ methods
@@ -578,6 +613,10 @@ namespace PLGL
             CASE_Capitalize = CASE_CapitalizeDefault;
             CASE_Uppercase = CASE_UpperDefault;
             CASE_Random = CASE_RandomDefault;
+
+            Deconstruct = new Deconstructor();
+            Diagnostics = new Diagnostics();
+            Deconstruct.Diagnostics = Diagnostics;
         }
 
         #region Generation — Main method and overloads
@@ -592,6 +631,13 @@ namespace PLGL
             //Clear class-level variables for the next sentence.
             blocks.Clear();
             wordInfo.Clear();
+
+            if (Diagnostics.IsLogging == true)
+            {
+                Diagnostics.LOG_Header("PROCESSING");
+                Diagnostics.LogBuilder.AppendLine(sentence);
+                Diagnostics.LogBuilder.AppendLine();
+            }
 
             blocks = Deconstruct.Deconstruct(sentence);
             for (int i = 0; i < blocks.Count; i++)
@@ -612,6 +658,14 @@ namespace PLGL
             //Loop through every word, applying the filters
             foreach (WordInfo word in wordInfo)
                 Language.OnConstruct(this, word);
+
+            if (Diagnostics.IsLogging == true)
+            {
+                Diagnostics.LOG_Header("FINISHED");
+                for (int i = 0; i < wordInfo.Count; i++)
+                    Diagnostics.LogBuilder.Append(wordInfo[i].WordFinal);
+                Diagnostics.SaveLog();
+            }
 
             return wordInfo;
         }
@@ -761,8 +815,14 @@ namespace PLGL
         /// <param name="word"></param>
         private void ProcessLexiconInflections(WordInfo word)
         {
+            if (Diagnostics.IsConstructLog == true)
+                Diagnostics.LOG_NestLine(2, "Checking for lexicon inflections");
             if (Language.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
+            {
                 word.WordGenerated = Language.Lexicon.Inflections[word.WordActual.ToLower()];
+                if (Diagnostics.IsConstructLog == true)
+                    Diagnostics.LOG_NestLine(2, $"Inflection found: {word.WordGenerated}");
+            }
         }
         /// <summary>
         /// Checks for matching root words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
@@ -770,8 +830,15 @@ namespace PLGL
         /// <param name="word"></param>
         public void ProcessLexiconRoots(WordInfo word)
         {
+            if (Diagnostics.IsConstructLog == true)
+                Diagnostics.LOG_NestLine(2, "Checking for lexicon roots");
+
             if (string.IsNullOrEmpty(word.WordRoot) == false && Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
+            {
                 word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
+                if (Diagnostics.IsConstructLog == true)
+                    Diagnostics.LOG_NestLine(2, $"Root found: {word.WordGenerated}");
+            }
         }
         /// <summary>
         /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Inflections.
@@ -806,6 +873,9 @@ namespace PLGL
                 int suffixIndex = 0, prefixIndex = 0;
                 AffixInfo current;
 
+                if (Diagnostics.IsConstructLog == true)
+                    Diagnostics.LOG_NestLine(2, "Checking and extracting affixes");
+
                 for (int i = 0; i < affixes.Count; i++)
                 {
                     if (affixes[i].ValueLocation == Affix.AffixLocation.Prefix)
@@ -819,6 +889,9 @@ namespace PLGL
                         }
                         else
                             current.Order = current.Affix.Order;
+
+                        if (Diagnostics.IsConstructLog == true)
+                            Diagnostics.LOG_NestLine(4, $"Prefix found: from {word.Prefixes.Last().Affix.Key} to {word.Prefixes.Last().Affix.Value} at {word.Prefixes.Last().Order} order.");
                     }
 
                     if (affixes[i].ValueLocation == Affix.AffixLocation.Suffix)
@@ -832,6 +905,9 @@ namespace PLGL
                         }
                         else
                             current.Order = current.Affix.Order;
+
+                        if (Diagnostics.IsConstructLog == true)
+                            Diagnostics.LOG_NestLine(4, $"Suffix found: from {word.Suffixes.Last().Affix.Key} to {word.Suffixes.Last().Affix.Value} at {word.Suffixes.Last().Order} order.");
                     }
                 }
 
@@ -845,6 +921,8 @@ namespace PLGL
                 int prefixLength = affixes.Where((a) => a.KeyLocation == Affix.AffixLocation.Prefix).Sum((a) => a.Key.Length);
                 int suffixLength = affixes.Where((a) => a.KeyLocation == Affix.AffixLocation.Suffix).Sum((a) => a.Key.Length);
                 word.WordRoot = word.WordActual.Substring(prefixLength, word.WordActual.Length - suffixLength);
+                if (Diagnostics.IsConstructLog == true)
+                    Diagnostics.LOG_NestLine(2, $"Extracted root {word.WordRoot} from {word.WordActual}.");
             }
             else
                 word.WordRoot = word.WordActual;
@@ -855,15 +933,20 @@ namespace PLGL
         /// <param name="word"></param>
         private void AssembleAffixes(WordInfo word)
         {
-            if (word.Prefixes != null)
+            if (word.Prefixes != null && word.Prefixes.Count > 0)
             {
                 foreach (AffixInfo p in word.Prefixes)
                     word.WordPrefixes += p.AffixText;
+
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_NestLine(2, $"Prefixes set: {word.WordPrefixes}");
             }
-            if (word.Suffixes != null)
+            if (word.Suffixes != null && word.Suffixes.Count > 0)
             {
                 foreach (AffixInfo s in word.Suffixes)
                     word.WordSuffixes += s.AffixText;
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_NestLine(2, $"Suffixes set: {word.WordSuffixes}");
             }
         }
         /// <summary>
@@ -910,6 +993,9 @@ namespace PLGL
         #region Word construction — Syllable structuring and letter population
         public void PopulateSyllables(WordInfo word)
         {
+            if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                Diagnostics.LOG_NestLine(2, $"Populating syllables");
+
             word.Syllables = new List<SyllableInfo>();
 
             int count = Math.Max((int)(SigmaCount(word.WordRoot) *
@@ -919,8 +1005,12 @@ namespace PLGL
             {
                 SyllableInfo syllable = new SyllableInfo();
                 syllable.Syllable = SelectSyllable();
+                syllable.SyllableIndex = i;
 
                 word.Syllables.Add(syllable);
+
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} set to {syllable.Syllable.Groups}");
             }
 
             //Link adjacent syllables.
@@ -943,9 +1033,9 @@ namespace PLGL
         }
         public Syllable SelectSyllable()
         {
-            double weight = Random.NextDouble() * Language.Structure.Syllables.Sum(s => s.Value.Weight);
+            double weight = Random.NextDouble() * Language.Structure.SortedSyllables.Sum(s => s.Weight);
 
-            foreach (Syllable s in Language.Structure.Syllables.Values)
+            foreach (Syllable s in Language.Structure.SortedSyllables)
             {
                 weight -= s.Weight;
 
@@ -958,11 +1048,16 @@ namespace PLGL
 
         public void PopulateLetters(WordInfo word)
         {
+            if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                Diagnostics.LOG_NestLine(2, $"Populating letters from {word.Syllables.Count} syllables");
+
             word.Letters = new List<LetterInfo>();
 
             //Generate the letters according to the syllable structure.
             foreach (SyllableInfo s in word.Syllables)
             {
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_Nest(4, $"Syllable [{s.SyllableIndex}, {s.Syllable.Groups}] set to ");
                 for (int i = 0; i < s.Syllable.Template.Count; i++)
                 {
                     double weight = Random.NextDouble() * s.Syllable.Template[i].Letters.Sum(w => w.weight);
@@ -977,14 +1072,19 @@ namespace PLGL
                             letter.Syllable = s;
 
                             word.Letters.Add(letter);
+
+                            if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                                Diagnostics.LogBuilder.Append($"{letter.Letter.Key}");
                             break;
                         }
                     }
                 }
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LogBuilder.AppendLine();
             }
 
             //Link adjacent letters.
-            for (int i = 0; i < word.Letters.Count; i++)
+                for (int i = 0; i < word.Letters.Count; i++)
             {
                 if (i != 0) word.Letters[i].AdjacentLeft = word.Letters[i - 1];
                 if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];

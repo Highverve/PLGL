@@ -20,7 +20,16 @@ namespace PLGL.Languages
                 foreach (string s in Marks.Keys)
                 {
                     if (word.WordActual.Contains(s))
-                        word.WordFinal = word.WordActual.Replace(s, Marks[s](word));
+                    {
+                        string result = Marks[s](word);
+                        word.WordFinal = word.WordActual.Replace(s, result);
+
+                        if (lg.Diagnostics.IsConstructLog == true && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                        {
+                            lg.Diagnostics.LOG_Subheader($"PUNCTUATION: {word.WordActual} -> {word.WordFinal}");
+                            lg.Diagnostics.LogBuilder.AppendLine();
+                        }
+                    }
                 }
             }
         }

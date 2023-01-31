@@ -115,4 +115,6 @@
 ### 2023-1-29
 - Renamed GENERATE_ methods to LETTER_, and added two new condition methods: LETTER_Contains and LETTER_Syllable.
 - Added SyllableInfo reference to LetterInfo for use by language events. This is set when the letter is chosen.
-- 
+### 2023-1-30
+- Added Diagnostics class for logging word generation and supporting methods that diagnose your language.
+- Added logging information to most LanguageGenerator methods. If IsLogging is true, the logging details are saved to the Diagnostics.LogName .txt file.

@@ -76,6 +76,12 @@ namespace PLGL.Languages
 
                 word.WordFinal = Format(word.WordActual, decimalSymbol, separatorSymbol);
                 word.IsProcessed = true;
+
+                if (lg.Diagnostics.IsConstructLog == true && lg.Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                {
+                    lg.Diagnostics.LOG_Subheader($"NUMBERS: {word.WordActual} -> {word.WordFinal}");
+                    lg.Diagnostics.LogBuilder.AppendLine();
+                }
             }
         }
         private string Format(string number, char decimalSymbol, char separatorSymbol)
@@ -91,13 +97,16 @@ namespace PLGL.Languages
             else
                 whole = number.Replace(Separator.ToString(), string.Empty);
 
-            whole = Reverse(whole);
-            for (int i = 1; i < whole.Length; i++)
+            if (separatorSymbol != Char.MinValue)
             {
-                if ((i + 1) % (SeparatorLength + 1) == 0)
-                    whole = whole.Insert(i, separatorSymbol.ToString());
+                whole = Reverse(whole);
+                for (int i = 1; i < whole.Length; i++)
+                {
+                    if ((i + 1) % (SeparatorLength + 1) == 0)
+                        whole = whole.Insert(i, separatorSymbol.ToString());
+                }
+                whole = Reverse(whole);
             }
-            whole = Reverse(whole);
 
             string result = whole + (string.IsNullOrEmpty(fraction) == false ? decimalSymbol + fraction : string.Empty);
 
