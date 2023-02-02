@@ -100,6 +100,11 @@ namespace PLGL
         public bool AllowRandomCase { get; set; } = true;
 
         /// <summary>
+        /// If true, affixes are sorted by the language author's order. Otherwise, sorted to match the order the affixes are read. Default is false.
+        /// </summary>
+        public bool AffixCustomOrder { get; set; } = false;
+
+        /// <summary>
         /// If true, all inflections are added to the Lexicon class, skipping the generation stage for previously processed words.
         /// </summary>
         public bool MemorizeWords { get; set; } = true;

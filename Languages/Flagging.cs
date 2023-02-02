@@ -24,7 +24,7 @@ namespace PLGL.Languages
     public class Flagging
     {
         public Dictionary<string, Action<LanguageGenerator, WordInfo>> Actions { get; set; }
-            = new Dictionary<string, Action<LanguageGenerator, WordInfo>>();
+            = new Dictionary<string, Action<LanguageGenerator, WordInfo>>(StringComparer.OrdinalIgnoreCase);
 
         public void Add(string flagKey, Action<LanguageGenerator, WordInfo> action)
         {
@@ -33,7 +33,7 @@ namespace PLGL.Languages
         }
         public void Process(LanguageGenerator lg, WordInfo word, string filterName, string delimiter = ",", int substringIndex = 1, int substringSubtract = 2)
         {
-            if (word.Filter.Name.ToUpper() == filterName && word.IsProcessed == false)
+            if (word.Filter.Name.ToUpper() == filterName.ToUpper() && word.IsProcessed == false)
             {
                 string[] command = word.WordActual.Substring(substringIndex, word.WordActual.Length - substringSubtract).Split(delimiter);
 

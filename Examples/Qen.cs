@@ -1,5 +1,6 @@
 ﻿using PLGL.Data;
 using PLGL.Languages;
+using PLGL.Processing;
 
 namespace PLGL.Examples
 {
@@ -60,16 +61,17 @@ namespace PLGL.Examples
             lang.AddFilter("Flags", "");
             lang.AddFilter("FlagsOpen", "{");
             lang.AddFilter("FlagsClose", "}");
+            lang.AddFilter("Mark", "");
 
         }
         private void SetDeconstructEvents()
         {
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ChangeFilter(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "-", "COMPOUND");
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
-            lang.OnDeconstruct += (lg, current, left, right) => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_ChangeFilter(current, "PUNCTUATION", "LETTERS", "LETTERS", "-", "COMPOUND");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_MergeBlocks(current, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");
+            lang.OnDeconstruct += (lg, current) => lg.DECONSTRUCT_ContainWithin(current, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");
         }
         private void SetConstructEvents()
         {
@@ -84,6 +86,18 @@ namespace PLGL.Examples
             SetNumbers();
 
             lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
+
+            lang.OnConstruct += (lg, word) =>
+            {
+                if (word.Filter.Name.ToUpper() == "MARK")
+                {
+                    WordInfo last = lg.WORD_LastByFilter(word, "MARK");
+                    if (last != null)
+                    {
+                        Console.WriteLine($"Found MARK right of {last.AdjacentLeft.WordActual}/{last.AdjacentLeft.WordFinal}!");
+                    }
+                }
+            };
         }
         #endregion
 
@@ -181,7 +195,7 @@ namespace PLGL.Examples
 
             lang.OnLetter += (lg, word, letter) =>
                 lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
-                    lg.LETTER_Contains(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
+                    lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
 
             //Manual consonant doubling, depending on syllable condition—group type, letter type ('l'), syllable location.
             //(where "T" is th/sh letters, "V" are vowels, and "R" is r or l.
@@ -233,6 +247,12 @@ namespace PLGL.Examples
             lang.Flags.Add("<HIDE>", lang.Flags.ACTION_HideAdjacents);
             lang.Flags.Add("NOGEN", lang.Flags.ACTION_NoGenerate);
             lang.Flags.Add("NOAFFIX", lang.Flags.ACTION_NoAffixes);
+            lang.Flags.Add("MARK", (lg, word) =>
+            {
+                word.Filter = lg.Deconstruct.GetFilter("MARK");
+                word.WordFinal = string.Empty;
+                word.IsProcessed = true;
+            });
         }
         #endregion
 

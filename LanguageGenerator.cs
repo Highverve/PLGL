@@ -11,7 +11,7 @@ namespace PLGL
     /// <param name="current"></param>
     /// <param name="adjacentLeft"></param>
     /// <param name="adjacentRight"></param>
-    public delegate void OnDeconstruct(LanguageGenerator lg, CharacterBlock current, CharacterBlock adjacentLeft, CharacterBlock adjacentRight);
+    public delegate void OnDeconstruct(LanguageGenerator lg, CharacterBlock current);
     /// <summary>
     /// Processes author-defined filters, determining how each character block is processed.
     /// </summary>
@@ -62,14 +62,14 @@ namespace PLGL
         List<WordInfo> wordInfo = new List<WordInfo>();
 
         #region DECONSTRUCT_ methods
-        public void DECONSTRUCT_ChangeFilter(CharacterBlock current, CharacterBlock left, CharacterBlock right,
-            string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
+        public void DECONSTRUCT_ChangeFilter(CharacterBlock current, string currentFilter, string leftFilter,
+            string rightFilter, string currentText, string newFilter)
         {
-            if (left != null && right != null)
+            if (current.Left != null && current.Right != null)
             {
                 if (current.Filter.Name.ToUpper() == currentFilter &&
-                    left.Filter.Name.ToUpper() == leftFilter &&
-                    right.Filter.Name.ToUpper() == rightFilter)
+                    current.Left.Filter.Name.ToUpper() == leftFilter &&
+                    current.Right.Filter.Name.ToUpper() == rightFilter)
                 {
                     if (current.Text == currentText)
                     {
@@ -88,14 +88,14 @@ namespace PLGL
                 }
             }
         }
-        public void DECONSTRUCT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+        public void DECONSTRUCT_MergeBlocks(CharacterBlock current,
             string currentFilter, string leftFilter, string rightFilter, string currentText, string newFilter)
         {
-            if (left != null && right != null)
+            if (current.Left != null && current.Right != null)
             {
                 if (current.Filter.Name.ToUpper() == currentFilter &&
-                    left.Filter.Name.ToUpper() == leftFilter &&
-                    right.Filter.Name.ToUpper() == rightFilter)
+                    current.Left.Filter.Name.ToUpper() == leftFilter &&
+                    current.Right.Filter.Name.ToUpper() == rightFilter)
                 {
                     if (current.Text == currentText)
                     {
@@ -104,14 +104,14 @@ namespace PLGL
                         {
                             if (filter == Deconstruct.Undefined && newFilter != Deconstruct.Undefined.Name.ToUpper())
                                 Diagnostics.LogBuilder.AppendLine($"Couldn't find {newFilter} filter. Defaulting to Undefined.");
-                            Diagnostics.LOG_Subheader($"DECONSTRUCT: Merged {leftFilter}[{left.Text}] and {rightFilter}[{right.Text}] to {currentFilter}[{currentText}] under the new filter: {newFilter}");
+                            Diagnostics.LOG_Subheader($"DECONSTRUCT: Merged {leftFilter}[{current.Left.Text}] and {rightFilter}[{current.Right.Text}] to {currentFilter}[{currentText}] under the new filter: {newFilter}");
                         }
 
-                        current.Text = left.Text + current.Text + right.Text;
+                        current.Text = current.Left.Text + current.Text + current.Right.Text;
                         current.Filter = filter;
 
-                        left.IsAlive = false;
-                        right.IsAlive = false;
+                        current.Left.IsAlive = false;
+                        current.Right.IsAlive = false;
 
                         LinkLeftBlock(current);
                         LinkRightBlock(current);
@@ -119,27 +119,27 @@ namespace PLGL
                 }
             }
         }
-        public void DECONSTRUCT_MergeBlocks(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+        public void DECONSTRUCT_MergeBlocks(CharacterBlock current,
             string currentFilter, string leftFilter, string rightFilter, string newFilter)
         {
-            if (left != null && right != null)
+            if (current.Left != null && current.Right != null)
             {
                 if (current.Filter.Name.ToUpper() == currentFilter &&
-                    left.Filter.Name.ToUpper() == leftFilter &&
-                    right.Filter.Name.ToUpper() == rightFilter)
+                    current.Left.Filter.Name.ToUpper() == leftFilter &&
+                    current.Right.Filter.Name.ToUpper() == rightFilter)
                 {
-                    current.Text = left.Text + current.Text + right.Text;
+                    current.Text = current.Left.Text + current.Text + current.Right.Text;
                     current.Filter = Deconstruct.GetFilter(newFilter);
 
-                    left.IsAlive = false;
-                    right.IsAlive = false;
+                    current.Left.IsAlive = false;
+                    current.Right.IsAlive = false;
 
                     LinkLeftBlock(current);
                     LinkRightBlock(current);
                 }
             }
         }
-        public void DECONSTRUCT_ContainWithin(CharacterBlock current, CharacterBlock left, CharacterBlock right,
+        public void DECONSTRUCT_ContainWithin(CharacterBlock current,
             string openFilter, string closeFilter, string newFilter)
         {
             string buildBlock = newFilter + "_Build";
@@ -148,26 +148,26 @@ namespace PLGL
             if (current.Filter.Name.ToUpper() == openFilter || current.Filter.Name.ToUpper() == buildBlock.ToUpper())
             {
                 //It's not the end; therefore, absorb the block.
-                if (right != null && right.Filter.Name.ToUpper() != closeFilter)
+                if (current.Right != null && current.Right.Filter.Name.ToUpper() != closeFilter)
                 {
-                    right.Text = current.Text + right.Text;
-                    right.Filter = new CharacterFilter() { Characters = Deconstruct.Undefined.Characters, Name = buildBlock };
+                    current.Right.Text = current.Text + current.Right.Text;
+                    current.Right.Filter = new CharacterFilter() { Characters = Deconstruct.Undefined.Characters, Name = buildBlock };
 
                     current.IsAlive = false;
 
-                    LinkLeftBlock(right);
+                    LinkLeftBlock(current.Right);
                 }
             }
             //Process end filter.
             if (current.Filter.Name.ToUpper() == closeFilter)
             {
                 //It's the wrapperFilter, and the left block is built on. Therefore, this means it's the end of the block.
-                if (left != null && left.Filter.Name.ToUpper() == buildBlock.ToUpper())
+                if (current.Left != null && current.Left.Filter.Name.ToUpper() == buildBlock.ToUpper())
                 {
-                    current.Text = left.Text + current.Text;
+                    current.Text = current.Left.Text + current.Text;
                     current.Filter = Deconstruct.GetFilter(newFilter);
 
-                    left.IsAlive = false;
+                    current.Left.IsAlive = false;
 
                     LinkLeftBlock(current);
                 }
@@ -258,9 +258,109 @@ namespace PLGL
         }
         #endregion
 
+        #region WORD_ methods
+        /// <summary>
+        /// If the filter matches, this returns the last occurence of the word, relative to the current word.
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public WordInfo? WORD_LastByFilter(WordInfo current, string filter)
+        {
+            for (int i = wordInfo.IndexOf(current) - 1; i >= 0; i--)
+            {
+                if (wordInfo[i].Filter.Name.ToUpper() == filter.ToUpper())
+                    return wordInfo[i];
+            }
+            return null;
+        }
+        /// <summary>
+        /// If the filter matches, this returns the next occurence of the word, relative to the current word.
+        /// </summary>
+        /// <param name="current"></param>
+        /// <param name="filter"></param>
+        /// <returns></returns>
+        public WordInfo? WORD_NextByFilter(WordInfo current, string filter)
+        {
+            for (int i = wordInfo.IndexOf(current) + 1; i < wordInfo.Count; i++)
+            {
+                if (wordInfo[i].Filter.Name.ToUpper() == filter.ToUpper())
+                    return wordInfo[i];
+            }
+            return null;
+        }
+        #endregion
+
         #region SYLLABLE_ methods
+        /// <summary>
+        /// If the condition is true (and the group is valid), replaces the target syllable with the new syllable group.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="syllable"></param>
+        /// <param name="target"></param>
+        /// <param name="group"></param>
+        /// <param name="condition"></param>
+        public void SYLLABLE_Replace(WordInfo word, SyllableInfo syllable, SyllableInfo target, string group, bool condition)
+        {
+            if (condition && target != null)
+            {
+                if (Language.Structure.Syllables.ContainsKey(group))
+                    target.Syllable = Language.Structure.Syllables[group];
+            }
+        }
 
-
+        /// <summary>
+        /// Returns true if the syllable matches the group pattern.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        public bool SYLLABLE_Any(SyllableInfo target, params string[] group)
+        {
+            if (target != null)
+            {
+                foreach (string s in group)
+                    if (target.Syllable.Groups == s)
+                        return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the target syllable starts with any of the LetterGroup keys.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groups">Set to any defined letter group keys.</param>
+        /// <returns></returns>
+        public bool SYLLABLE_Starts(SyllableInfo target, params char[] groups)
+        {
+            if (target != null)
+            {
+                foreach (char g in groups)
+                {
+                    if (target.Syllable.Template.First().Key == g)
+                        return true;
+                }
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the target syllable ends with any of the LetterGroup keys.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groups"></param>
+        /// <returns></returns>
+        public bool SYLLABLE_Ends(SyllableInfo target, params char[] groups)
+        {
+            if (target != null)
+            {
+                foreach (char g in groups)
+                {
+                    if (target.Syllable.Template.Last().Key == g)
+                        return true;
+                }
+            }
+            return false;
+        }
         #endregion
 
         #region LETTER_ methods
@@ -285,7 +385,7 @@ namespace PLGL
         /// <param name="target"></param>
         /// <param name="keys"></param>
         /// <returns></returns>
-        public bool LETTER_Contains(LetterInfo target, params char[] keys)
+        public bool LETTER_Any(LetterInfo target, params char[] keys)
         {
             if (target != null)
             {
@@ -294,22 +394,6 @@ namespace PLGL
                     if (target.Letter.Key == k)
                         return true;
                 }
-            }
-            return false;
-        }
-        /// <summary>
-        /// Returns true if the target's syllable matches the group pattern.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="group"></param>
-        /// <returns></returns>
-        public bool LETTER_Syllable(LetterInfo target, params string[] group)
-        {
-            if (target != null)
-            {
-                foreach (string s in group)
-                    if (target.Syllable.Syllable.Groups == s)
-                        return true;
             }
             return false;
         }
@@ -359,18 +443,22 @@ namespace PLGL
 
         //Boolean conditions
         /// <summary>
-        /// Returns true is the adjacent left affix or generated word ends in the matching symbol.
+        /// Returns true if the adjacent left affix or generated word ends in any of the matching symbols.
         /// </summary>
         /// <param name="word"></param>
         /// <param name="current"></param>
-        /// <param name="symbol"></param>
+        /// <param name="symbols"></param>
         /// <returns></returns>
-        public bool AFFIX_MatchLast(WordInfo word, AffixInfo current, char symbol)
+        public bool AFFIX_MatchLast(WordInfo word, AffixInfo current, params char[] symbols)
         {
             Letter? compare = Language.Alphabet.Find(AFFIX_LastChar(word, current));
 
             if (compare != null)
-                return symbol == compare.Case.lower || symbol == compare.Case.upper;
+            {
+                foreach (char s in symbols)
+                if (s == compare.Case.lower || s == compare.Case.upper)
+                    return true;
+            }
 
             return false;
         }
@@ -406,18 +494,22 @@ namespace PLGL
         }
 
         /// <summary>
-        /// Returns true is the adjacent right affix or generated word starts with the matching symbol.
+        /// Returns true if the adjacent right affix or generated word ends in any of the matching symbols.
         /// </summary>
         /// <param name="word"></param>
         /// <param name="current"></param>
-        /// <param name="symbol"></param>
+        /// <param name="symbols"></param>
         /// <returns></returns>
-        public bool AFFIX_MatchFirst(WordInfo word, AffixInfo current, char symbol)
+        public bool AFFIX_MatchFirst(WordInfo word, AffixInfo current, params char[] symbols)
         {
             Letter? compare = Language.Alphabet.Find(AFFIX_FirstChar(word, current));
 
             if (compare != null)
-                return symbol == compare.Case.lower || symbol == compare.Case.upper;
+            {
+                foreach (char s in symbols)
+                    if (s == compare.Case.lower || s == compare.Case.upper)
+                        return true;
+            }
 
             return false;
         }
@@ -647,7 +739,7 @@ namespace PLGL
                 if (i > 0) LinkLeftBlock(current);
                 if (i < blocks.Count - 1) LinkRightBlock(current);
 
-                Language.OnDeconstruct(this, current, current.Left, current.Right);
+                Language.OnDeconstruct(this, current);
             }
 
             blocks.RemoveAll((b) => b.IsAlive == false);
@@ -882,7 +974,7 @@ namespace PLGL
                     {
                         word.Prefixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
 
-                        if (Language.Lexicon.IsCustomOrder == false)
+                        if (Language.Options.AffixCustomOrder == false)
                         {
                             prefixIndex++;
                             current.Order = prefixIndex;
@@ -898,7 +990,7 @@ namespace PLGL
                     {
                         word.Suffixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
 
-                        if (Language.Lexicon.IsCustomOrder == false)
+                        if (Language.Options.AffixCustomOrder == false)
                         {
                             suffixIndex++;
                             current.Order = suffixIndex;
@@ -911,7 +1003,7 @@ namespace PLGL
                     }
                 }
 
-                if (Language.Lexicon.IsCustomOrder == false)
+                if (Language.Options.AffixCustomOrder == false)
                 {
                     word.Prefixes = word.Prefixes.OrderByDescending((p) => p.Order).ToList();
                     word.Suffixes = word.Suffixes.OrderByDescending((s) => s.Order).ToList();

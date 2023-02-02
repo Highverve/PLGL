@@ -118,3 +118,8 @@
 ### 2023-1-30
 - Added Diagnostics class for logging word generation and supporting methods that diagnose your language.
 - Added logging information to most LanguageGenerator methods. If IsLogging is true, the logging details are saved to the Diagnostics.LogName .txt file.
+### 2023-2-1
+- Renamed LETTER_Contains to LETTER_Any, and LETTER_Syllable to SYLLABLE_Any.
+- Added SYLLABLE_Replace method, and SYLLABLE_Any, SYLLABLE_Starts, and SYLLABLE_Ends boolean methods.
+- Removed unnecessary CharacterBlock parameters from DECONSTRUCT_ methods (left and right adjacent references). Just access them from the CharacterBlock reference.
+- Added WORD_LastByFilter and WORD_NextByFilter methods. These return the previous or next occurrence relative to the current word. Perfect for custom markers and sentence-level context.

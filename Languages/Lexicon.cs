@@ -28,11 +28,6 @@ namespace PLGL.Languages
 
         public List<Affix> Affixes { get; private set; } = new List<Affix>();
 
-        /// <summary>
-        /// If true, affixes are sorted by the language author's order. Otherwise, sorted to match the order the affixes are read. Default is false.
-        /// </summary>
-        public bool IsCustomOrder { get; set; } = false;
-
         public List<Affix> GetPrefixes(string word)
         {
             List<Affix> results = new List<Affix>();
