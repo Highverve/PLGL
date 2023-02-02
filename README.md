@@ -74,7 +74,7 @@ The LanguageGenerator comes with a few common generation methods to speed up lan
 public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
 {
     //Make sure the filter matches and the word hasn't already been processed.
-    if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+    if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
     {
         //Set the final word to what the word started as.
         word.WordFinal = word.WordActual;
