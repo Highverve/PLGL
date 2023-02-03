@@ -89,7 +89,7 @@ You could also write these block separations plainly as: "My| |name| |is| |Trevo
 
 There are some circumstances where a character belongs in one filter, yet also really *should* be included in a different block based on certain conditions to help the generator process the block. Words such as "let's", or numbers with commas or decimals, or even word flagging. I've included methods that help merge character blocks based on the specified criteria. Let's add one for the apostrophe.
 ```c#
-lang.Deconstruct += (lg, current, left, right) => lg.EVENT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
+lang.Deconstruct += (lg, current) => lg.EVENT_MergeBlocks(current, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
 ```
 The Deconstruct event is called after all of the characters in the string have been processed. It allows the language author greater control over how blocks behave around their neighbors. In this case, EVENT_MergeBlocks compares the current iterated character block (*PUNCTUATION* filter) to its friends on the left and right; if both are *LETTERS*, it then checks if the PUNCTUATION block is a single apostrophe '. If it is, the three blocks are merged into one, taking on the filter of the last string in the parameter. Without this, the three blocks are processed separately; for a number like $9,999.99, a *NUMBERS* filter would only see 9, 999, and 99—that's not ideal at all.
 
@@ -143,11 +143,11 @@ An overview at the code that parses your sentence, transforming it according to 
         - **Flags**. Also needs FlagsOpen and FlagsClose for CONSTRUCT_ContainWithin.
         - **Escape**. Allows the surrounded block to escape it's filter (e.g, "[Generate]" results in "Generate"). This can be added with flagging, so it's optional.
     - Add deconstruct events (to Language.Deconstruct; lg = LanguageGenerator). This is the second pass, and corrects blocks through a stronger contextual lens.
-        - Absorb single apostrophe into letter blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");`
-        - Absorb decimal into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");`
-        - Absorb comma into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, left, right, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");`
-        - For Escape filter. `... => lg.DECONSTRUCT_MergeBlocks(current, left, right, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");`
-        - For Flags filter. `... => lg.DECONSTRUCT_ContainWithin(current, left, right, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");`
+        - Absorb single apostrophe into letter blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");`
+        - Absorb decimal into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");`
+        - Absorb comma into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");`
+        - For Escape filter. `... => lg.DECONSTRUCT_MergeBlocks(current, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");`
+        - For Flags filter. `... => lg.DECONSTRUCT_ContainWithin(current, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");`
 4. Construction. Add construct events (Language.Construct).
     - Keep Undefined. `... => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");`
     - Keep Delimiter. `... => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");`
@@ -165,7 +165,7 @@ An overview at the code that parses your sentence, transforming it according to 
 
 - [x] Improve how affixes are handled.
 - [x] Stronger control over sigma selection.
-- [ ] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
+- [x] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [x] Easier, or less tedious, letter pathing—if at all possible.
 - [ ] Add syllable costs.
 - [ ] Custom base conversion for numbers.
