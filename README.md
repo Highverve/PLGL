@@ -31,7 +31,7 @@ The initial thought that started this project was simple: using a word as a seed
 In English:
 ```
 Ah! like gold fall the leaves in the wind,
-long years numberless as{NOPLURAL} the wings of trees!
+long years numberless as the wings of trees!
 The years have passed like swift draughts
 of the sweet mead in lofty halls beyond the West,
 beneath the blue vaults of [Varda]
