@@ -28,7 +28,38 @@ The initial thought that started this project was simple: using a word as a seed
 
 ## 3 — Examples
 
-Example languages will go here.
+In English:
+```
+Ah! like gold fall the leaves in the wind,
+long years numberless as{NOPLURAL} the wings of trees!
+The years have passed like swift draughts
+of the sweet mead in lofty halls beyond the West,
+beneath the blue vaults of [Varda]
+where-in the stars tremble
+in the song of her voice, holy and queenly.
+```
+
+In the fictional language called *Qen* (with seed offset set to 1):
+```
+Skem! skon dör um tur skonŝkruns nug tur nap,
+skom wërskäms spönumöl wers tur bäms wur spons!
+Tur wërskäms nad gïrstam skon ben ŝons
+wur tur spinöd pumÞän nug sprüm bals spenŝpem tur Bir,
+ÞangerÞön tur bön bïmmïbs wur Varda
+parnabnug tur ims dalÞëŋ
+nug tur äg wur pa emum, metila sken ösëgila৹
+```
+
+Qen, this time with the seed offset set to 17:
+```
+Wur! pülspen spïm bën göm derspöms del göm spën,
+wor gumskrens nagspamöl bïrs göm bers skim bïrs!
+Göm gumskrens dorstum spendar pülspen es meptöms
+skim göm turuŋ dar del ën käls girëm göm Mëb,
+palspembïm göm um strönons skim Varda
+skimümdel göm böns nigyël
+del göm pun skim bär tespïm, stönila hur spëmumila৹
+```
 
 
 ## 4 — Theory & Process
