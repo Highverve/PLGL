@@ -123,3 +123,6 @@
 - Added SYLLABLE_Replace method, and SYLLABLE_Any, SYLLABLE_Starts, and SYLLABLE_Ends boolean methods.
 - Removed unnecessary CharacterBlock parameters from DECONSTRUCT_ methods (left and right adjacent references). Just access them from the CharacterBlock reference.
 - Added WORD_LastByFilter and WORD_NextByFilter methods. These return the previous or next occurrence relative to the current word. Perfect for custom markers and sentence-level context.
+### 2023-2-2
+- Flags are now case-insensitive.
+- Added SkipLexemes boolean to WordInfo. This is set to true if an inflection or root is found in Lexicon, but can also be triggered manually by a flag.

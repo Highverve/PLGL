@@ -229,8 +229,11 @@ namespace PLGL
                     Diagnostics.LOG_Subheader($"GENERATING: {word.WordActual}");
 
                 ProcessLexiconInflections(word);
+                if (word.SkipLexemes == true)
+                    ExtractAffixes(word);
+                else
+                    word.WordRoot = word.WordActual;
                 ProcessLexiconRoots(word);
-                ExtractAffixes(word);
 
                 Random = SetRandom(word.WordRoot);
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)

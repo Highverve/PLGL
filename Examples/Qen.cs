@@ -210,11 +210,65 @@ namespace PLGL.Examples
         #region Lexemes
         private void SetInflections()
         {
+            lang.Lexicon.Inflections.Add("a", "om");
+            lang.Lexicon.Inflections.Add("an", "om");
+            lang.Lexicon.Inflections.Add("the", "bem");
+            lang.Lexicon.Inflections.Add("as", "en");
+            lang.Lexicon.Inflections.Add("is", "ha");
+            lang.Lexicon.Inflections.Add("was", "hel");
+            lang.Lexicon.Inflections.Add("were", "hend");
+
+            /*lang.Lexicon.Inflections.Add("in", "ul");
+            lang.Lexicon.Inflections.Add("on", "el");
+            lang.Lexicon.Inflections.Add("at", "ön");
+
+            lang.Lexicon.Inflections.Add("he", "bem");
+            lang.Lexicon.Inflections.Add("him", "bem");
+            lang.Lexicon.Inflections.Add("himself", "bem");
+            lang.Lexicon.Inflections.Add("she", "bem");
+            lang.Lexicon.Inflections.Add("her", "bem");
+            lang.Lexicon.Inflections.Add("herself", "bem");
+            lang.Lexicon.Inflections.Add("it", "bem");
+            lang.Lexicon.Inflections.Add("itself", "bem");
+
+            lang.Lexicon.Inflections.Add("i", "rende");
+            lang.Lexicon.Inflections.Add("me", "remet");
+            lang.Lexicon.Inflections.Add("myself", "rölden");
+            lang.Lexicon.Inflections.Add("we", "ken");
+            lang.Lexicon.Inflections.Add("us", "könden");
+            lang.Lexicon.Inflections.Add("them", "felk");
+            lang.Lexicon.Inflections.Add("themselves", "felken");
+
+
+            lang.Lexicon.Inflections.Add("this", "bën");
+            lang.Lexicon.Inflections.Add("that", "bön");
+
+            lang.Lexicon.Inflections.Add("here", "ŝën");
+            lang.Lexicon.Inflections.Add("there", "ŝen");
+            lang.Lexicon.Inflections.Add("where", "ŝun");
+
+            lang.Lexicon.Inflections.Add("then", "sten");
+            lang.Lexicon.Inflections.Add("when", "stul");
+
+            lang.Lexicon.Inflections.Add("who", "yun");
+            lang.Lexicon.Inflections.Add("what", "yöp");
+            lang.Lexicon.Inflections.Add("why", "Þal");
+            lang.Lexicon.Inflections.Add("how", "hïn");*/
+
+            lang.Lexicon.Inflections.Add("ah", "oh");
+            lang.Lexicon.Inflections.Add("ahh", "ohh");
+            lang.Lexicon.Inflections.Add("ahhh", "ohhh");
+
+            lang.Lexicon.Inflections.Add("word", "qen");
+            lang.Lexicon.Inflections.Add("language", "qendin");
+            lang.Lexicon.Inflections.Add("voice", "elis");
+            lang.Lexicon.Inflections.Add("speak", "qenelis");
+            lang.Lexicon.Inflections.Add("speech", "qeneli");
         }
         private void SetAffixes()
         {
             lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("ly", "ila", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("ly", "il", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("s", "s", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
 

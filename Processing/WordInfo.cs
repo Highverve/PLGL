@@ -19,6 +19,7 @@ namespace PLGL.Processing
         /// Set by the generator after it's been fully processed.
         /// </summary>
         public bool IsProcessed { get; set; } = false;
+        public bool SkipLexemes { get; set; } = false;
 
         public CharacterFilter? Filter { get; set; }
         /// <summary>
