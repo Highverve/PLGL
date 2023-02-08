@@ -123,6 +123,11 @@
 - Added SYLLABLE_Replace method, and SYLLABLE_Any, SYLLABLE_Starts, and SYLLABLE_Ends boolean methods.
 - Removed unnecessary CharacterBlock parameters from DECONSTRUCT_ methods (left and right adjacent references). Just access them from the CharacterBlock reference.
 - Added WORD_LastByFilter and WORD_NextByFilter methods. These return the previous or next occurrence relative to the current word. Perfect for custom markers and sentence-level context.
-### 2023-2-2
+### 2023-2-4
 - Flags are now case-insensitive.
 - Added SkipLexemes boolean to WordInfo. This is set to true if an inflection or root is found in Lexicon, but can also be triggered manually by a flag.
+### 2023-2-7
+- Minor refactoring to LanguageGenerator.PopulateLetters method. Moved part of the method into it's own: SelectLetter.
+- Slight improvement to english syllable estimation. It will now remove "es" and "ed" from the end of a word before estimation, as the "e" is typically silent.
+- Added CONSTRUCT_Replace, which replaces input characters with their respective output characters. It takes a params of Tuple(char input, char output) array.
+- Added OnSyllableSelect. This crucial change allows the language author to modify what syllables can be selected based on criteria. Perfect for matching ending consonants to starting vowels, and vice versa (supporting methods to follow).

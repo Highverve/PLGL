@@ -41,6 +41,25 @@ namespace PLGL
     /// <param name="current"></param>
     public delegate void OnSuffix(LanguageGenerator lg, WordInfo word, AffixInfo current);
 
+    /// <summary>
+    /// Called before the letter is chosen.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="selection"></param>
+    /// <param name="word"></param>
+    /// <param name="lastSyllable"></param>
+    /// <param name="lastLetter"></param>
+    public delegate void OnLetterSelect(LanguageGenerator lg, List<Letter> selection, WordInfo word, SyllableInfo lastSyllable, LetterInfo lastLetter);
+    /// <summary>
+    /// Called before the syllable is chosen. This allows the language author to remove syllables from the list.
+    /// </summary>
+    /// <param name="lg"></param>
+    /// <param name="selection"></param>
+    /// <param name="word"></param>
+    /// <param name="last"></param>
+    /// <param name="max"></param>
+    public delegate void OnSyllableSelect(LanguageGenerator lg, List<Syllable> selection, WordInfo word, SyllableInfo last, int current, int max);
+
     public class LanguageGenerator
     {
         private Language language;
@@ -176,9 +195,14 @@ namespace PLGL
         #endregion
 
         #region CONSTRUCT_ methods
+        /// <summary>
+        /// Sets the final part of the word to empty, effectively excluding the result from the output.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
         public void CONSTRUCT_Hide(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
                 if (Diagnostics.IsConstructEventLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LogBuilder.AppendLine($"{word.WordActual} of {word.Filter.Name} has been hidden.");
@@ -190,13 +214,31 @@ namespace PLGL
             }
         }
         /// <summary>
+        /// Replaces all input characters found in WordInfo.WordActual with their respective output characters.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        /// <param name="keyValues"></param>
+        public void CONSTRUCT_Replace(WordInfo word, string filter, params (char input, char output)[] keyValues)
+        {
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
+            {
+                word.WordFinal = word.WordActual;
+
+                foreach ((char input, char output) kvp in keyValues)
+                    word.WordFinal = word.WordFinal.Replace(kvp.input, kvp.output);
+
+                word.IsProcessed = true;
+            }
+        }
+        /// <summary>
         /// Applies to delimiters, undefined, etc.
         /// </summary>
         /// <param name="word"></param>
         /// <param name="filter"></param>
         public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
         {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
                 if (Diagnostics.IsConstructEventLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LogBuilder.AppendLine($"{word.WordActual} of {word.Filter.Name} has been kept as is.");
@@ -205,9 +247,16 @@ namespace PLGL
                 word.IsProcessed = true;
             }
         }
+        /// <summary>
+        /// Sets the final word to a substring of the actual word. This is useful for [Escape] filters, where you need the brackets removed.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <param name="filter"></param>
+        /// <param name="index"></param>
+        /// <param name="subtract"></param>
         public void CONSTRUCT_Within(WordInfo word, string filter, int index, int subtract)
         {
-            if (word.Filter.Name.ToUpper() == filter && word.IsProcessed == false)
+            if (word.Filter.Name.ToUpper() == filter.ToUpper() && word.IsProcessed == false)
             {
                 word.WordFinal = word.WordActual.Substring(index, word.WordActual.Length - subtract);
                 word.IsProcessed = true;
@@ -229,7 +278,7 @@ namespace PLGL
                     Diagnostics.LOG_Subheader($"GENERATING: {word.WordActual}");
 
                 ProcessLexiconInflections(word);
-                if (word.SkipLexemes == true)
+                if (word.SkipLexemes == false)
                     ExtractAffixes(word);
                 else
                     word.WordRoot = word.WordActual;
@@ -623,6 +672,11 @@ namespace PLGL
         /// <returns></returns>
         public int EnglishSigmaCount(string word)
         {
+            if (word.ToLower().EndsWith("es"))
+                word = word.Substring(0, word.Length - 2);
+            if (word.ToLower().EndsWith("ed"))
+                word = word.Substring(0, word.Length - 2);
+
             string cv = string.Empty;
 
             foreach (char c in word)
@@ -1094,12 +1148,12 @@ namespace PLGL
             word.Syllables = new List<SyllableInfo>();
 
             int count = Math.Max((int)(SigmaCount(word.WordRoot) *
-                NextDouble(Language.Options.SigmaSkewMin, Language.Options.SigmaSkewMax)), 1);
+                NextDouble(Language.Options.SyllableSkewMin, Language.Options.SyllableSkewMax)), 1);
 
             for (int i = 0; i < count; i++)
             {
                 SyllableInfo syllable = new SyllableInfo();
-                syllable.Syllable = SelectSyllable();
+                syllable.Syllable = SelectSyllable(word, i, count);
                 syllable.SyllableIndex = i;
 
                 word.Syllables.Add(syllable);
@@ -1126,21 +1180,6 @@ namespace PLGL
                 }
             }
         }
-        public Syllable SelectSyllable()
-        {
-            double weight = Random.NextDouble() * Language.Structure.SortedSyllables.Sum(s => s.Weight);
-
-            foreach (Syllable s in Language.Structure.SortedSyllables)
-            {
-                weight -= s.Weight;
-
-                if (weight <= 0)
-                    return s;
-            }
-
-            return null;
-        }
-
         public void PopulateLetters(WordInfo word)
         {
             if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
@@ -1153,38 +1192,28 @@ namespace PLGL
             {
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LOG_Nest(4, $"Syllable [{s.SyllableIndex}, {s.Syllable.Groups}] set to ");
+
                 for (int i = 0; i < s.Syllable.Template.Count; i++)
                 {
-                    double weight = Random.NextDouble() * s.Syllable.Template[i].Letters.Sum(w => w.weight);
+                    Letter selection = SelectLetter(s.Syllable.Template[i]);
+                    LetterInfo letter = new LetterInfo(selection);
+                    letter.Syllable = s;
 
-                    foreach ((char, double) l in s.Syllable.Template[i].Letters)
-                    {
-                        weight -= l.Item2;
+                    word.Letters.Add(letter);
 
-                        if (weight <= 0)
-                        {
-                            LetterInfo letter = new LetterInfo(Language.Alphabet.Find(l.Item1));
-                            letter.Syllable = s;
-
-                            word.Letters.Add(letter);
-
-                            if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                                Diagnostics.LogBuilder.Append($"{letter.Letter.Key}");
-                            break;
-                        }
-                    }
+                    if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                        Diagnostics.LogBuilder.Append($"{letter.Letter.Key}");
                 }
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LogBuilder.AppendLine();
             }
 
             //Link adjacent letters.
-                for (int i = 0; i < word.Letters.Count; i++)
+            for (int i = 0; i < word.Letters.Count; i++)
             {
                 if (i != 0) word.Letters[i].AdjacentLeft = word.Letters[i - 1];
                 if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];
             }
-
 
             if (Language.OnLetter != null)
             {
@@ -1213,6 +1242,39 @@ namespace PLGL
             foreach (LetterInfo l in word.Letters)
                 word.WordGenerated += l.Letter.Case.lower;
         }
+
+        private List<Syllable> selectedSyllables = new List<Syllable>();
+        public Syllable SelectSyllable(WordInfo word, int current, int max)
+        {
+            selectedSyllables = Language.Structure.SortedSyllables.ToList();
+            Language.OnSyllableSelection?.Invoke(this, selectedSyllables, word, word.Syllables.LastOrDefault(), current, max);
+
+            double weight = Random.NextDouble() * selectedSyllables.Sum(s => s.Weight);
+
+            foreach (Syllable s in selectedSyllables)
+            {
+                weight -= s.Weight;
+
+                if (weight <= 0)
+                    return s;
+            }
+
+            return null;
+        }
+        public Letter SelectLetter(LetterGroup group)
+        {
+            double weight = Random.NextDouble() * group.Letters.Sum(w => w.weight);
+
+            foreach ((char, double) l in group.Letters)
+            {
+                weight -= l.Item2;
+
+                if (weight <= 0)
+                    return Language.Alphabet.Find(l.Item1);
+            }
+            return null;
+        }
+
         private void LinkLeftLetter(WordInfo word, LetterInfo letter)
         {
             int index = word.Letters.IndexOf(letter);

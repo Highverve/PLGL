@@ -43,8 +43,8 @@ namespace PLGL.Examples
         {
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
             lang.Options.MemorizeWords = false;
-            lang.Options.SigmaSkewMin = 1.0;
-            lang.Options.SigmaSkewMax = 2.5;
+            lang.Options.SyllableSkewMin = 1.0;
+            lang.Options.SyllableSkewMax = 2.5;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;

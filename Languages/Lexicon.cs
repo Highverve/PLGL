@@ -25,9 +25,25 @@ namespace PLGL.Languages
         //public List<(string[], string)> Lexemes { get; private set; } = new List<(string[], string)>();
         public Dictionary<string, string> Inflections { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Roots { get; private set; } = new Dictionary<string, string>();
+        public Dictionary<string, Syllable[]> Syllables { get; private set; } = new Dictionary<string, Syllable[]>();
+
+        public void AddSyllable(Language language, string word, params string[] syllables)
+        {
+            if (Syllables.ContainsKey(word) == false)
+            {
+                List<Syllable> result = new List<Syllable>();
+
+                foreach (string s in syllables)
+                {
+                    if (string.IsNullOrEmpty(s) == false)
+                        result.Add(language.Structure.Syllables[s]);
+                }
+
+                Syllables.Add(word, result.ToArray());
+            }
+        }
 
         public List<Affix> Affixes { get; private set; } = new List<Affix>();
-
         public List<Affix> GetPrefixes(string word)
         {
             List<Affix> results = new List<Affix>();

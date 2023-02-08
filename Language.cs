@@ -65,8 +65,12 @@ namespace PLGL
 
         public OnDeconstruct OnDeconstruct { get; set; }
         public OnConstruct OnConstruct { get; set; }
+
+        public OnSyllableSelect OnSyllableSelection { get; set; }
+        public OnLetterSelect OnLetterSelection { get; set; }
         public OnSyllable OnSyllable { get; set; }
         public OnLetter OnLetter { get; set; }
+
         public OnPrefix OnPrefix { get; set; }
         public OnSuffix OnSuffix { get; set; }
 
@@ -134,10 +138,10 @@ namespace PLGL
         /// <summary>
         /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.6
         /// </summary>
-        public double SigmaSkewMin { get; set; } = 0.6;
+        public double SyllableSkewMin { get; set; } = 0.6;
         /// <summary>
         /// Tells the generator how much higher the word's syllable count could be from the syllable estimate. Default is 1.2.
         /// </summary>
-        public double SigmaSkewMax { get; set; } = 1.2;
+        public double SyllableSkewMax { get; set; } = 1.2;
     }
 }

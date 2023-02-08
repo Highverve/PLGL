@@ -38,9 +38,9 @@ namespace PLGL.Examples
         {
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
             lang.Options.MemorizeWords = false;
-            lang.Options.SigmaSkewMin = 0.8;
-            lang.Options.SigmaSkewMax = 1.5;
-            lang.Options.SeedOffset = 1;
+            lang.Options.SyllableSkewMin = 0.8;
+            lang.Options.SyllableSkewMax = 1.5;
+            lang.Options.SeedOffset = 2;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -77,7 +77,7 @@ namespace PLGL.Examples
         {
             lang.OnConstruct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");
             lang.OnConstruct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Hide(word, "COMPOUND");
+            lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Replace(word, "COMPOUND", ('-', ' '));
 
             lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Generate(word, "LETTERS");
 
@@ -168,34 +168,97 @@ namespace PLGL.Examples
             lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 3.0));
             lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
             lang.Structure.AddGroup('p', "Plosive higher", ('p', 4.0), ('t', 1.0), ('k', 2.0));
-            lang.Structure.AddGroup('F', "Fricative", ('f', 1.0), ('v', 1.0), ('s', 1.0), ('z', 1.0));
+            lang.Structure.AddGroup('F', "Fricative", ('f', 10.0), ('v', 1.0), ('s', 10.0), ('z', 1.0));
+            lang.Structure.AddGroup('f', "Fricative f", ('f', 10.0));
             lang.Structure.AddGroup('S', "S/SH", ('s', 30.0), ('ŝ', 1.0));
             lang.Structure.AddGroup('A', "Approximant", ('w', 1.0), ('y', 1.0), ('h', 1.0));
-            lang.Structure.AddGroup('R', "R/L", ('r', 66), ('l', 33));
+            lang.Structure.AddGroup('R', "R / L", ('r', 50), ('l', 50));
+            lang.Structure.AddGroup('r', "R > L", ('r', 90), ('l', 10));
+            lang.Structure.AddGroup('l', "L > R", ('r', 10), ('l', 90));
             lang.Structure.AddGroup('T', "TH/SH", ('Þ', 1.0), ('ŝ', 1.0));
 
-            lang.Structure.AddSyllable("VP", 0.5);
-            lang.Structure.AddSyllable("NVP", 2.0);
-            lang.Structure.AddSyllable("SpVN", 3.0);
-            lang.Structure.AddSyllable("SpRVP", 0.5);
-            lang.Structure.AddSyllable("SpRVN", 1.0);
+            lang.Structure.AddSyllable("VN", 2.5);
+            lang.Structure.AddSyllable("VP", 2.0);
+            lang.Structure.AddSyllable("VR", 1.5);
+            lang.Structure.AddSyllable("VS", 1.25);
 
-            lang.Structure.AddSyllable("TVN", 0.75);
-            lang.Structure.AddSyllable("TVR", 0.75);
+            lang.Structure.AddSyllable("FVN", 1.5);
+            lang.Structure.AddSyllable("FVP", 1.0);
+            lang.Structure.AddSyllable("FVR", 1.0);
+            lang.Structure.AddSyllable("fRVN", 0.25);
+            lang.Structure.AddSyllable("fRVP", 0.25);
+
+            lang.Structure.AddSyllable("NVP", 1.5);
+            lang.Structure.AddSyllable("SpVN", 1.5);
+            lang.Structure.AddSyllable("SpRVP", 0.25);
+            lang.Structure.AddSyllable("SpRVN", 0.25);
+
+            lang.Structure.AddSyllable("TVN", 1.75);
+            lang.Structure.AddSyllable("TVP", 1.75);
+            lang.Structure.AddSyllable("TVR", 1.75);
+            lang.Structure.AddSyllable("TRVN", 0.5);
+            lang.Structure.AddSyllable("TRVP", 0.5);
             lang.Structure.AddSyllable("TVn", 0.25);
 
             lang.Structure.AddSyllable("PV", 1.0);
-            lang.Structure.AddSyllable("PVR", 5.0);
-            lang.Structure.AddSyllable("PVN", 2.0);
+            lang.Structure.AddSyllable("PVR", 1.25);
+            lang.Structure.AddSyllable("PVN", 1.5);
 
-            lang.Structure.AddSyllable("VS", 0.25);
-            lang.Structure.AddSyllable("VN", 1.0);
             lang.Structure.AddSyllable("AVR", 1.0);
+            //lang.Structure.AddSyllable("ARV", 1.0);
             lang.Structure.AddSyllable("on", 0.5);
+
+            lang.Lexicon.AddSyllable(lang, "leaves", "VR", "FVR");
 
             lang.OnLetter += (lg, word, letter) =>
                 lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
                     lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
+
+            lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
+            {
+                if (last != null)
+                {
+                    //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
+                    if (last.Syllable.Template.Last().Key != 'V' &&
+                        last.Syllable.Template.Last().Key != 'o' &&
+                        last.Syllable.Template.Last().Key != 'O')
+                    {
+                        for (int i = 0; i < selection.Count; i++)
+                        {
+                            if (selection[i].Template.First().Key != 'V' &&
+                                selection[i].Template.First().Key != 'o' &&
+                                selection[i].Template.First().Key != 'O')
+                            {
+                                selection.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+            };
+
+            lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
+            {
+                if (last != null)
+                {
+                    //Last syllable ends in vowel; therefore, the current syllable *must* start with a consonant.
+                    if (last.Syllable.Template.Last().Key == 'V' &&
+                        last.Syllable.Template.Last().Key == 'o' &&
+                        last.Syllable.Template.Last().Key == 'O')
+                    {
+                        for (int i = 0; i < selection.Count; i++)
+                        {
+                            if (selection[i].Template.First().Key == 'V' &&
+                                selection[i].Template.First().Key == 'o' &&
+                                selection[i].Template.First().Key == 'O')
+                            {
+                                selection.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+            };
 
             //Manual consonant doubling, depending on syllable condition—group type, letter type ('l'), syllable location.
             //(where "T" is th/sh letters, "V" are vowels, and "R" is r or l.
