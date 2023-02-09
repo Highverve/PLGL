@@ -1,5 +1,6 @@
 ﻿using PLGL.Data;
 using PLGL.Processing;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks.Dataflow;
 
@@ -49,16 +50,18 @@ namespace PLGL
     /// <param name="word"></param>
     /// <param name="lastSyllable"></param>
     /// <param name="lastLetter"></param>
-    public delegate void OnLetterSelect(LanguageGenerator lg, List<Letter> selection, WordInfo word, SyllableInfo lastSyllable, LetterInfo lastLetter);
+    public delegate void OnLetterSelect(LanguageGenerator lg, List<(Letter letter, double weight)> selection, WordInfo word,
+        SyllableInfo syllable, LetterInfo lastLetter, int current, int max);
     /// <summary>
-    /// Called before the syllable is chosen. This allows the language author to remove syllables from the list.
+    /// Called before the syllable is chosen. This allows the language author to manipulate the possible syllables in the list.
     /// </summary>
     /// <param name="lg"></param>
     /// <param name="selection"></param>
     /// <param name="word"></param>
     /// <param name="last"></param>
     /// <param name="max"></param>
-    public delegate void OnSyllableSelect(LanguageGenerator lg, List<Syllable> selection, WordInfo word, SyllableInfo last, int current, int max);
+    public delegate void OnSyllableSelect(LanguageGenerator lg, List<Syllable> selection, WordInfo word,
+        SyllableInfo last, int current, int max);
 
     public class LanguageGenerator
     {
@@ -341,6 +344,36 @@ namespace PLGL
             }
             return null;
         }
+        #endregion
+
+        #region 
+
+        public void SELECT_LastFirstRemove(SyllableInfo last, bool condition, params char[] groups)
+        {
+            if (last != null)
+            {
+                if (last.Syllable.Template.Last().Key != 'V' &&
+                    last.Syllable.Template.Last().Key != 'o' &&
+                    last.Syllable.Template.Last().Key != 'O')
+                {
+                    for (int i = 0; i < selectedSyllables.Count; i++)
+                    {
+                        if (selectedSyllables[i].Template.First().Key != 'V' &&
+                            selectedSyllables[i].Template.First().Key != 'o' &&
+                            selectedSyllables[i].Template.First().Key != 'O')
+                        {
+                            selectedSyllables.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+            }
+        }
+        public void SELECT_RemoveIf(SyllableInfo last, bool condition, char group)
+        {
+
+        }
+
         #endregion
 
         #region SYLLABLE_ methods
@@ -1188,18 +1221,22 @@ namespace PLGL
             word.Letters = new List<LetterInfo>();
 
             //Generate the letters according to the syllable structure.
-            foreach (SyllableInfo s in word.Syllables)
+            for (int s = 0; s < word.Syllables.Count; s++)
             {
-                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                    Diagnostics.LOG_Nest(4, $"Syllable [{s.SyllableIndex}, {s.Syllable.Groups}] set to ");
+                word.Syllables[s].Letters = new List<LetterInfo>();
 
-                for (int i = 0; i < s.Syllable.Template.Count; i++)
+                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                    Diagnostics.LOG_Nest(4, $"Syllable [{word.Syllables[s].SyllableIndex}, {word.Syllables[s].Syllable.Groups}] set to ");
+
+                for (int i = 0; i < word.Syllables[s].Syllable.Template.Count; i++)
                 {
-                    Letter selection = SelectLetter(s.Syllable.Template[i]);
+                    Letter selection = SelectLetter(word, word.Syllables[s], word.Syllables[s].Syllable.Template[i], i, word.Syllables[s].Syllable.Template.Count);
                     LetterInfo letter = new LetterInfo(selection);
-                    letter.Syllable = s;
+                    letter.Syllable = word.Syllables[s];
+                    letter.Group = word.Syllables[s].Syllable.Template[i];
 
                     word.Letters.Add(letter);
+                    word.Syllables[s].Letters.Add(letter);
 
                     if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                         Diagnostics.LogBuilder.Append($"{letter.Letter.Key}");
@@ -1246,14 +1283,16 @@ namespace PLGL
         private List<Syllable> selectedSyllables = new List<Syllable>();
         public Syllable SelectSyllable(WordInfo word, int current, int max)
         {
+            Language.Structure.ResetWeights();
             selectedSyllables = Language.Structure.SortedSyllables.ToList();
-            Language.OnSyllableSelection?.Invoke(this, selectedSyllables, word, word.Syllables.LastOrDefault(), current, max);
+            Language.OnSyllableSelection?.Invoke(this, selectedSyllables, word,
+                word.Syllables.LastOrDefault(), current, max);
 
-            double weight = Random.NextDouble() * selectedSyllables.Sum(s => s.Weight);
+            double weight = Random.NextDouble() * selectedSyllables.Sum(s => s.Weight * s.WeightMultiplier);
 
             foreach (Syllable s in selectedSyllables)
             {
-                weight -= s.Weight;
+                weight -= s.Weight * s.WeightMultiplier;
 
                 if (weight <= 0)
                     return s;
@@ -1261,16 +1300,23 @@ namespace PLGL
 
             return null;
         }
-        public Letter SelectLetter(LetterGroup group)
-        {
-            double weight = Random.NextDouble() * group.Letters.Sum(w => w.weight);
 
-            foreach ((char, double) l in group.Letters)
+        private List<(Letter letter, double weight)> letterSelection = new List<(Letter letter, double weight)>();
+        public Letter SelectLetter(WordInfo word, SyllableInfo syllable, LetterGroup group, int current, int max)
+        {
+            Language.Alphabet.ResetWeights();
+            letterSelection = group.Letters.ToList();
+            Language.OnLetterSelection?.Invoke(this, letterSelection, word,
+                syllable, word.Letters.LastOrDefault(), current, max);
+
+            double weight = Random.NextDouble() * letterSelection.Sum(w => w.weight * w.letter.WeightMultiplier);
+
+            foreach ((Letter letter, double weight) l in group.Letters)
             {
-                weight -= l.Item2;
+                weight -= (l.weight * l.letter.WeightMultiplier);
 
                 if (weight <= 0)
-                    return Language.Alphabet.Find(l.Item1);
+                    return l.letter;
             }
             return null;
         }

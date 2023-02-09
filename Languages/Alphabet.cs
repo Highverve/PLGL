@@ -12,25 +12,25 @@ namespace PLGL.Languages
         public Dictionary<char, Consonant> Consonants { get; private set; } = new Dictionary<char, Consonant>();
         public Dictionary<char, Vowel> Vowels { get; private set; } = new Dictionary<char, Vowel>();
 
-        public Consonant AddConsonant(char key, (char lower, char upper) cases, double startWeight)
+        public Consonant AddConsonant(char key, (char lower, char upper) cases)
         {
-            return AddConsonant(string.Empty, key, cases, startWeight);
+            return AddConsonant(string.Empty, key, cases);
         }
-        public Vowel AddVowel(char key, (char lower, char upper) cases, double startWeight)
+        public Vowel AddVowel(char key, (char lower, char upper) cases)
         {
-            return AddVowel(string.Empty, key, cases, startWeight);
+            return AddVowel(string.Empty, key, cases);
         }
 
-        public Consonant AddConsonant(string name, char key, (char lower, char upper) cases, double startWeight, string pronunciation = "")
+        public Consonant AddConsonant(string name, char key, (char lower, char upper) cases, string pronunciation = "")
         {
             if (Consonants.ContainsKey(key) == false)
-                Consonants.Add(key, new Consonant(name, key, cases, pronunciation, startWeight));
+                Consonants.Add(key, new Consonant(name, key, cases, pronunciation));
             return Consonants[key];
         }
-        public Vowel AddVowel(string name, char key, (char lower, char upper) cases, double startWeight, string pronunciation = "")
+        public Vowel AddVowel(string name, char key, (char lower, char upper) cases, string pronunciation = "")
         {
             if (Vowels.ContainsKey(key) == false)
-                Vowels.Add(key, new Vowel(name, key, cases, pronunciation, startWeight));
+                Vowels.Add(key, new Vowel(name, key, cases, pronunciation));
             return Vowels[key];
         }
 
@@ -61,6 +61,12 @@ namespace PLGL.Languages
             result.AddRange(Vowels.Values);
 
             return result.OrderBy(l => l.Key).ToList();
+        }
+
+        internal void ResetWeights()
+        {
+            foreach (Consonant c in Consonants.Values) c.WeightMultiplier = 1.0;
+            foreach (Vowel v in Vowels.Values) v.WeightMultiplier = 1.0;
         }
     }
 }

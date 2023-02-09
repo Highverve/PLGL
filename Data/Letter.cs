@@ -17,30 +17,27 @@ namespace PLGL.Data
         public (char lower, char upper) Case { get; private set; }
 
         /// <summary>
-        /// The likelihood this letter will start the next word.
+        /// Used by generation and OnLetterSelect to modify a LetterGroup's weight.
         /// </summary>
-        public double StartWeight { get; private set; }
+        public double WeightMultiplier { get; set; } = 1.0;
 
-        public Letter(string Name, char Key, (char lower, char upper) Case, string Pronunciation, double StartWeight)
+        public Letter(string Name, char Key, (char lower, char upper) Case, string Pronunciation)
         {
             this.Name = Name;
             this.Key = Key;
             this.Case = Case;
-            this.StartWeight = StartWeight;
             this.Pronunciation = Pronunciation;
         }
     }
 
     public class Consonant : Letter
     {
-        public Consonant(string Name, char Key, (char lower, char upper) Case,
-            string Pronunciation, double Weight = 1)
-            : base(Name, Key, Case, Pronunciation, Weight) { }
+        public Consonant(string Name, char Key, (char lower, char upper) Case, string Pronunciation)
+            : base(Name, Key, Case, Pronunciation) { }
     }
     public class Vowel : Letter
     {
-        public Vowel(string Name, char Key, (char lower, char upper) Case,
-            string Pronunciation, double Weight = 1)
-            : base(Name, Key, Case, Pronunciation, Weight) { }
+        public Vowel(string Name, char Key, (char lower, char upper) Case, string Pronunciation)
+            : base(Name, Key, Case, Pronunciation) { }
     }
 }

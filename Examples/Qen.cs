@@ -39,8 +39,8 @@ namespace PLGL.Examples
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
             lang.Options.MemorizeWords = false;
             lang.Options.SyllableSkewMin = 0.8;
-            lang.Options.SyllableSkewMax = 1.5;
-            lang.Options.SeedOffset = 2;
+            lang.Options.SyllableSkewMax = 2.5;
+            lang.Options.SeedOffset = 1;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -113,49 +113,49 @@ namespace PLGL.Examples
         private void SetLetters()
         {
             //Aa, Ee, Ii, Oo, Uu (short)
-            lang.Alphabet.AddVowel("", 'a', ('a', 'A'), 15, "/a/ (apple)");
-            lang.Alphabet.AddVowel("", 'e', ('e', 'E'), 7, "/e/ (west)");
-            lang.Alphabet.AddVowel("", 'i', ('i', 'I'), 10, "/i/ (tip)");
-            lang.Alphabet.AddVowel("", 'o', ('o', 'O'), 2, "/o/ (crop)");
-            lang.Alphabet.AddVowel("", 'u', ('u', 'U'), 5, "/u/ (sun)");
+            lang.Alphabet.AddVowel("", 'a', ('a', 'A'), "/a/ (apple)");
+            lang.Alphabet.AddVowel("", 'e', ('e', 'E'), "/e/ (west)");
+            lang.Alphabet.AddVowel("", 'i', ('i', 'I'), "/i/ (tip)");
+            lang.Alphabet.AddVowel("", 'o', ('o', 'O'), "/o/ (crop)");
+            lang.Alphabet.AddVowel("", 'u', ('u', 'U'), "/u/ (sun)");
             //lang.Alphabet.AddVowel("", 'ŕ', ('ŕ', 'Ŕ'), 5, "/r/ (later)");
 
             //Ää, Ëë, Ïï, Öö, Üü (long)
-            lang.Alphabet.AddVowel("", 'ä', ('ä', 'Ä'), 7, "/ae/ (cake)");
-            lang.Alphabet.AddVowel("", 'ë', ('ë', 'Ë'), 3.5, "/ee/ beet");
-            lang.Alphabet.AddVowel("", 'ï', ('ï', 'Ï'), 5, "/ai/ (night)");
-            lang.Alphabet.AddVowel("", 'ö', ('ö', 'Ö'), 1, "/ou/ (toad)");
-            lang.Alphabet.AddVowel("", 'ü', ('ü', 'Ü'), 2.5, "/oo/ (tulip)");
+            lang.Alphabet.AddVowel("", 'ä', ('ä', 'Ä'), "/ae/ (cake)");
+            lang.Alphabet.AddVowel("", 'ë', ('ë', 'Ë'), "/ee/ beet");
+            lang.Alphabet.AddVowel("", 'ï', ('ï', 'Ï'), "/ai/ (night)");
+            lang.Alphabet.AddVowel("", 'ö', ('ö', 'Ö'), "/ou/ (toad)");
+            lang.Alphabet.AddVowel("", 'ü', ('ü', 'Ü'), "/oo/ (tulip)");
 
             //Bb Pp, Dd Tt, Gg Kk
-            lang.Alphabet.AddConsonant('b', ('b', 'B'), 20);
-            lang.Alphabet.AddConsonant('p', ('p', 'P'), 15);
-            lang.Alphabet.AddConsonant('d', ('d', 'D'), 10);
-            lang.Alphabet.AddConsonant('t', ('t', 'T'), 5);
-            lang.Alphabet.AddConsonant('g', ('g', 'G'), 2);
-            lang.Alphabet.AddConsonant('k', ('k', 'K'), 1);
+            lang.Alphabet.AddConsonant('b', ('b', 'B'));
+            lang.Alphabet.AddConsonant('p', ('p', 'P'));
+            lang.Alphabet.AddConsonant('d', ('d', 'D'));
+            lang.Alphabet.AddConsonant('t', ('t', 'T'));
+            lang.Alphabet.AddConsonant('g', ('g', 'G'));
+            lang.Alphabet.AddConsonant('k', ('k', 'K'));
 
             //Mm, Nn, Ŋŋ, Rr, Ll
-            lang.Alphabet.AddConsonant('m', ('m', 'M'), 5);
-            lang.Alphabet.AddConsonant('n', ('n', 'N'), 5);
-            lang.Alphabet.AddConsonant('ŋ', ('ŋ', 'Ŋ'), 0); //Ng ŋ (endi-ng). Never in onset.
-            lang.Alphabet.AddConsonant('r', ('r', 'R'), 10);
-            lang.Alphabet.AddConsonant('l', ('l', 'L'), 20);
+            lang.Alphabet.AddConsonant('m', ('m', 'M'));
+            lang.Alphabet.AddConsonant('n', ('n', 'N'));
+            lang.Alphabet.AddConsonant('ŋ', ('ŋ', 'Ŋ')); //Ng ŋ (endi-ng). Never in onset.
+            lang.Alphabet.AddConsonant('r', ('r', 'R'));
+            lang.Alphabet.AddConsonant('l', ('l', 'L'));
 
             //Ff, Vv, Ss, Zz
-            lang.Alphabet.AddConsonant('f', ('f', 'F'), 5);
-            lang.Alphabet.AddConsonant('v', ('v', 'V'), 10);
-            lang.Alphabet.AddConsonant('s', ('s', 'S'), 15);
-            lang.Alphabet.AddConsonant('z', ('z', 'Z'), 5);
+            lang.Alphabet.AddConsonant('f', ('f', 'F'));
+            lang.Alphabet.AddConsonant('v', ('v', 'V'));
+            lang.Alphabet.AddConsonant('s', ('s', 'S'));
+            lang.Alphabet.AddConsonant('z', ('z', 'Z'));
 
             //Ww, Yy, Hh, Qq, Ŝŝ, þÞ, Żż
-            lang.Alphabet.AddConsonant('w', ('w', 'W'), 3);
-            lang.Alphabet.AddConsonant('y', ('y', 'Y'), 5); //Never as a vowel.
-            lang.Alphabet.AddConsonant('h', ('h', 'H'), 3);
-            lang.Alphabet.AddConsonant('q', ('q', 'Q'), 1); //Kw/qu, thus never in coda.
-            lang.Alphabet.AddConsonant('ŝ', ('ŝ', 'Ŝ'), 10); //Sh ŝ (ship)
-            lang.Alphabet.AddConsonant('Þ', ('Þ', 'þ'), 7); //Th þ (thatch)
-            lang.Alphabet.AddConsonant('ż', ('ż', 'Ż'), 1); //Ezh ʒ (azure)
+            lang.Alphabet.AddConsonant('w', ('w', 'W'));
+            lang.Alphabet.AddConsonant('y', ('y', 'Y')); //Never as a vowel.
+            lang.Alphabet.AddConsonant('h', ('h', 'H'));
+            lang.Alphabet.AddConsonant('q', ('q', 'Q')); //Kw/qu, thus never in coda.
+            lang.Alphabet.AddConsonant('ŝ', ('ŝ', 'Ŝ')); //Sh ŝ (ship)
+            lang.Alphabet.AddConsonant('Þ', ('Þ', 'þ')); //Th þ (thatch)
+            lang.Alphabet.AddConsonant('ż', ('ż', 'Ż')); //Ezh ʒ (azure)
         }
         private void SetStructure()
         {
@@ -165,7 +165,7 @@ namespace PLGL.Examples
             lang.Structure.AddGroup('O', "Vowels (long)", ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
 
             lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0));
-            lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 3.0));
+            lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 50.0));
             lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
             lang.Structure.AddGroup('p', "Plosive higher", ('p', 4.0), ('t', 1.0), ('k', 2.0));
             lang.Structure.AddGroup('F', "Fricative", ('f', 10.0), ('v', 1.0), ('s', 10.0), ('z', 1.0));
@@ -177,10 +177,14 @@ namespace PLGL.Examples
             lang.Structure.AddGroup('l', "L > R", ('r', 10), ('l', 90));
             lang.Structure.AddGroup('T', "TH/SH", ('Þ', 1.0), ('ŝ', 1.0));
 
-            lang.Structure.AddSyllable("VN", 2.5);
-            lang.Structure.AddSyllable("VP", 2.0);
+            lang.Structure.AddSyllable("VN", 1.5);
+            lang.Structure.AddSyllable("VP", 1.0);
             lang.Structure.AddSyllable("VR", 1.5);
             lang.Structure.AddSyllable("VS", 1.25);
+            lang.Structure.AddSyllable("NV", 1.0);
+            lang.Structure.AddSyllable("PV", 2.0);
+            lang.Structure.AddSyllable("RV", 1.5);
+            lang.Structure.AddSyllable("FV", 1.0);
 
             lang.Structure.AddSyllable("FVN", 1.5);
             lang.Structure.AddSyllable("FVP", 1.0);
@@ -200,7 +204,6 @@ namespace PLGL.Examples
             lang.Structure.AddSyllable("TRVP", 0.5);
             lang.Structure.AddSyllable("TVn", 0.25);
 
-            lang.Structure.AddSyllable("PV", 1.0);
             lang.Structure.AddSyllable("PVR", 1.25);
             lang.Structure.AddSyllable("PVN", 1.5);
 
@@ -214,11 +217,106 @@ namespace PLGL.Examples
                 lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
                     lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
 
+            //TVR -> on
+            /*lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
+            {
+                if (last != null && last.Syllable.Groups == "TVR")
+                {
+                    for (int i = 0; i < selection.Count; i++)
+                    {
+                        if (selection[i].Groups == "on")
+                        {
+                            selection[i].WeightMultiplier = 5;
+                        }
+                    }
+                }
+            };*/
+
+            /*
+            lang.Alphabet.AddVowel("", 'a', ('a', 'A'), "/a/ (apple)");
+            lang.Alphabet.AddVowel("", 'e', ('e', 'E'), "/e/ (west)");
+            lang.Alphabet.AddVowel("", 'i', ('i', 'I'), "/i/ (tip)");
+            lang.Alphabet.AddVowel("", 'o', ('o', 'O'), "/o/ (crop)");
+            lang.Alphabet.AddVowel("", 'u', ('u', 'U'), "/u/ (sun)");
+            //lang.Alphabet.AddVowel("", 'ŕ', ('ŕ', 'Ŕ'), 5, "/r/ (later)");
+
+            //Ää, Ëë, Ïï, Öö, Üü (long)
+            lang.Alphabet.AddVowel("", 'ä', ('ä', 'Ä'), "/ae/ (cake)");
+            lang.Alphabet.AddVowel("", 'ë', ('ë', 'Ë'), "/ee/ beet");
+            lang.Alphabet.AddVowel("", 'ï', ('ï', 'Ï'), "/ai/ (night)");
+            lang.Alphabet.AddVowel("", 'ö', ('ö', 'Ö'), "/ou/ (toad)");
+            lang.Alphabet.AddVowel("", 'ü', ('ü', 'Ü'), "/oo/ (tulip)");
+             */
+
+            lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            {
+                //Compare last vowel to current vowel, and remove any trickier sounds.
+                if (syllable.Syllable.Template[current].Key == 'V' && syllable.AdjacentLeft != null)
+                {
+                    LetterInfo leftVowel = syllable.AdjacentLeft.Letters.Where(l => l.Group.Key == 'V').FirstOrDefault();
+
+                    if (leftVowel != null)
+                    {
+                        if (leftVowel.Letter.Key == 'a')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'a') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'e')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'e') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'i')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'i') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'o')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'u') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'u')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'u') { selection.RemoveAt(i); i--; }
+                        }
+
+                        if (leftVowel.Letter.Key == 'ä')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'ä') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'ë')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'ë') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'ï')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'ï') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'ö')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'ö') { selection.RemoveAt(i); i--; }
+                        }
+                        if (leftVowel.Letter.Key == 'ü')
+                        {
+                            for (int i = 0; i < selection.Count; i++)
+                                if (selection[i].letter.Key == 'ü') { selection.RemoveAt(i); i--; }
+                        }
+                    }
+                }
+            };
+
+            //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
             lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
             {
                 if (last != null)
                 {
-                    //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
                     if (last.Syllable.Template.Last().Key != 'V' &&
                         last.Syllable.Template.Last().Key != 'o' &&
                         last.Syllable.Template.Last().Key != 'O')
@@ -237,11 +335,11 @@ namespace PLGL.Examples
                 }
             };
 
+            //Last syllable ends in vowel; therefore, the current syllable *must* start with a consonant.
             lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
             {
                 if (last != null)
                 {
-                    //Last syllable ends in vowel; therefore, the current syllable *must* start with a consonant.
                     if (last.Syllable.Template.Last().Key == 'V' &&
                         last.Syllable.Template.Last().Key == 'o' &&
                         last.Syllable.Template.Last().Key == 'O')
@@ -275,7 +373,7 @@ namespace PLGL.Examples
         {
             lang.Lexicon.Inflections.Add("a", "om");
             lang.Lexicon.Inflections.Add("an", "om");
-            lang.Lexicon.Inflections.Add("the", "bem");
+            //lang.Lexicon.Inflections.Add("the", "bem");
             lang.Lexicon.Inflections.Add("as", "en");
             lang.Lexicon.Inflections.Add("is", "ha");
             lang.Lexicon.Inflections.Add("was", "hel");

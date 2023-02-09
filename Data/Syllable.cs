@@ -21,6 +21,10 @@ namespace PLGL.Data
         public string Groups { get; set; }
         public double Weight { get; set; }
         /// <summary>
+        /// Set by OnSyllableSelect.
+        /// </summary>
+        public double WeightMultiplier { get; set; } = 1.0;
+        /// <summary>
         /// The letter group template as set by Groups.
         /// </summary>
         public List<LetterGroup> Template { get; set; } = new List<LetterGroup>();

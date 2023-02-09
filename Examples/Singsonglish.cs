@@ -101,15 +101,15 @@ namespace PLGL.Examples
         #region Structural
         private void SetLetters()
         {
-            lang.Alphabet.AddConsonant('l', ('l', 'L'), 20);
-            lang.Alphabet.AddConsonant('d', ('d', 'D'), 10);
-            lang.Alphabet.AddConsonant('s', ('s', 'S'), 2);
+            lang.Alphabet.AddConsonant('l', ('l', 'L'));
+            lang.Alphabet.AddConsonant('d', ('d', 'D'));
+            lang.Alphabet.AddConsonant('s', ('s', 'S'));
 
-            lang.Alphabet.AddVowel('a', ('a', 'A'), 8);
-            lang.Alphabet.AddVowel('e', ('e', 'E'), 0);
-            lang.Alphabet.AddVowel('i', ('i', 'I'), 0);
-            lang.Alphabet.AddVowel('o', ('o', 'O'), 0);
-            lang.Alphabet.AddVowel('u', ('u', 'U'), 0);
+            lang.Alphabet.AddVowel('a', ('a', 'A'));
+            lang.Alphabet.AddVowel('e', ('e', 'E'));
+            lang.Alphabet.AddVowel('i', ('i', 'I'));
+            lang.Alphabet.AddVowel('o', ('o', 'O'));
+            lang.Alphabet.AddVowel('u', ('u', 'U'));
 
             lang.OnLetter += (lg, w, current) =>
             {

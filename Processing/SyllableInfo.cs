@@ -18,5 +18,7 @@ namespace PLGL.Processing
         public bool IsProcessed { get; set; } = false;
         public WordPosition Position { get; set; }
         public int SyllableIndex { get; set; }
+
+        public List<LetterInfo> Letters { get; set; }
     }
 }

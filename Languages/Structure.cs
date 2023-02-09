@@ -1,4 +1,5 @@
-﻿using PLGL.Data;
+﻿using Microsoft.VisualBasic;
+using PLGL.Data;
 using PLGL.Processing;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace PLGL.Languages
 
         public Dictionary<char, LetterGroup> LetterGroups { get; set; } = new Dictionary<char, LetterGroup>();
         public Dictionary<string, Syllable> Syllables { get; set; } = new Dictionary<string, Syllable>();
+
         public List<Syllable> SortedSyllables { get; set; } = new List<Syllable>();
         private void SortList() { SortedSyllables = Syllables.Values.OrderBy((s) => s.Groups).ToList(); }
 
@@ -30,12 +32,12 @@ namespace PLGL.Languages
             {
                 LetterGroup group = new LetterGroup(name, key, letters);
 
-                List<(Letter l, double w)> list = new List<(Letter l, double w)>();
-                for (int i = 0; i < group.Letters.Length; i++)
+                group.Letters = new List<(Letter l, double w)>();
+                for (int i = 0; i < group.letterData.Length; i++)
                 {
-                    Letter l = language.Alphabet.Find(group.Letters[i].letter);
+                    Letter l = language.Alphabet.Find(group.letterData[i].letter);
                     if (l != null)
-                        list.Add(new(l, group.Letters[i].weight));
+                        group.Letters.Add(new(l, group.letterData[i].weight));
                     else
                     {
                         //Output not found issue to debug log.
@@ -66,17 +68,10 @@ namespace PLGL.Languages
             }
         }
 
-        public void AddSyllablePath(Syllable previous, WordPosition position, params (Syllable, double)[] sigmaWeights)
+        internal void ResetWeights()
         {
-
-        }
-        public (double, Syllable)[] GetPotentialSyllables(Syllable lastSigma)
-        {
-            List<(double, Syllable)> results = new List<(double, Syllable)>();
-            //List<Sigma> filter = ;
-
-
-            return results.ToArray();
+            foreach (Syllable s in Syllables.Values)
+                s.WeightMultiplier = 1.0;
         }
     }
 }

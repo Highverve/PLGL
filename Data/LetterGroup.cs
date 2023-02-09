@@ -10,13 +10,15 @@ namespace PLGL.Data
     {
         public string Name { get; set; }
         public char Key { get; set; }
-        public (char letter, double weight)[] Letters { get; set; }
+
+        internal (char letter, double weight)[] letterData { get; set; }
+        public List<(Letter letter, double weight)> Letters { get; set; }
 
         public LetterGroup(string Name, char Key, (char letter, double weight)[] Letters)
         {
             this.Name = Name;
             this.Key = Key;
-            this.Letters = Letters;
+            letterData = Letters;
         }
     }
 }

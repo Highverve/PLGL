@@ -131,3 +131,8 @@
 - Slight improvement to english syllable estimation. It will now remove "es" and "ed" from the end of a word before estimation, as the "e" is typically silent.
 - Added CONSTRUCT_Replace, which replaces input characters with their respective output characters. It takes a params of Tuple(char input, char output) array.
 - Added OnSyllableSelect. This crucial change allows the language author to modify what syllables can be selected based on criteria. Perfect for matching ending consonants to starting vowels, and vice versa (supporting methods to follow).
+### 2023-2-8
+- Added weight multipliers to Syllable and Letter classes. These doubles are set by the OnSyllableSelect and OnLetterSelect events to influence weights, and are reset before the next syllable or letter is chosen.
+- Implemented support for the OnLetterSelect event. This behaves similar to OnSyllableSelect.
+- Added a LetterGroup reference to LetterInfo. Now it knows where it came from.
+- Added a LetterInfo list to SyllableInfo. This is useful for the OnLetterSelect and OnSyllableSelect events.
