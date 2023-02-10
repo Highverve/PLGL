@@ -136,3 +136,8 @@
 - Implemented support for the OnLetterSelect event. This behaves similar to OnSyllableSelect.
 - Added a LetterGroup reference to LetterInfo. Now it knows where it came from.
 - Added a LetterInfo list to SyllableInfo. This is useful for the OnLetterSelect and OnSyllableSelect events.
+### 2023-2-9
+- Added support methods for OnLetterSelect and OnSyllableSelect, under SELECT_: Exclude, Keep, and SetWeight. A few of these are overloaded to support both syllables and letters.
+- Added conditional methods: SELECT_GroupsContains, SELECT_GroupsAny, SELECT_IsSyllableFirst, SELECT_IsSyllableLast, SELECT_IsSyllableMiddle, SELECT_IsGroupFirst, SELECT_IsGroupLast, SELECT_IsGroupMiddle.
+- Added returning methods for LetterGroup and LetterInfo: SELECT_Template and SELECT_Letter.
+- Added Syllables to Lexicon. You can now strictly define the syllable structure of words, while letting the generator choose the letters. This is really nice for inflections like "sing", "sang", "sung".

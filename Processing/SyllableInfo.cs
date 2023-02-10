@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace PLGL.Processing
 {
-    public enum WordPosition { First, Middle, Last, Any }
     public class SyllableInfo
     {
         public Syllable? Syllable { get; set; }
@@ -16,9 +15,9 @@ namespace PLGL.Processing
         public SyllableInfo? AdjacentRight { get; set; }
 
         public bool IsProcessed { get; set; } = false;
-        public WordPosition Position { get; set; }
         public int SyllableIndex { get; set; }
 
+        public WordInfo Word { get; set; }
         public List<LetterInfo> Letters { get; set; }
     }
 }

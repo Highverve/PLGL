@@ -7,39 +7,28 @@ using System.Threading.Tasks;
 
 namespace PLGL.Languages
 {
-    /// <summary>
-    /// A constraining class, that aims to answer a tricky question: "How do we handle lexemes?"
-    /// 
-    /// Scenario:
-    ///     1. The generator is processing a sentence, when a word ("running") matches a Dictionary key.
-    ///     2. The usual generation process is circumvented, and the word undergoes a strictly defined process.
-    ///     3. The root word is split from it's modifying suffix ("runn" and "ing").
-    ///     4. The word ("runn", or "run" if double consonant is removed) is processed through the generator.
-    ///     5. An affix and/or punctuation mark is added, according to the style preferences of the language author.
-    /// 
-    /// If the root word has multiple affixes (on either end), the process loops through each one and
-    /// applies the style preference accordingly.
-    /// </summary>
     public class Lexicon
     {
-        //public List<(string[], string)> Lexemes { get; private set; } = new List<(string[], string)>();
         public Dictionary<string, string> Inflections { get; private set; } = new Dictionary<string, string>();
         public Dictionary<string, string> Roots { get; private set; } = new Dictionary<string, string>();
-        public Dictionary<string, Syllable[]> Syllables { get; private set; } = new Dictionary<string, Syllable[]>();
+        public Dictionary<string, Syllable[]> Syllables { get; private set; } = new Dictionary<string, Syllable[]>(StringComparer.InvariantCultureIgnoreCase);
 
-        public void AddSyllable(Language language, string word, params string[] syllables)
+        private Language language;
+        public Lexicon(Language language) { this.language = language; }
+
+        public void AddSyllable(string root, params string[] syllables)
         {
-            if (Syllables.ContainsKey(word) == false)
+            if (Syllables.ContainsKey(root) == false)
             {
                 List<Syllable> result = new List<Syllable>();
 
                 foreach (string s in syllables)
                 {
-                    if (string.IsNullOrEmpty(s) == false)
+                    if (language.Structure.Syllables.ContainsKey(s))
                         result.Add(language.Structure.Syllables[s]);
                 }
 
-                Syllables.Add(word, result.ToArray());
+                Syllables.Add(root, result.ToArray());
             }
         }
 

@@ -1,7 +1,9 @@
 ﻿using PLGL.Data;
 using PLGL.Processing;
+using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks.Dataflow;
 
 namespace PLGL
@@ -346,34 +348,178 @@ namespace PLGL
         }
         #endregion
 
-        #region 
+        #region SELECT_ methods
 
-        public void SELECT_LastFirstRemove(SyllableInfo last, bool condition, params char[] groups)
+        /// <summary>
+        /// Excludes the letter from the selection process if the condition is true.
+        /// </summary>
+        /// <param name="letter"></param>
+        /// <param name="condition"></param>
+        public void SELECT_Exclude(bool condition, params char[] letters)
         {
-            if (last != null)
+            if (condition == true)
             {
-                if (last.Syllable.Template.Last().Key != 'V' &&
-                    last.Syllable.Template.Last().Key != 'o' &&
-                    last.Syllable.Template.Last().Key != 'O')
-                {
-                    for (int i = 0; i < selectedSyllables.Count; i++)
-                    {
-                        if (selectedSyllables[i].Template.First().Key != 'V' &&
-                            selectedSyllables[i].Template.First().Key != 'o' &&
-                            selectedSyllables[i].Template.First().Key != 'O')
-                        {
-                            selectedSyllables.RemoveAt(i);
-                            i--;
-                        }
-                    }
-                }
+                foreach (char letter in letters)
+                    letterSelection.RemoveFirst(l => l.letter.Key == letter);
             }
         }
-        public void SELECT_RemoveIf(SyllableInfo last, bool condition, char group)
+        /// <summary>
+        /// Excludes the syllable group from the selection process if the condition is true.
+        /// </summary>
+        /// <param name="groups"></param>
+        /// <param name="condition"></param>
+        public void SELECT_Exclude(bool condition, params string[] groups)
         {
+            if (condition == true)
+            {
+                foreach (string group in groups)
+                    syllableSelection.RemoveFirst(s => s.Groups == group);
+            }
+        }
+        /// <summary>
+        /// Removes all syllables from the list, keeping only the groups specified.
+        /// </summary>
+        /// <param name="condition"></param>
+        /// <param name="groups"></param>
+        public void SELECT_Keep(bool condition, params string[] groups)
+        {
+            if (condition == true)
+            {
+                syllableSelection.Clear();
+                foreach (string s in groups)
+                    if (Language.Structure.Syllables.ContainsKey(s))
+                        syllableSelection.Add(Language.Structure.Syllables[s]);
+            }
+        }
+        /// <summary>
+        /// Sets the weight multiplier of the syllable, if the group is found and the condition is met.
+        /// </summary>
+        /// <param name="groups"></param>
+        /// <param name="multiplier"></param>
+        /// <param name="condition"></param>
+        public void SELECT_SetWeight(string groups, double multiplier, bool condition)
+        {
+            if (condition == true)
+            {
+                Syllable s = syllableSelection.Where(s => s.Groups == groups).FirstOrDefault();
 
+                if (s != null)
+                    s.WeightMultiplier = multiplier;
+            }
+        }
+        /// <summary>
+        /// Sets the weight multiplier of the letter, if the letter is found and the condition is met.
+        /// </summary>
+        /// <param name="letter"></param>
+        /// <param name="multiplier"></param>
+        /// <param name="condition"></param>
+        public void SELECT_SetWeight(char letter, double multiplier, bool condition)
+        {
+            if (condition == true)
+            {
+                Letter l = Language.Alphabet.Find(letter);
+
+                if (l != null)
+                    l.WeightMultiplier *= multiplier;
+            }
         }
 
+        /// <summary>
+        /// Returns true if the target syllable's group contains any parts specified in string group.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="group"></param>
+        /// <returns></returns>
+        public bool SELECT_GroupContains(SyllableInfo target, string group)
+        {
+            return target.Syllable.Groups.Contains(group);
+        }
+        /// <summary>
+        /// Returns true if the target syllable's group matches any of the groups.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groups"></param>
+        /// <returns></returns>
+        public bool SELECT_GroupAny(SyllableInfo target, params string[] groups)
+        {
+            foreach (string g in groups)
+                if (target.Syllable.Groups == g) return true;
+
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the syllable index is 0.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public bool SELECT_IsSyllableFirst(SyllableInfo target)
+        {
+            return target.SyllableIndex == 0;
+        }
+        /// <summary>
+        /// Returns true if the syllable index matches the count of syllables in it's parent word.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public bool SELECT_IsSyllableLast(SyllableInfo target)
+        {
+            return target.SyllableIndex == target.Word.Syllables.Count - 1;
+        }
+        /// <summary>
+        /// Returns true if IsSyllableFirst and IsSyllableLast are both false.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public bool SELECT_IsSyllableMiddle(SyllableInfo target)
+        {
+            return (SELECT_IsSyllableFirst(target) && SELECT_IsSyllableLast(target)) == false;
+        }
+        /// <summary>
+        /// Returns true if the first group in the target syllable matches any of the parameter keys.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groupKey"></param>
+        /// <returns></returns>
+        public bool SELECT_IsGroupFirst(SyllableInfo target, params char[] groupKeys)
+        {
+            foreach (char g in groupKeys)
+                if (target.Syllable.Groups.StartsWith(g))
+                    return true;
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the last group in the target syllable matches any of the parameter keys.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groupKey"></param>
+        /// <returns></returns>
+        public bool SELECT_IsGroupLast(SyllableInfo target, params char[] groupKeys)
+        {
+            foreach (char g in groupKeys)
+                if (target.Syllable.Groups.EndsWith(g))
+                    return true;
+            return false;
+        }
+        /// <summary>
+        /// Returns true if IsGroupFirst and IsGroupLast are both false.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="groupKey"></param>
+        /// <returns></returns>
+        public bool SELECT_IsGroupMiddle(SyllableInfo target, params char[] groupKey)
+        {
+            return (SELECT_IsGroupFirst(target, groupKey) &&
+                    SELECT_IsGroupLast(target, groupKey)) == false;
+        }
+
+        public LetterGroup SELECT_Template(SyllableInfo target, int position)
+        {
+            return target.Syllable.Template[position];
+        }
+        public LetterInfo SELECT_Letter(SyllableInfo target, char groupKey)
+        {
+            return target.Letters.Where(l => l.Group.Key == groupKey).FirstOrDefault();
+        }
         #endregion
 
         #region SYLLABLE_ methods
@@ -990,7 +1136,7 @@ namespace PLGL
         }
         #endregion
 
-        #region Lexicon (and inflections) — Custom words, word memorizing
+        #region Lexicon — Custom words, word memorizing
         /// <summary>
         /// Checks for matching actual words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
         /// </summary>
@@ -1172,7 +1318,7 @@ namespace PLGL
         }
         #endregion
 
-        #region Word construction — Syllable structuring and letter population
+        #region Word construction — Syllable and letter populating
         public void PopulateSyllables(WordInfo word)
         {
             if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
@@ -1180,19 +1326,40 @@ namespace PLGL
 
             word.Syllables = new List<SyllableInfo>();
 
-            int count = Math.Max((int)(SigmaCount(word.WordRoot) *
-                NextDouble(Language.Options.SyllableSkewMin, Language.Options.SyllableSkewMax)), 1);
-
-            for (int i = 0; i < count; i++)
+            if (Language.Lexicon.Syllables.ContainsKey(word.WordRoot))
             {
-                SyllableInfo syllable = new SyllableInfo();
-                syllable.Syllable = SelectSyllable(word, i, count);
-                syllable.SyllableIndex = i;
+                Syllable[] syllables = Language.Lexicon.Syllables[word.WordRoot];
 
-                word.Syllables.Add(syllable);
+                for (int i = 0; i < syllables.Length; i++)
+                {
+                    SyllableInfo syllable = new SyllableInfo();
+                    syllable.Syllable = syllables[i];
+                    syllable.SyllableIndex = i;
+                    syllable.Word = word;
 
-                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                    Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} set to {syllable.Syllable.Groups}");
+                    word.Syllables.Add(syllable);
+
+                    if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} found in Lexicon: {syllable.Syllable.Groups}");
+                }
+            }
+            else
+            {
+                int count = Math.Max((int)(SigmaCount(word.WordRoot) *
+                    NextDouble(Language.Options.SyllableSkewMin, Language.Options.SyllableSkewMax)), 1);
+
+                for (int i = 0; i < count; i++)
+                {
+                    SyllableInfo syllable = new SyllableInfo();
+                    syllable.Syllable = SelectSyllable(word, i, count);
+                    syllable.SyllableIndex = i;
+                    syllable.Word = word;
+
+                    word.Syllables.Add(syllable);
+
+                    if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
+                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} set to {syllable.Syllable.Groups}");
+                }
             }
 
             //Link adjacent syllables.
@@ -1230,7 +1397,7 @@ namespace PLGL
 
                 for (int i = 0; i < word.Syllables[s].Syllable.Template.Count; i++)
                 {
-                    Letter selection = SelectLetter(word, word.Syllables[s], word.Syllables[s].Syllable.Template[i], i, word.Syllables[s].Syllable.Template.Count);
+                    Letter selection = SelectLetter(word, word.Syllables[s], word.Syllables[s].Syllable.Template[i], i, word.Syllables[s].Syllable.Template.Count - 1);
                     LetterInfo letter = new LetterInfo(selection);
                     letter.Syllable = word.Syllables[s];
                     letter.Group = word.Syllables[s].Syllable.Template[i];
@@ -1280,17 +1447,17 @@ namespace PLGL
                 word.WordGenerated += l.Letter.Case.lower;
         }
 
-        private List<Syllable> selectedSyllables = new List<Syllable>();
+        private List<Syllable> syllableSelection = new List<Syllable>();
         public Syllable SelectSyllable(WordInfo word, int current, int max)
         {
             Language.Structure.ResetWeights();
-            selectedSyllables = Language.Structure.SortedSyllables.ToList();
-            Language.OnSyllableSelection?.Invoke(this, selectedSyllables, word,
+            syllableSelection = Language.Structure.SortedSyllables.ToList();
+            Language.OnSyllableSelection?.Invoke(this, syllableSelection, word,
                 word.Syllables.LastOrDefault(), current, max);
 
-            double weight = Random.NextDouble() * selectedSyllables.Sum(s => s.Weight * s.WeightMultiplier);
+            double weight = Random.NextDouble() * syllableSelection.Sum(s => s.Weight * s.WeightMultiplier);
 
-            foreach (Syllable s in selectedSyllables)
+            foreach (Syllable s in syllableSelection)
             {
                 weight -= s.Weight * s.WeightMultiplier;
 
@@ -1311,7 +1478,7 @@ namespace PLGL
 
             double weight = Random.NextDouble() * letterSelection.Sum(w => w.weight * w.letter.WeightMultiplier);
 
-            foreach ((Letter letter, double weight) l in group.Letters)
+            foreach ((Letter letter, double weight) l in letterSelection)
             {
                 weight -= (l.weight * l.letter.WeightMultiplier);
 

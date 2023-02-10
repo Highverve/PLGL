@@ -79,7 +79,7 @@ namespace PLGL
             Alphabet = new Alphabet();
             Structure = new Structure(this);
 
-            Lexicon = new Lexicon();
+            Lexicon = new Lexicon(this);
             Punctuation = new Punctuation();
             Flags = new Flagging();
             Numbers = new Numbers();

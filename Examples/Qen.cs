@@ -1,6 +1,7 @@
 ﻿using PLGL.Data;
 using PLGL.Languages;
 using PLGL.Processing;
+using System;
 
 namespace PLGL.Examples
 {
@@ -38,9 +39,9 @@ namespace PLGL.Examples
         {
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
             lang.Options.MemorizeWords = false;
-            lang.Options.SyllableSkewMin = 0.8;
-            lang.Options.SyllableSkewMax = 2.5;
-            lang.Options.SeedOffset = 1;
+            lang.Options.SyllableSkewMin = 1;
+            lang.Options.SyllableSkewMax = 1.3;
+            lang.Options.SeedOffset = 2;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -61,8 +62,6 @@ namespace PLGL.Examples
             lang.AddFilter("Flags", "");
             lang.AddFilter("FlagsOpen", "{");
             lang.AddFilter("FlagsClose", "}");
-            lang.AddFilter("Mark", "");
-
         }
         private void SetDeconstructEvents()
         {
@@ -86,18 +85,6 @@ namespace PLGL.Examples
             SetNumbers();
 
             lang.OnConstruct += (lg, word) => lg.CONSTRUCT_Within(word, "ESCAPE", 1, 2);
-
-            lang.OnConstruct += (lg, word) =>
-            {
-                if (word.Filter.Name.ToUpper() == "MARK")
-                {
-                    WordInfo last = lg.WORD_LastByFilter(word, "MARK");
-                    if (last != null)
-                    {
-                        Console.WriteLine($"Found MARK right of {last.AdjacentLeft.WordActual}/{last.AdjacentLeft.WordFinal}!");
-                    }
-                }
-            };
         }
         #endregion
 
@@ -164,162 +151,116 @@ namespace PLGL.Examples
             lang.Structure.AddGroup('o', "Vowels (short)", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0));
             lang.Structure.AddGroup('O', "Vowels (long)", ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
 
-            lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0));
-            lang.Structure.AddGroup('n', "Nasal with ng", ('m', 5.0), ('n', 5.0), ('ŋ', 50.0));
+            lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0), ('ŋ', 10.0));
             lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
-            lang.Structure.AddGroup('p', "Plosive higher", ('p', 4.0), ('t', 1.0), ('k', 2.0));
             lang.Structure.AddGroup('F', "Fricative", ('f', 10.0), ('v', 1.0), ('s', 10.0), ('z', 1.0));
             lang.Structure.AddGroup('f', "Fricative f", ('f', 10.0));
-            lang.Structure.AddGroup('S', "S/SH", ('s', 30.0), ('ŝ', 1.0));
-            lang.Structure.AddGroup('A', "Approximant", ('w', 1.0), ('y', 1.0), ('h', 1.0));
+            lang.Structure.AddGroup('S', "S/SH/TH/ZH", ('s', 10.0), ('ŝ', 1.0), ('Þ', 1.0), ('ż', 0.1));
+            lang.Structure.AddGroup('A', "Approximant", ('w', 1.0), ('y', 1.0), ('h', 1.0), ('q', 0.1));
             lang.Structure.AddGroup('R', "R / L", ('r', 50), ('l', 50));
-            lang.Structure.AddGroup('r', "R > L", ('r', 90), ('l', 10));
-            lang.Structure.AddGroup('l', "L > R", ('r', 10), ('l', 90));
-            lang.Structure.AddGroup('T', "TH/SH", ('Þ', 1.0), ('ŝ', 1.0));
 
-            lang.Structure.AddSyllable("VN", 1.5);
-            lang.Structure.AddSyllable("VP", 1.0);
-            lang.Structure.AddSyllable("VR", 1.5);
-            lang.Structure.AddSyllable("VS", 1.25);
-            lang.Structure.AddSyllable("NV", 1.0);
-            lang.Structure.AddSyllable("PV", 2.0);
-            lang.Structure.AddSyllable("RV", 1.5);
-            lang.Structure.AddSyllable("FV", 1.0);
+            lang.Structure.AddSyllable("VN", 0.75);
+            lang.Structure.AddSyllable("VP", 0.5);
+            lang.Structure.AddSyllable("VR", 1.0);
+            lang.Structure.AddSyllable("VS", 0.75);
 
-            lang.Structure.AddSyllable("FVN", 1.5);
-            lang.Structure.AddSyllable("FVP", 1.0);
-            lang.Structure.AddSyllable("FVR", 1.0);
+            lang.Structure.AddSyllable("NV", 0.75);
+            lang.Structure.AddSyllable("PV", 0.5);
+            lang.Structure.AddSyllable("RV", 0.3);
+            lang.Structure.AddSyllable("FV", 0.25);
+
+            lang.Structure.AddSyllable("FVN", 1.0);
+            lang.Structure.AddSyllable("FVP", 0.25);
+            lang.Structure.AddSyllable("FVR", 0.85);
             lang.Structure.AddSyllable("fRVN", 0.25);
             lang.Structure.AddSyllable("fRVP", 0.25);
 
             lang.Structure.AddSyllable("NVP", 1.5);
-            lang.Structure.AddSyllable("SpVN", 1.5);
-            lang.Structure.AddSyllable("SpRVP", 0.25);
-            lang.Structure.AddSyllable("SpRVN", 0.25);
+            lang.Structure.AddSyllable("SPVN", 1.5);
+            lang.Structure.AddSyllable("SPRVP", 0.25);
+            lang.Structure.AddSyllable("SPRVN", 0.25);
 
-            lang.Structure.AddSyllable("TVN", 1.75);
-            lang.Structure.AddSyllable("TVP", 1.75);
-            lang.Structure.AddSyllable("TVR", 1.75);
-            lang.Structure.AddSyllable("TRVN", 0.5);
-            lang.Structure.AddSyllable("TRVP", 0.5);
-            lang.Structure.AddSyllable("TVn", 0.25);
+            lang.Structure.AddSyllable("SVN", 0.75);
+            lang.Structure.AddSyllable("SVP", 0.75);
+            lang.Structure.AddSyllable("SVR", 0.75);
+            lang.Structure.AddSyllable("SRVN", 0.5);
+            lang.Structure.AddSyllable("SRVP", 0.5);
+            lang.Structure.AddSyllable("SVN", 0.25);
 
-            lang.Structure.AddSyllable("PVR", 1.25);
-            lang.Structure.AddSyllable("PVN", 1.5);
+            lang.Structure.AddSyllable("PVR", 0.75);
+            lang.Structure.AddSyllable("PVN", 0.5);
 
-            lang.Structure.AddSyllable("AVR", 1.0);
-            //lang.Structure.AddSyllable("ARV", 1.0);
-            lang.Structure.AddSyllable("on", 0.5);
-
-            lang.Lexicon.AddSyllable(lang, "leaves", "VR", "FVR");
+            lang.Structure.AddSyllable("AVN", 0.75);
+            lang.Structure.AddSyllable("AVP", 0.5);
+            lang.Structure.AddSyllable("AVR", 0.3);
+            lang.Structure.AddSyllable("AVS", 0.1);
 
             lang.OnLetter += (lg, word, letter) =>
                 lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
                     lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
 
-            //TVR -> on
-            /*lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
-            {
-                if (last != null && last.Syllable.Groups == "TVR")
-                {
-                    for (int i = 0; i < selection.Count; i++)
-                    {
-                        if (selection[i].Groups == "on")
-                        {
-                            selection[i].WeightMultiplier = 5;
-                        }
-                    }
-                }
-            };*/
+            SetExclusions();
 
-            /*
-            lang.Alphabet.AddVowel("", 'a', ('a', 'A'), "/a/ (apple)");
-            lang.Alphabet.AddVowel("", 'e', ('e', 'E'), "/e/ (west)");
-            lang.Alphabet.AddVowel("", 'i', ('i', 'I'), "/i/ (tip)");
-            lang.Alphabet.AddVowel("", 'o', ('o', 'O'), "/o/ (crop)");
-            lang.Alphabet.AddVowel("", 'u', ('u', 'U'), "/u/ (sun)");
-            //lang.Alphabet.AddVowel("", 'ŕ', ('ŕ', 'Ŕ'), 5, "/r/ (later)");
+            //Manual consonant doubling, depending on syllable condition—group type, letter type ('l'), syllable location.
+            //(where "T" is th/sh letters, "V" are vowels, and "R" is r or l.
+            /*lang.OnLetter += (lg, word, letter) =>
+                lg.LETTER_Insert(word, letter, 'l', 0,
+                lg.LETTER_Syllable(letter, "TVR") &&
+                lg.LETTER_Contains(letter, 'l') &&
+                (letter.Syllable.SyllableIndex < word.Syllables.Count - 1));*/
+        }
+        private void SetExclusions()
+        {
+            //Exclude 'r' if the last letter equals s or sh
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SR") && current == 1 &&
+                    (last.Letter.Key == 's' || last.Letter.Key == 'ŝ'), 'r');
 
-            //Ää, Ëë, Ïï, Öö, Üü (long)
-            lang.Alphabet.AddVowel("", 'ä', ('ä', 'Ä'), "/ae/ (cake)");
-            lang.Alphabet.AddVowel("", 'ë', ('ë', 'Ë'), "/ee/ beet");
-            lang.Alphabet.AddVowel("", 'ï', ('ï', 'Ï'), "/ai/ (night)");
-            lang.Alphabet.AddVowel("", 'ö', ('ö', 'Ö'), "/ou/ (toad)");
-            lang.Alphabet.AddVowel("", 'ü', ('ü', 'Ü'), "/oo/ (tulip)");
-             */
+            //Exclude 'l' if the last letter equals th
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SR") && current == 1 &&
+                    (last.Letter.Key == 'Þ'), 'l');
 
-            lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
-            {
-                //Compare last vowel to current vowel, and remove any trickier sounds.
-                if (syllable.Syllable.Template[current].Key == 'V' && syllable.AdjacentLeft != null)
-                {
-                    LetterInfo leftVowel = syllable.AdjacentLeft.Letters.Where(l => l.Group.Key == 'V').FirstOrDefault();
+            //Exclude 'b', 'd', and 'g' if the last letter equals s or ŝ
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SP") && current == 1 &&
+                    (last.Letter.Key == 's' || last.Letter.Key == 'ŝ'), 'b', 'd', 'g');
 
-                    if (leftVowel != null)
-                    {
-                        if (leftVowel.Letter.Key == 'a')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'a') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'e')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'e') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'i')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'i') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'o')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'u') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'u')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'u') { selection.RemoveAt(i); i--; }
-                        }
+            //Exclude 'z' from 'S' if the next group key is 'P'
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SP") && current == 0, 'ż');
 
-                        if (leftVowel.Letter.Key == 'ä')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'ä') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'ë')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'ë') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'ï')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'ï') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'ö')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'ö') { selection.RemoveAt(i); i--; }
-                        }
-                        if (leftVowel.Letter.Key == 'ü')
-                        {
-                            for (int i = 0; i < selection.Count; i++)
-                                if (selection[i].letter.Key == 'ü') { selection.RemoveAt(i); i--; }
-                        }
-                    }
-                }
-            };
+            //Exclude 'Þ' from 'S' if the next group key is 'P'
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SP") && current == 0, 'Þ');
+
+            //Exclude 'th' from current if next group is 'P' and not last group index.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(current < max && syllable.Syllable.Template[current + 1].Key == 'P', 'Þ');
+
+            //Exclude 'ng' from 'N' group if its not the last group of the syllable.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') == false, 'ŋ');
+
+            //Reduces the weight of 'ng' from 'n' group if its not the last syllable of the word.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_SetWeight('ŋ', 0.025, lg.SELECT_GroupContains(syllable, "N") && lg.SELECT_IsSyllableLast(syllable) == false);
+
+            //Removes all complex syllables if not the first syllable.
+            //lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            //    lg.SELECT_Keep(current != 0, "VN", "VP", "VR", "VS");
+            //lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            //    lg.SELECT_Exclude(current == 0, "VN", "VP", "VR", "VS");
+
+            //Double 'l' if left and right letters are vowels.
+
 
             //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
-            lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
+            lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
             {
-                if (last != null)
+                if (syllable != null)
                 {
-                    if (last.Syllable.Template.Last().Key != 'V' &&
-                        last.Syllable.Template.Last().Key != 'o' &&
-                        last.Syllable.Template.Last().Key != 'O')
+                    if (lg.SELECT_IsGroupLast(syllable, 'V', 'O', 'o') == false)
                     {
                         for (int i = 0; i < selection.Count; i++)
                         {
@@ -334,15 +275,13 @@ namespace PLGL.Examples
                     }
                 }
             };
-
+            
             //Last syllable ends in vowel; therefore, the current syllable *must* start with a consonant.
-            lang.OnSyllableSelection += (lg, selection, word, last, current, max) =>
+            lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
             {
-                if (last != null)
+                if (syllable != null)
                 {
-                    if (last.Syllable.Template.Last().Key == 'V' &&
-                        last.Syllable.Template.Last().Key == 'o' &&
-                        last.Syllable.Template.Last().Key == 'O')
+                    if (lg.SELECT_IsGroupLast(syllable, 'V', 'O', 'o') == false)
                     {
                         for (int i = 0; i < selection.Count; i++)
                         {
@@ -358,23 +297,48 @@ namespace PLGL.Examples
                 }
             };
 
-            //Manual consonant doubling, depending on syllable condition—group type, letter type ('l'), syllable location.
-            //(where "T" is th/sh letters, "V" are vowels, and "R" is r or l.
-            /*lang.OnLetter += (lg, word, letter) =>
-                lg.LETTER_Insert(word, letter, 'l', 0,
-                lg.LETTER_Syllable(letter, "TVR") &&
-                lg.LETTER_Contains(letter, 'l') &&
-                (letter.Syllable.SyllableIndex < word.Syllables.Count - 1));*/
+            //Excludes duplicate vowels, preventing two vowels from occuring in neighbouring syllables.
+            lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            {
+                if (syllable.AdjacentLeft != null && lg.SELECT_Template(syllable, current)?.Key == 'V')
+                {
+                    LetterInfo leftVowel = lg.SELECT_Letter(syllable.AdjacentLeft, 'V');
+
+                    if (leftVowel != null)
+                    {
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'a', 'a');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'e', 'e');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'i', 'i');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'o', 'o');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'u', 'u');
+
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'ä', 'ä');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'ë', 'ë');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'ï', 'ï');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'ö', 'ö');
+                        lg.SELECT_Exclude(leftVowel.Letter.Key == 'ü', 'ü');
+                    }
+                }
+            };
         }
         #endregion
 
         #region Lexemes
         private void SetInflections()
         {
+            lang.Lexicon.AddSyllable("leave", "VR", "FVR");
+
+            lang.Lexicon.AddSyllable("song", "VR", "AVN");
+            lang.Lexicon.AddSyllable("sing", "VR", "AVN");
+            lang.Lexicon.AddSyllable("sang", "VR", "AVN");
+            lang.Lexicon.AddSyllable("sung", "VR", "AVN");
+
+            lang.Lexicon.AddSyllable("ho", "AVS");
+
             lang.Lexicon.Inflections.Add("a", "om");
             lang.Lexicon.Inflections.Add("an", "om");
-            //lang.Lexicon.Inflections.Add("the", "bem");
-            lang.Lexicon.Inflections.Add("as", "en");
+            lang.Lexicon.Inflections.Add("the", "lem");
+            lang.Lexicon.Inflections.Add("as", "el");
             lang.Lexicon.Inflections.Add("is", "ha");
             lang.Lexicon.Inflections.Add("was", "hel");
             lang.Lexicon.Inflections.Add("were", "hend");
@@ -428,10 +392,17 @@ namespace PLGL.Examples
         }
         private void SetAffixes()
         {
+            //Prefixes
+            lang.Lexicon.Affixes.Add(new Affix("un", "da", Affix.AffixLocation.Prefix, Affix.AffixLocation.Prefix));
+
+            //Suffixes
             lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("ly", "il", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("s", "s", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("s", "", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+
+            //Events
+            lang.OnPrefix += (lg, word, current) => lg.AFFIX_Insert(word, current, "un", "l", 2, lg.AFFIX_VowelFirst(word, current));
 
             lang.OnSuffix += (lg, word, current) => lg.AFFIX_Remove(word, current, "ly", 0, 1, lg.AFFIX_VowelLast(word, current));
             lang.OnSuffix += (lg, word, current) => lg.AFFIX_Insert(word, current, "s", "l", 0, lg.AFFIX_VowelLast(word, current));
