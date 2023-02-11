@@ -38,7 +38,7 @@ namespace PLGL.Examples
         private void SetOptions()
         {
             lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
-            lang.Options.MemorizeWords = false;
+            lang.Options.MemorizeWords = true;
             lang.Options.SyllableSkewMin = 1;
             lang.Options.SyllableSkewMax = 1.3;
             lang.Options.SeedOffset = 2;
@@ -164,6 +164,10 @@ namespace PLGL.Examples
             lang.Structure.AddSyllable("VR", 1.0);
             lang.Structure.AddSyllable("VS", 0.75);
 
+            lang.Structure.AddSyllable("ooN", 0.01);
+            lang.Structure.AddSyllable("ooP", 0.075);
+            lang.Structure.AddSyllable("ooR", 0.05);
+
             lang.Structure.AddSyllable("NV", 0.75);
             lang.Structure.AddSyllable("PV", 0.5);
             lang.Structure.AddSyllable("RV", 0.3);
@@ -174,21 +178,32 @@ namespace PLGL.Examples
             lang.Structure.AddSyllable("FVR", 0.85);
             lang.Structure.AddSyllable("fRVN", 0.25);
             lang.Structure.AddSyllable("fRVP", 0.25);
+            lang.Structure.AddSyllable("FVRR", 0.25);
 
-            lang.Structure.AddSyllable("NVP", 1.5);
+            //lang.Structure.AddSyllable("NVN", 0.75);
+            lang.Structure.AddSyllable("NVP", 0.75);
+            lang.Structure.AddSyllable("NVR", 0.5);
+            lang.Structure.AddSyllable("NVF", 0.25);
+            lang.Structure.AddSyllable("NVRR", 0.25);
+            lang.Structure.AddSyllable("NVRN", 0.25);
+
             lang.Structure.AddSyllable("SPVN", 1.5);
+            lang.Structure.AddSyllable("SPVR", 0.75);
             lang.Structure.AddSyllable("SPRVP", 0.25);
             lang.Structure.AddSyllable("SPRVN", 0.25);
 
             lang.Structure.AddSyllable("SVN", 0.75);
             lang.Structure.AddSyllable("SVP", 0.75);
             lang.Structure.AddSyllable("SVR", 0.75);
+            lang.Structure.AddSyllable("SVRR", 0.5);
+
             lang.Structure.AddSyllable("SRVN", 0.5);
             lang.Structure.AddSyllable("SRVP", 0.5);
             lang.Structure.AddSyllable("SVN", 0.25);
 
             lang.Structure.AddSyllable("PVR", 0.75);
             lang.Structure.AddSyllable("PVN", 0.5);
+            lang.Structure.AddSyllable("PVRR", 0.5);
 
             lang.Structure.AddSyllable("AVN", 0.75);
             lang.Structure.AddSyllable("AVP", 0.5);
@@ -196,7 +211,7 @@ namespace PLGL.Examples
             lang.Structure.AddSyllable("AVS", 0.1);
 
             lang.OnLetter += (lg, word, letter) =>
-                lg.LETTER_Replace(word, letter, letter.AdjacentLeft, 'ü',
+                lg.LETTER_Replace(letter.AdjacentLeft, 'ü',
                     lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
 
             SetExclusions();
@@ -211,10 +226,31 @@ namespace PLGL.Examples
         }
         private void SetExclusions()
         {
+            #region Letter doubling
+
+            //Force double 'l' consonant if double 'R' group and last letter was 'l'.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(last != null && lg.SELECT_GroupContains(syllable, "RR") && last.Letter.Key == 'l', 'r');
+
+            //Force double 'r' consonant if double 'R' group and last letter was 'r'.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(last != null && lg.SELECT_GroupContains(syllable, "RR") && last.Letter.Key == 'r', 'l');
+
+            //Force double short vowel if double 'o' group and last letter was 'r'.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+            {
+                if (last != null && lg.SELECT_GroupContains(syllable, "oo"))
+                    lg.SELECT_Exclude(true, lg.SELECT_GroupExcept(lg.SELECT_Template(syllable, 1), last.Letter.Key));
+            };
+
+            #endregion
+
+            #region Letter exclusions
+
             //Exclude 'r' if the last letter equals s or sh
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SR") && current == 1 &&
-                    (last.Letter.Key == 's' || last.Letter.Key == 'ŝ'), 'r');
+                    (last.Letter.Key == 's'), 'r');
 
             //Exclude 'l' if the last letter equals th
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
@@ -238,6 +274,10 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(current < max && syllable.Syllable.Template[current + 1].Key == 'P', 'Þ');
 
+            #endregion
+
+            #region 'ng' exclusions
+
             //Exclude 'ng' from 'N' group if its not the last group of the syllable.
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') == false, 'ŋ');
@@ -246,6 +286,13 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_SetWeight('ŋ', 0.025, lg.SELECT_GroupContains(syllable, "N") && lg.SELECT_IsSyllableLast(syllable) == false);
 
+            //Exclude 'ng' from 'N' group if the word has a suffix.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') &&
+                (word.Suffixes != null && word.Suffixes.Count > 0), 'ŋ');
+
+            #endregion
+
             //Removes all complex syllables if not the first syllable.
             //lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
             //    lg.SELECT_Keep(current != 0, "VN", "VP", "VR", "VS");
@@ -253,7 +300,6 @@ namespace PLGL.Examples
             //    lg.SELECT_Exclude(current == 0, "VN", "VP", "VR", "VS");
 
             //Double 'l' if left and right letters are vowels.
-
 
             //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
             lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
@@ -333,15 +379,17 @@ namespace PLGL.Examples
             lang.Lexicon.AddSyllable("sang", "VR", "AVN");
             lang.Lexicon.AddSyllable("sung", "VR", "AVN");
 
+            lang.Lexicon.AddSyllable("star", "SPVR", "VN");
+            lang.Lexicon.AddSyllable("west", "AVR", "VN");
             lang.Lexicon.AddSyllable("ho", "AVS");
 
-            lang.Lexicon.Inflections.Add("a", "om");
+            /*lang.Lexicon.Inflections.Add("a", "om");
             lang.Lexicon.Inflections.Add("an", "om");
             lang.Lexicon.Inflections.Add("the", "lem");
             lang.Lexicon.Inflections.Add("as", "el");
             lang.Lexicon.Inflections.Add("is", "ha");
             lang.Lexicon.Inflections.Add("was", "hel");
-            lang.Lexicon.Inflections.Add("were", "hend");
+            lang.Lexicon.Inflections.Add("were", "hend");*/
 
             /*lang.Lexicon.Inflections.Add("in", "ul");
             lang.Lexicon.Inflections.Add("on", "el");
@@ -380,15 +428,15 @@ namespace PLGL.Examples
             lang.Lexicon.Inflections.Add("why", "Þal");
             lang.Lexicon.Inflections.Add("how", "hïn");*/
 
-            lang.Lexicon.Inflections.Add("ah", "oh");
-            lang.Lexicon.Inflections.Add("ahh", "ohh");
-            lang.Lexicon.Inflections.Add("ahhh", "ohhh");
+            lang.Lexicon.Vocabulary.Add("ah", "oh");
+            lang.Lexicon.Vocabulary.Add("ahh", "ohh");
+            lang.Lexicon.Vocabulary.Add("ahhh", "ohhh");
 
-            lang.Lexicon.Inflections.Add("word", "qen");
-            lang.Lexicon.Inflections.Add("language", "qendin");
-            lang.Lexicon.Inflections.Add("voice", "elis");
-            lang.Lexicon.Inflections.Add("speak", "qenelis");
-            lang.Lexicon.Inflections.Add("speech", "qeneli");
+            lang.Lexicon.Vocabulary.Add("word", "qen");
+            lang.Lexicon.Vocabulary.Add("language", "qendin");
+            lang.Lexicon.Vocabulary.Add("voice", "elis");
+            lang.Lexicon.Vocabulary.Add("speak", "qenelis");
+            lang.Lexicon.Vocabulary.Add("speech", "qeneli");
         }
         private void SetAffixes()
         {
@@ -396,9 +444,9 @@ namespace PLGL.Examples
             lang.Lexicon.Affixes.Add(new Affix("un", "da", Affix.AffixLocation.Prefix, Affix.AffixLocation.Prefix));
 
             //Suffixes
-            lang.Lexicon.Affixes.Add(new Affix("'s", "'en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("'s", "-it", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("ly", "il", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("s", "", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("s", "en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
             lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
 
             //Events

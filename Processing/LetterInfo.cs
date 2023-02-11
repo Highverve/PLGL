@@ -21,10 +21,6 @@ namespace PLGL.Processing
 
         public LetterInfo(Letter letter) { Letter = letter; }
 
-        public override string ToString()
-        {
-            return (string.IsNullOrEmpty(Letter.Name) ? Letter.Name + ": " : "") +
-                Letter.Case.lower + "/" + Letter.Case.upper;
-        }
+        public override string ToString() { return Letter.Case.lower.ToString(); }
     }
 }

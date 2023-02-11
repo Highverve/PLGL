@@ -282,7 +282,7 @@ namespace PLGL
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LOG_Subheader($"GENERATING: {word.WordActual}");
 
-                ProcessLexiconInflections(word);
+                ProcessLexiconVocabulary(word);
                 if (word.SkipLexemes == false)
                     ExtractAffixes(word);
                 else
@@ -359,6 +359,9 @@ namespace PLGL
         {
             if (condition == true)
             {
+                if (Diagnostics.IsSelectEventLog == true)
+                    Diagnostics.LOG_NestLine(6, $"Excluding {letters.Length} keys from group selection: {string.Join('/', letters)}");
+
                 foreach (char letter in letters)
                     letterSelection.RemoveFirst(l => l.letter.Key == letter);
             }
@@ -372,6 +375,9 @@ namespace PLGL
         {
             if (condition == true)
             {
+                if (Diagnostics.IsSelectEventLog == true)
+                    Diagnostics.LOG_NestLine(6, $"Excluding {groups.Length} groups from syllable selection: {string.Join('/', groups)}");
+
                 foreach (string group in groups)
                     syllableSelection.RemoveFirst(s => s.Groups == group);
             }
@@ -520,6 +526,21 @@ namespace PLGL
         {
             return target.Letters.Where(l => l.Group.Key == groupKey).FirstOrDefault();
         }
+        public char[] SELECT_GroupExcept(LetterGroup target, params char[] keep)
+        {
+            List<char> result = new();
+
+            if (keep.Length > 0)
+            {
+                for (int i = 0; i < target.Letters.Count; i++)
+                {
+                    if (keep.Contains(target.Letters[i].letter.Key) == false)
+                        result.Add(target.Letters[i].letter.Key);
+                }
+            }
+
+            return result.ToArray();
+        }
         #endregion
 
         #region SYLLABLE_ methods
@@ -595,7 +616,7 @@ namespace PLGL
         #endregion
 
         #region LETTER_ methods
-        public void LETTER_Replace(WordInfo word, LetterInfo current, LetterInfo target, char letterKey, bool condition)
+        public void LETTER_Replace(LetterInfo target, char letterKey, bool condition)
         {
             if (condition && target != null)
                 target.Letter = Language.Alphabet.Find(letterKey);
@@ -1141,15 +1162,15 @@ namespace PLGL
         /// Checks for matching actual words in Language.Lexicon, and assigns the generated word to the value. Called by CONSTRUCT_Generate.
         /// </summary>
         /// <param name="word"></param>
-        private void ProcessLexiconInflections(WordInfo word)
+        private void ProcessLexiconVocabulary(WordInfo word)
         {
             if (Diagnostics.IsConstructLog == true)
-                Diagnostics.LOG_NestLine(2, "Checking for lexicon inflections");
-            if (Language.Lexicon.Inflections.ContainsKey(word.WordActual.ToLower()))
+                Diagnostics.LOG_NestLine(2, "Checking for lexicon vocabulary");
+            if (Language.Lexicon.Vocabulary.ContainsKey(word.WordActual))
             {
-                word.WordGenerated = Language.Lexicon.Inflections[word.WordActual.ToLower()];
+                word.WordFinal = Language.Lexicon.Vocabulary[word.WordActual];
                 if (Diagnostics.IsConstructLog == true)
-                    Diagnostics.LOG_NestLine(2, $"Inflection found: {word.WordGenerated}");
+                    Diagnostics.LOG_NestLine(2, $"Vocabulary found: {word.WordGenerated}");
             }
         }
         /// <summary>
@@ -1169,13 +1190,13 @@ namespace PLGL
             }
         }
         /// <summary>
-        /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Inflections.
+        /// "Memorizes" the word if the option has been set and the word isn't in Lexicon.Vocabulary
         /// </summary>
         /// <param name="word"></param>
         public void LexiconMemorize(WordInfo word)
         {
-            if (Language.Options.MemorizeWords == true && Language.Lexicon.Inflections.ContainsKey(word.WordActual) == false)
-                Language.Lexicon.Inflections.Add(word.WordActual, word.WordFinal);
+            if (Language.Options.MemorizeWords == true && Language.Lexicon.Vocabulary.ContainsKey(word.WordActual) == false)
+                Language.Lexicon.Vocabulary.Add(word.WordActual, word.WordFinal);
         }
         #endregion
 
@@ -1392,9 +1413,6 @@ namespace PLGL
             {
                 word.Syllables[s].Letters = new List<LetterInfo>();
 
-                if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                    Diagnostics.LOG_Nest(4, $"Syllable [{word.Syllables[s].SyllableIndex}, {word.Syllables[s].Syllable.Groups}] set to ");
-
                 for (int i = 0; i < word.Syllables[s].Syllable.Template.Count; i++)
                 {
                     Letter selection = SelectLetter(word, word.Syllables[s], word.Syllables[s].Syllable.Template[i], i, word.Syllables[s].Syllable.Template.Count - 1);
@@ -1404,12 +1422,10 @@ namespace PLGL
 
                     word.Letters.Add(letter);
                     word.Syllables[s].Letters.Add(letter);
-
-                    if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                        Diagnostics.LogBuilder.Append($"{letter.Letter.Key}");
                 }
+
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                    Diagnostics.LogBuilder.AppendLine();
+                    Diagnostics.LOG_NestLine(4, $"Syllable {word.Syllables[s].Syllable.Groups} set to {string.Concat(word.Syllables[s].Letters)}");
             }
 
             //Link adjacent letters.

@@ -19,6 +19,7 @@ namespace PLGL
         public bool IsDeconstructEventLog { get; set; } = true;
         public bool IsConstructLog { get; set; } = true;
         public bool IsConstructEventLog { get; set; } = true;
+        public bool IsSelectEventLog { get; set; } = true;
 
         public void LOG_Header(string text)
         {

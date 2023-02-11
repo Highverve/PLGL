@@ -141,3 +141,9 @@
 - Added conditional methods: SELECT_GroupsContains, SELECT_GroupsAny, SELECT_IsSyllableFirst, SELECT_IsSyllableLast, SELECT_IsSyllableMiddle, SELECT_IsGroupFirst, SELECT_IsGroupLast, SELECT_IsGroupMiddle.
 - Added returning methods for LetterGroup and LetterInfo: SELECT_Template and SELECT_Letter.
 - Added Syllables to Lexicon. You can now strictly define the syllable structure of words, while letting the generator choose the letters. This is really nice for inflections like "sing", "sang", "sung".
+### 2023-2-10
+- Renamed Inflections to Vocabulary.
+- Added support methods for Vocabulary and Roots.
+- Added SELECT_GroupExcept to LanguageGenerator, which returns all of the LetterGroup keys (as a char array), minus the chars passed through the parameter.
+- Fixed an issue which caused memorized words to have another set of affixes applied on the second attempt.
+- Added a few methods to the diagnostic log.

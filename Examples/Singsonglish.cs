@@ -136,10 +136,10 @@ namespace PLGL.Examples
             lang.Lexicon.Roots.Add("gnom", "laloodi");
             lang.Lexicon.Roots.Add("gnome", "laloodi");
 
-            lang.Lexicon.Inflections.Add("sing", "ladadee");
-            lang.Lexicon.Inflections.Add("sang", "ladali");
-            lang.Lexicon.Inflections.Add("sung", "ladadoo");
-            lang.Lexicon.Inflections.Add("song", "lala");
+            lang.Lexicon.Vocabulary.Add("sing", "ladadee");
+            lang.Lexicon.Vocabulary.Add("sang", "ladali");
+            lang.Lexicon.Vocabulary.Add("sung", "ladadoo");
+            lang.Lexicon.Vocabulary.Add("song", "lala");
         }
         private void SetAffixes()
         {

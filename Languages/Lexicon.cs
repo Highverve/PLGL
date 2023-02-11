@@ -9,13 +9,18 @@ namespace PLGL.Languages
 {
     public class Lexicon
     {
-        public Dictionary<string, string> Inflections { get; private set; } = new Dictionary<string, string>();
-        public Dictionary<string, string> Roots { get; private set; } = new Dictionary<string, string>();
-        public Dictionary<string, Syllable[]> Syllables { get; private set; } = new Dictionary<string, Syllable[]>(StringComparer.InvariantCultureIgnoreCase);
+        public Dictionary<string, string> Vocabulary { get; set; } = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+        public Dictionary<string, string> Roots { get; set; } = new Dictionary<string, string>(StringComparer.InvariantCultureIgnoreCase);
+        public Dictionary<string, Syllable[]> Syllables { get; set; } = new Dictionary<string, Syllable[]>(StringComparer.InvariantCultureIgnoreCase);
 
         private Language language;
         public Lexicon(Language language) { this.language = language; }
 
+        /// <summary>
+        /// This allows a language author to set the syllable structure of a word, while maintaining the letter population process. Perfect for inflections like "sing", "sang", "sung", or for unappealing words.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="syllables"></param>
         public void AddSyllable(string root, params string[] syllables)
         {
             if (Syllables.ContainsKey(root) == false)
@@ -31,12 +36,31 @@ namespace PLGL.Languages
                 Syllables.Add(root, result.ToArray());
             }
         }
+        /// <summary>
+        /// This allows the author to set the root of a word, overriding the usual procedural generation, yet keeping any affixes intact.
+        /// </summary>
+        /// <param name="root"></param>
+        /// <param name="word"></param>
+        public void AddRoot(string root, string word)
+        {
+            if (Roots.ContainsKey(root) == false)
+                Roots.Add(root, word);
+        }
+        /// <summary>
+        /// This allows the author to set the entire word, overriding procedural generation AND affixes.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="output"></param>
+        public void AddVocabulary(string input, string output)
+        {
+            if (Vocabulary.ContainsKey(input) == false)
+                Vocabulary.Add(input, output);
+        }
 
         public List<Affix> Affixes { get; private set; } = new List<Affix>();
         public List<Affix> GetPrefixes(string word)
         {
             List<Affix> results = new List<Affix>();
-            //Double-check: If it's not from longest to shortest: ordered.Reverse();
             List<Affix> prefixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Prefix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             prefixes.Reverse();
@@ -55,7 +79,6 @@ namespace PLGL.Languages
         public List<Affix> GetSuffixes(string word)
         {
             List<Affix> results = new List<Affix>();
-            //Double-check: If it's not from longest to shortest: ordered.Reverse();
             List<Affix> suffixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Suffix)
                                    .OrderBy(s1 => s1.Key.Length).ToList();
             suffixes.Reverse();
@@ -70,6 +93,33 @@ namespace PLGL.Languages
                 }
             }
             return results;
+        }
+
+        public bool ContainsPrefixes(string word)
+        {
+            List<Affix> suffixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Suffix)
+                                   .OrderBy(s1 => s1.Key.Length).ToList();
+            suffixes.Reverse();
+
+            for (int i = 0; i < suffixes.Count; i++)
+            {
+                if (word.ToLower().EndsWith(suffixes[i].Key.ToLower()))
+                    return true;
+            }
+            return false;
+        }
+        public bool ContainsSuffixes(string word)
+        {
+            List<Affix> suffixes = Affixes.Where(s => s.KeyLocation == Affix.AffixLocation.Suffix)
+                                   .OrderBy(s1 => s1.Key.Length).ToList();
+            suffixes.Reverse();
+
+            for (int i = 0; i < suffixes.Count; i++)
+            {
+                if (word.ToLower().EndsWith(suffixes[i].Key.ToLower()))
+                    return true;
+            }
+            return false;
         }
     }
 }
