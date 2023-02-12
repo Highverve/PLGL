@@ -53,7 +53,7 @@ namespace PLGL
     /// <param name="lastSyllable"></param>
     /// <param name="lastLetter"></param>
     public delegate void OnLetterSelect(LanguageGenerator lg, List<(Letter letter, double weight)> selection, WordInfo word,
-        SyllableInfo syllable, LetterInfo lastLetter, int current, int max);
+        SyllableInfo syllable, LetterInfo lastLetter, int currentLetterIndex, int maxLetters);
     /// <summary>
     /// Called before the syllable is chosen. This allows the language author to manipulate the possible syllables in the list.
     /// </summary>
@@ -63,7 +63,7 @@ namespace PLGL
     /// <param name="last"></param>
     /// <param name="max"></param>
     public delegate void OnSyllableSelect(LanguageGenerator lg, List<Syllable> selection, WordInfo word,
-        SyllableInfo last, int current, int max);
+        SyllableInfo lastSyllable, int currentSyllableIndex, int maxSyllables);
 
     public class LanguageGenerator
     {
@@ -289,11 +289,11 @@ namespace PLGL
                     word.WordRoot = word.WordActual;
                 ProcessLexiconRoots(word);
 
-                Random = SetRandom(word.WordRoot);
+                Random = SEED_SetRandom(word.WordRoot);
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
                     Diagnostics.LOG_NestLine(2, $"Seed set to {Seed}");
 
-                if (string.IsNullOrEmpty(word.WordGenerated))
+                if (word.IsRootMatch == false && word.IsVocabMatch == false)
                 {
                     PopulateSyllables(word);
                     PopulateLetters(word);
@@ -302,7 +302,9 @@ namespace PLGL
                 ProcessAffixes(word);
                 AssembleAffixes(word);
 
-                word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+                if (word.IsVocabMatch == false)
+                    word.WordFinal = word.WordPrefixes + word.WordGenerated + word.WordSuffixes;
+
                 word.IsProcessed = true;
 
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
@@ -379,7 +381,7 @@ namespace PLGL
                     Diagnostics.LOG_NestLine(6, $"Excluding {groups.Length} groups from syllable selection: {string.Join('/', groups)}");
 
                 foreach (string group in groups)
-                    syllableSelection.RemoveFirst(s => s.Groups == group);
+                    syllableSelection.RemoveFirst(s => s.Letters == group);
             }
         }
         /// <summary>
@@ -407,7 +409,7 @@ namespace PLGL
         {
             if (condition == true)
             {
-                Syllable s = syllableSelection.Where(s => s.Groups == groups).FirstOrDefault();
+                Syllable s = syllableSelection.Where(s => s.Letters == groups).FirstOrDefault();
 
                 if (s != null)
                     s.WeightMultiplier = multiplier;
@@ -438,7 +440,7 @@ namespace PLGL
         /// <returns></returns>
         public bool SELECT_GroupContains(SyllableInfo target, string group)
         {
-            return target.Syllable.Groups.Contains(group);
+            return target.Syllable.Letters.Contains(group);
         }
         /// <summary>
         /// Returns true if the target syllable's group matches any of the groups.
@@ -449,7 +451,7 @@ namespace PLGL
         public bool SELECT_GroupAny(SyllableInfo target, params string[] groups)
         {
             foreach (string g in groups)
-                if (target.Syllable.Groups == g) return true;
+                if (target.Syllable.Letters == g) return true;
 
             return false;
         }
@@ -489,7 +491,7 @@ namespace PLGL
         public bool SELECT_IsGroupFirst(SyllableInfo target, params char[] groupKeys)
         {
             foreach (char g in groupKeys)
-                if (target.Syllable.Groups.StartsWith(g))
+                if (target.Syllable.Letters.StartsWith(g))
                     return true;
             return false;
         }
@@ -502,7 +504,7 @@ namespace PLGL
         public bool SELECT_IsGroupLast(SyllableInfo target, params char[] groupKeys)
         {
             foreach (char g in groupKeys)
-                if (target.Syllable.Groups.EndsWith(g))
+                if (target.Syllable.Letters.EndsWith(g))
                     return true;
             return false;
         }
@@ -516,6 +518,38 @@ namespace PLGL
         {
             return (SELECT_IsGroupFirst(target, groupKey) &&
                     SELECT_IsGroupLast(target, groupKey)) == false;
+        }
+
+        /// <summary>
+        /// Returns true if the syllable contains any of the tags. Case-sensitive.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        public bool SELECT_TagsAny(Syllable target, params string[] tags)
+        {
+            foreach (string s in tags)
+            {
+                if (target.Tags.Contains(s))
+                    return true;
+            }
+            return false;
+        }
+        /// <summary>
+        /// Returns true if the syllable contains all of the tags. Case-sensitive.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="tags"></param>
+        /// <returns></returns>
+        public bool SELECT_TagsAll(Syllable target, params string[] tags)
+        {
+            int matched = 0;
+            foreach (string s in tags)
+            {
+                if (target.Tags.Contains(s))
+                    matched++;
+            }
+            return matched == tags.Length;
         }
 
         public LetterGroup SELECT_Template(SyllableInfo target, int position)
@@ -572,7 +606,7 @@ namespace PLGL
             if (target != null)
             {
                 foreach (string s in group)
-                    if (target.Syllable.Groups == s)
+                    if (target.Syllable.Letters == s)
                         return true;
             }
             return false;
@@ -807,7 +841,13 @@ namespace PLGL
             char last = char.MinValue;
 
             if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
-            else last = word.WordGenerated.Last();
+            else
+            {
+                if (string.IsNullOrEmpty(word.WordGenerated) == false)
+                    last = word.WordGenerated.Last();
+                else
+                    last = word.WordFinal.Last();
+            }
 
             return last;
         }
@@ -934,20 +974,29 @@ namespace PLGL
 
         #region Random management
         public int Seed { get; private set; }
-        public Random Random { get; set; } = new Random();
+        public bool SEED_EndsAny(params int[] numbers)
+        {
+            foreach (int n in numbers)
+            {
+                if (Seed.ToString().EndsWith(n.ToString()))
+                    return true;
+            }
+            return false;
+        }
 
+        public Random Random { get; set; } = new Random();
         /// <summary>
         /// The foundation of the generator. Initializes a new Random using the root word as its seed.
-        /// This needs to be set in the letters filter in Language.Construction.ConstructFilter, before the call to generate a new word.
-        /// This should be set to the root word.
+        /// This needs to be set in the letters filter in Language.Construction.ConstructFilter,
+        /// before the call to generate a new word, and should be set to the root word.
         /// </summary>
         /// <param name="word"></param>
-        public Random SetRandom(string word)
+        public Random SEED_SetRandom(string word)
         {
-            Seed = WordSeed(word.ToUpper());
+            Seed = SEED_Generate(word.ToUpper());
             return new Random(Seed);
         }
-        private int WordSeed(string word)
+        public int SEED_Generate(string word)
         {
             using var a = System.Security.Cryptography.SHA1.Create();
             return BitConverter.ToInt32(a.ComputeHash(Encoding.UTF8.GetBytes(word))) + Language.Options.SeedOffset;
@@ -1166,9 +1215,12 @@ namespace PLGL
         {
             if (Diagnostics.IsConstructLog == true)
                 Diagnostics.LOG_NestLine(2, "Checking for lexicon vocabulary");
+
             if (Language.Lexicon.Vocabulary.ContainsKey(word.WordActual))
             {
                 word.WordFinal = Language.Lexicon.Vocabulary[word.WordActual];
+                word.IsVocabMatch = true;
+
                 if (Diagnostics.IsConstructLog == true)
                     Diagnostics.LOG_NestLine(2, $"Vocabulary found: {word.WordGenerated}");
             }
@@ -1182,9 +1234,11 @@ namespace PLGL
             if (Diagnostics.IsConstructLog == true)
                 Diagnostics.LOG_NestLine(2, "Checking for lexicon roots");
 
-            if (string.IsNullOrEmpty(word.WordRoot) == false && Language.Lexicon.Roots.ContainsKey(word.WordRoot.ToLower()))
+            if (string.IsNullOrEmpty(word.WordRoot) == false && Language.Lexicon.Roots.ContainsKey(word.WordRoot))
             {
-                word.WordGenerated = Language.Lexicon.Roots[word.WordRoot.ToLower()];
+                word.WordGenerated = Language.Lexicon.Roots[word.WordRoot];
+                word.IsRootMatch = true;
+
                 if (Diagnostics.IsConstructLog == true)
                     Diagnostics.LOG_NestLine(2, $"Root found: {word.WordGenerated}");
             }
@@ -1361,7 +1415,7 @@ namespace PLGL
                     word.Syllables.Add(syllable);
 
                     if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} found in Lexicon: {syllable.Syllable.Groups}");
+                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} found in Lexicon: {syllable.Syllable.Letters}");
                 }
             }
             else
@@ -1379,7 +1433,7 @@ namespace PLGL
                     word.Syllables.Add(syllable);
 
                     if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} set to {syllable.Syllable.Groups}");
+                        Diagnostics.LOG_NestLine(4, $"Syllable {syllable.SyllableIndex} set to {syllable.Syllable.Letters}");
                 }
             }
 
@@ -1425,7 +1479,7 @@ namespace PLGL
                 }
 
                 if (Diagnostics.IsConstructLog == true && Diagnostics.FilterEventExclusion.Contains(word.Filter.Name) == false)
-                    Diagnostics.LOG_NestLine(4, $"Syllable {word.Syllables[s].Syllable.Groups} set to {string.Concat(word.Syllables[s].Letters)}");
+                    Diagnostics.LOG_NestLine(4, $"Syllable {word.Syllables[s].Syllable.Letters} set to {string.Concat(word.Syllables[s].Letters)}");
             }
 
             //Link adjacent letters.

@@ -21,6 +21,19 @@ namespace PLGL.Processing
         public bool IsProcessed { get; set; } = false;
         public bool SkipLexemes { get; set; } = false;
 
+        /// <summary>
+        /// Set to true if the actual word matches a key in Lexicon.Vocabulary.
+        /// </summary>
+        public bool IsVocabMatch { get; set; } = false;
+        /// <summary>
+        /// Set to true if the actual word matches a key in Lexicon.Roots.
+        /// </summary>
+        public bool IsRootMatch { get; set; } = false;
+        /// <summary>
+        /// Set to true if the actual word matches a key in Lexicon.Syllables.
+        /// </summary>
+        public bool IsSyllableMatch { get; set; } = false;
+
         public CharacterFilter? Filter { get; set; }
         /// <summary>
         /// This will always be null for the first word in a sentence. Account for it.

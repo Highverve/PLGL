@@ -24,7 +24,7 @@ namespace PLGL.Languages
         public Dictionary<string, Syllable> Syllables { get; set; } = new Dictionary<string, Syllable>();
 
         public List<Syllable> SortedSyllables { get; set; } = new List<Syllable>();
-        private void SortList() { SortedSyllables = Syllables.Values.OrderBy((s) => s.Groups).ToList(); }
+        private void SortList() { SortedSyllables = Syllables.Values.OrderBy((s) => s.Letters).ToList(); }
 
         public void AddGroup(char key, string name, params (char letter, double weight)[] letters)
         {
@@ -47,23 +47,27 @@ namespace PLGL.Languages
                 LetterGroups.Add(key, group);
             }
         }
-        public void AddSyllable(string groups, double weight)
+        public void AddSyllable(string letterGroups, double weight)
         {
-            if (Syllables.ContainsKey(groups) == false)
+            AddSyllable(letterGroups, weight, Array.Empty<string>());
+        }
+        public void AddSyllable(string letterGroups, double weight, params string[] tags)
+        {
+            if (Syllables.ContainsKey(letterGroups) == false)
             {
-                Syllable s = new Syllable(groups, weight);
+                Syllable s = new Syllable(letterGroups, weight, tags);
 
-                for (int i = 0; i < s.Groups.Length; i++)
+                for (int i = 0; i < s.Letters.Length; i++)
                 {
-                    if (LetterGroups.ContainsKey(s.Groups[i]))
-                        s.Template.Add(LetterGroups[s.Groups[i]]);
+                    if (LetterGroups.ContainsKey(s.Letters[i]))
+                        s.Template.Add(LetterGroups[s.Letters[i]]);
                     else
                     {
                         //Output issue
                     }
                 }
 
-                Syllables.Add(groups, s);
+                Syllables.Add(letterGroups, s);
                 SortList();
             }
         }

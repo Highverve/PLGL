@@ -18,35 +18,37 @@ namespace PLGL.Data
 
     public class Syllable
     {
-        public string Groups { get; set; }
+        /// <summary>
+        /// The group this syllable belongs to. This can be anything, and is useful for excluding specific syllables in the OnSyllableSelect event.
+        /// </summary>
+        public string[] Tags { get; set; }
+        /// <summary>
+        /// The LetterGroup structure. This is Template as a string.
+        /// </summary>
+        public string Letters { get; set; }
+        /// <summary>
+        /// The LetterGroup structure. This matches Letters.
+        /// </summary>
+        public List<LetterGroup> Template { get; set; } = new List<LetterGroup>();
+
+        /// <summary>
+        /// Determines how frequently the syllable will appear, relative to all over syllables and their weights.
+        /// </summary>
         public double Weight { get; set; }
         /// <summary>
         /// Set by OnSyllableSelect.
         /// </summary>
         public double WeightMultiplier { get; set; } = 1.0;
-        /// <summary>
-        /// The letter group template as set by Groups.
-        /// </summary>
-        public List<LetterGroup> Template { get; set; } = new List<LetterGroup>();
 
-        public Syllable(string Keys, double Weight)
+        public Syllable(string Keys, double Weight, string[] Tags)
         {
-            this.Groups = Keys;
+            this.Letters = Keys;
             this.Weight = Weight;
+            this.Tags = Tags;
         }
+        public Syllable(string Keys, double Weight)
+            : this(Keys, Weight, Array.Empty<string>()) { }
 
-        internal void Initialize(Language language)
-        {
-            for (int i = 0; i < Groups.Length; i++)
-            {
-                if (language.Structure.LetterGroups.ContainsKey(Groups[i]))
-                    Template.Add(language.Structure.LetterGroups[Groups[i]]);
-                else
-                {
-                    //Output issue
-                }
-            }
-        }
-        public override string ToString() { return Groups; }
+        public override string ToString() { return Letters; }
     }
 }

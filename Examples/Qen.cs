@@ -148,71 +148,76 @@ namespace PLGL.Examples
         {
             lang.Structure.AddGroup('V', "Vowels", ('a', 5.0), ('e', 7.0), ('i', 3.0), ('o', 5.0), ('u', 7.0),
                                                ('ä', 2.0), ('ë', 5.0), ('ï', 3.0), ('ö', 6.0), ('ü', 1.0));
-            lang.Structure.AddGroup('o', "Vowels (short)", ('a', 1.0), ('e', 1.0), ('u', 1.0), ('o', 1.0), ('u', 1.0));
-            lang.Structure.AddGroup('O', "Vowels (long)", ('ä', 1.0), ('ë', 1.0), ('ï', 1.0), ('ö', 1.0), ('ü', 1.0));
-
             lang.Structure.AddGroup('N', "Nasal", ('m', 10.0), ('n', 10.0), ('ŋ', 10.0));
             lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
-            lang.Structure.AddGroup('F', "Fricative", ('f', 10.0), ('v', 1.0), ('s', 10.0), ('z', 1.0));
-            lang.Structure.AddGroup('f', "Fricative f", ('f', 10.0));
-            lang.Structure.AddGroup('S', "S/SH/TH/ZH", ('s', 10.0), ('ŝ', 1.0), ('Þ', 1.0), ('ż', 0.1));
-            lang.Structure.AddGroup('A', "Approximant", ('w', 1.0), ('y', 1.0), ('h', 1.0), ('q', 0.1));
-            lang.Structure.AddGroup('R', "R / L", ('r', 50), ('l', 50));
+            lang.Structure.AddGroup('F', "F/V", ('f', 10.0), ('v', 1.0));
+            lang.Structure.AddGroup('S', "S/SH/TH/Z/ZH", ('s', 10.0), ('ŝ', 1.0), ('Þ', 1.0), ('z', 1.0), ('ż', 0.1));
+            lang.Structure.AddGroup('A', "W/Y/H/Q", ('w', 1.0), ('y', 1.0), ('h', 1.0), ('q', 0.1));
+            lang.Structure.AddGroup('R', "R/L", ('r', 50), ('l', 50));
 
-            lang.Structure.AddSyllable("VN", 0.75);
-            lang.Structure.AddSyllable("VP", 0.5);
-            lang.Structure.AddSyllable("VR", 1.0);
-            lang.Structure.AddSyllable("VS", 0.75);
+            //I define the "Simple" tag as containing no more than an onset-nucleus or nucleus-coda combination.
+            lang.Structure.AddSyllable("VN", 0.75, "Simple");
+            lang.Structure.AddSyllable("VP", 0.5, "Simple");
+            lang.Structure.AddSyllable("VR", 1.0, "Simple");
+            lang.Structure.AddSyllable("VS", 0.75, "Simple");
 
-            lang.Structure.AddSyllable("ooN", 0.01);
-            lang.Structure.AddSyllable("ooP", 0.075);
-            lang.Structure.AddSyllable("ooR", 0.05);
+            lang.Structure.AddSyllable("NV", 0.75, "Simple");
+            lang.Structure.AddSyllable("PV", 0.5, "Simple");
+            lang.Structure.AddSyllable("RV", 0.3, "Simple");
+            lang.Structure.AddSyllable("FV", 0.25, "Simple");
 
-            lang.Structure.AddSyllable("NV", 0.75);
-            lang.Structure.AddSyllable("PV", 0.5);
-            lang.Structure.AddSyllable("RV", 0.3);
-            lang.Structure.AddSyllable("FV", 0.25);
+            //I define the "Medium" tag as containing only three letter groups (thus, a onset-nucleus-coda pattern),
+            //and also double consonant ends.
 
-            lang.Structure.AddSyllable("FVN", 1.0);
-            lang.Structure.AddSyllable("FVP", 0.25);
-            lang.Structure.AddSyllable("FVR", 0.85);
-            lang.Structure.AddSyllable("fRVN", 0.25);
-            lang.Structure.AddSyllable("fRVP", 0.25);
-            lang.Structure.AddSyllable("FVRR", 0.25);
+            lang.Structure.AddSyllable("NVN", 0.75, "Medium");
+            lang.Structure.AddSyllable("NVP", 0.75, "Medium");
+            lang.Structure.AddSyllable("NVR", 0.5, "Medium");
+            lang.Structure.AddSyllable("NVF", 0.25, "Medium");
+            lang.Structure.AddSyllable("NVRR", 0.25, "Medium", "DoubleEnd");
 
-            //lang.Structure.AddSyllable("NVN", 0.75);
-            lang.Structure.AddSyllable("NVP", 0.75);
-            lang.Structure.AddSyllable("NVR", 0.5);
-            lang.Structure.AddSyllable("NVF", 0.25);
-            lang.Structure.AddSyllable("NVRR", 0.25);
-            lang.Structure.AddSyllable("NVRN", 0.25);
+            lang.Structure.AddSyllable("PVN", 0.5, "Medium");
+            lang.Structure.AddSyllable("PVF", 0.25, "Medium");
+            lang.Structure.AddSyllable("PVR", 0.75, "Medium");
+            lang.Structure.AddSyllable("PVRR", 0.5, "Medium", "DoubleEnd");
 
-            lang.Structure.AddSyllable("SPVN", 1.5);
-            lang.Structure.AddSyllable("SPVR", 0.75);
-            lang.Structure.AddSyllable("SPRVP", 0.25);
-            lang.Structure.AddSyllable("SPRVN", 0.25);
+            lang.Structure.AddSyllable("FVN", 0.75, "Medium");
+            lang.Structure.AddSyllable("FVP", 0.25, "Medium");
+            lang.Structure.AddSyllable("FVR", 0.85, "Medium");
+            lang.Structure.AddSyllable("FVRR", 0.25, "Medium", "DoubleEnd");
 
-            lang.Structure.AddSyllable("SVN", 0.75);
-            lang.Structure.AddSyllable("SVP", 0.75);
-            lang.Structure.AddSyllable("SVR", 0.75);
-            lang.Structure.AddSyllable("SVRR", 0.5);
+            lang.Structure.AddSyllable("SVN", 0.75, "Medium");
+            lang.Structure.AddSyllable("SVP", 0.75, "Medium");
+            lang.Structure.AddSyllable("SVF", 0.25, "Medium");
+            lang.Structure.AddSyllable("SVR", 0.75, "Medium");
+            lang.Structure.AddSyllable("SVRR", 0.5, "Medium", "DoubleEnd");
 
-            lang.Structure.AddSyllable("SRVN", 0.5);
-            lang.Structure.AddSyllable("SRVP", 0.5);
-            lang.Structure.AddSyllable("SVN", 0.25);
+            lang.Structure.AddSyllable("AVN", 0.75, "Medium");
+            lang.Structure.AddSyllable("AVP", 0.5, "Medium");
+            lang.Structure.AddSyllable("AVR", 0.3, "Medium");
+            lang.Structure.AddSyllable("AVS", 0.1, "Medium");
 
-            lang.Structure.AddSyllable("PVR", 0.75);
-            lang.Structure.AddSyllable("PVN", 0.5);
-            lang.Structure.AddSyllable("PVRR", 0.5);
+            //I define the "Complex" tag as having more than one group in either or both of its onset or coda.
+            lang.Structure.AddSyllable("NVRN", 0.25, "Complex");
+            lang.Structure.AddSyllable("NVRS", 0.05, "Complex");
 
-            lang.Structure.AddSyllable("AVN", 0.75);
-            lang.Structure.AddSyllable("AVP", 0.5);
-            lang.Structure.AddSyllable("AVR", 0.3);
-            lang.Structure.AddSyllable("AVS", 0.1);
+            lang.Structure.AddSyllable("PRVN", 0.25, "Complex");
+            lang.Structure.AddSyllable("PRVP", 0.25, "Complex");
+            lang.Structure.AddSyllable("PRVS", 0.25, "Complex");
+            lang.Structure.AddSyllable("PVRN", 0.1, "Complex");
+            lang.Structure.AddSyllable("PVRP", 0.3, "Complex");
+            lang.Structure.AddSyllable("PVRS", 0.25, "Complex");
+            lang.Structure.AddSyllable("PVNS", 0.05, "Complex");
 
-            lang.OnLetter += (lg, word, letter) =>
-                lg.LETTER_Replace(letter.AdjacentLeft, 'ü',
-                    lg.LETTER_Any(letter.AdjacentLeft, 'u') && letter.Letter.Key == 'l');
+            lang.Structure.AddSyllable("FRVN", 0.25, "Complex");
+            lang.Structure.AddSyllable("FRVP", 0.25, "Complex");
+            lang.Structure.AddSyllable("FRVS", 0.25, "Complex");
+
+            lang.Structure.AddSyllable("SPVN", 0.35, "Complex");
+            lang.Structure.AddSyllable("SPVR", 0.35, "Complex");
+            lang.Structure.AddSyllable("SRVN", 0.5, "Complex");
+            lang.Structure.AddSyllable("SRVP", 0.5, "Complex");
+            lang.Structure.AddSyllable("SPRVP", 0.25, "Complex");
+            lang.Structure.AddSyllable("SPRVN", 0.25, "Complex");
 
             SetExclusions();
 
@@ -226,7 +231,7 @@ namespace PLGL.Examples
         }
         private void SetExclusions()
         {
-            #region Letter doubling
+            #region 'R' doubling rules
 
             //Force double 'l' consonant if double 'R' group and last letter was 'l'.
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
@@ -236,18 +241,45 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(last != null && lg.SELECT_GroupContains(syllable, "RR") && last.Letter.Key == 'r', 'l');
 
-            //Force double short vowel if double 'o' group and last letter was 'r'.
+            #endregion
+
+
+            #region 'N' exclusion rules
+
+            //Exclude 'ng' from 'N' group if its the first group of the syllable.
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
-            {
-                if (last != null && lg.SELECT_GroupContains(syllable, "oo"))
-                    lg.SELECT_Exclude(true, lg.SELECT_GroupExcept(lg.SELECT_Template(syllable, 1), last.Letter.Key));
-            };
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "N") &&
+                lg.SELECT_Template(syllable, 0).Key == 'N', 'ŋ');
+
+            //Exclude 'ng' from 'N' group if its not the last group of the syllable.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "NN") &&
+                lg.SELECT_Template(syllable, 2).Key == 'N', 'ŋ');
+
+            //Reduces 'ng' weight multiplier from 'n' group if its not the last syllable of the word.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_SetWeight('ŋ', 0.025, lg.SELECT_GroupContains(syllable, "N") && lg.SELECT_IsSyllableLast(syllable) == false);
+
+            //Exclude 'ng' from 'N' group if the word has a suffix.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') &&
+                (word.Suffixes != null && word.Suffixes.Count > 0), 'ŋ');
+
+            //Exclude 'n' if the syllable is NVN and the first generated letter was 'm'
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "NVN") && current == 2 &&
+                    (syllable.Letters.FirstOrDefault().Letter.Key == 'n'), 'n');
+
+            //Exclude 'm' if the syllable is NVN and the first generated letter was 'm'
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "NVN") && current == 2 &&
+                    (syllable.Letters.FirstOrDefault().Letter.Key == 'm'), 'm');
 
             #endregion
 
-            #region Letter exclusions
+            #region 'R' exclusion rules
 
-            //Exclude 'r' if the last letter equals s or sh
+            //Exclude 'r' if the last letter equals s
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SR") && current == 1 &&
                     (last.Letter.Key == 's'), 'r');
@@ -256,6 +288,17 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "SR") && current == 1 &&
                     (last.Letter.Key == 'Þ'), 'l');
+
+            //Exclude 'l' if the last leter equals d or t
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "PR") && current == 1 &&
+                    (last.Letter.Key == 'd' || last.Letter.Key == 't'), 'l');
+
+            #endregion
+
+            //Exclude 'v' from 'F' if the next group is 'R'.
+            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
+                lg.SELECT_Exclude(lg.SELECT_GroupContains(syllable, "FR") && current == 0, 'v');
 
             //Exclude 'b', 'd', and 'g' if the last letter equals s or ŝ
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
@@ -274,31 +317,30 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(current < max && syllable.Syllable.Template[current + 1].Key == 'P', 'Þ');
 
-            #endregion
-
-            #region 'ng' exclusions
-
-            //Exclude 'ng' from 'N' group if its not the last group of the syllable.
-            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
-                lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') == false, 'ŋ');
-
-            //Reduces the weight of 'ng' from 'n' group if its not the last syllable of the word.
-            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
-                lg.SELECT_SetWeight('ŋ', 0.025, lg.SELECT_GroupContains(syllable, "N") && lg.SELECT_IsSyllableLast(syllable) == false);
-
-            //Exclude 'ng' from 'N' group if the word has a suffix.
-            lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
-                lg.SELECT_Exclude(lg.SELECT_IsGroupLast(syllable, 'N') &&
-                (word.Suffixes != null && word.Suffixes.Count > 0), 'ŋ');
-
-            #endregion
+            //Excludes the last syllable group by tag from the current selection.
+            //This produces a pattern of simple-complex-medium-complex-simple-medium-etc.
+            /*lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
+            {
+                if (current > 0)
+                {
+                    for (int i = 0; i < selection.Count; i++)
+                    {
+                        if (lg.SELECT_TagsAny(selection[i], syllable.Syllable.Tags[0]))
+                        {
+                            selection.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
+            };*/
 
             //Removes all complex syllables if not the first syllable.
-            //lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            //lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
             //    lg.SELECT_Keep(current != 0, "VN", "VP", "VR", "VS");
-            //lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
+            //lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
             //    lg.SELECT_Exclude(current == 0, "VN", "VP", "VR", "VS");
 
+            //
             //Double 'l' if left and right letters are vowels.
 
             //Last syllable ends in consonant; therefore, the current syllable *must* start with a vowel.
@@ -342,7 +384,7 @@ namespace PLGL.Examples
                     }
                 }
             };
-
+            
             //Excludes duplicate vowels, preventing two vowels from occuring in neighbouring syllables.
             lang.OnLetterSelection += (lg, selection, word, syllable, letter, current, max) =>
             {
@@ -383,13 +425,13 @@ namespace PLGL.Examples
             lang.Lexicon.AddSyllable("west", "AVR", "VN");
             lang.Lexicon.AddSyllable("ho", "AVS");
 
-            /*lang.Lexicon.Inflections.Add("a", "om");
-            lang.Lexicon.Inflections.Add("an", "om");
-            lang.Lexicon.Inflections.Add("the", "lem");
-            lang.Lexicon.Inflections.Add("as", "el");
-            lang.Lexicon.Inflections.Add("is", "ha");
-            lang.Lexicon.Inflections.Add("was", "hel");
-            lang.Lexicon.Inflections.Add("were", "hend");*/
+            lang.Lexicon.Vocabulary.Add("a", "o");
+            lang.Lexicon.Vocabulary.Add("an", "olt");
+            lang.Lexicon.Vocabulary.Add("the", "lo");
+            lang.Lexicon.Vocabulary.Add("as", "egel");
+            lang.Lexicon.Vocabulary.Add("is", "ha");
+            lang.Lexicon.Vocabulary.Add("was", "hel");
+            lang.Lexicon.Vocabulary.Add("were", "hend");
 
             /*lang.Lexicon.Inflections.Add("in", "ul");
             lang.Lexicon.Inflections.Add("on", "el");

@@ -147,3 +147,9 @@
 - Added SELECT_GroupExcept to LanguageGenerator, which returns all of the LetterGroup keys (as a char array), minus the chars passed through the parameter.
 - Fixed an issue which caused memorized words to have another set of affixes applied on the second attempt.
 - Added a few methods to the diagnostic log.
+### 2023-2-11
+- Fixed an issue caused by the double affix fix from yesterday, which allowed the generator to overwrite custom vocabulary words.
+- Renamed Syllable.Groups to Letters, and cleaned up the Syllable class.
+- Added string Group to Syllable. This can be anything, and is useful for excluding specific syllables in the OnSyllableSelect event.
+- Deleted SyllablePath, as it wasn't needed.
+- Added conditional methods: SELECT_TagsAny and SELECT_TagsAll. As an example, these can be used to exclude syllables by tag in the OnSyllableSelect event.
