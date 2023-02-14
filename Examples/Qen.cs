@@ -152,8 +152,11 @@ namespace PLGL.Examples
             lang.Structure.AddGroup('P', "Plosive", ('b', 12.0), ('p', 4.0), ('d', 5.0), ('t', 3.0), ('g', 5.0), ('k', 1.0));
             lang.Structure.AddGroup('F', "F/V", ('f', 10.0), ('v', 1.0));
             lang.Structure.AddGroup('S', "S/SH/TH/Z/ZH", ('s', 10.0), ('ŝ', 1.0), ('Þ', 1.0), ('z', 1.0), ('ż', 0.1));
-            lang.Structure.AddGroup('A', "W/Y/H/Q", ('w', 1.0), ('y', 1.0), ('h', 1.0), ('q', 0.1));
+            lang.Structure.AddGroup('A', "W/Y/H/Q", ('w', 1.0), ('y', 1.0), ('h', 1.0), ('q', 0.1)); //These contain a few (A)pproximants
             lang.Structure.AddGroup('R', "R/L", ('r', 50), ('l', 50));
+
+            //
+            lang.Structure.AddSyllable("V", 1.0, "Simple");
 
             //I define the "Simple" tag as containing no more than an onset-nucleus or nucleus-coda combination.
             lang.Structure.AddSyllable("VN", 0.75, "Simple");
@@ -317,6 +320,20 @@ namespace PLGL.Examples
             lang.OnLetterSelection += (lg, selection, word, syllable, last, current, max) =>
                 lg.SELECT_Exclude(current < max && syllable.Syllable.Template[current + 1].Key == 'P', 'Þ');
 
+            #region 'V' exclusion rules
+
+            //Vowel rule exclusion for doubling vowels (where each vowel is it's own syllable, not as a gliding vowel):
+            //  1. The last syllable ends in 'V'
+            //  2. The last syllable is NOT equal to "V"
+            //  3. And, the word's seed ends in 2, 5, or 7.
+            lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
+                lg.SELECT_Keep(syllable != null &&
+                lg.SELECT_IsGroupLast(syllable, 'V') &&
+                syllable.Syllable.Letters != "V" &&
+                lg.SEED_EndsAny(2,5,7), "V");
+
+            #endregion
+
             //Excludes the last syllable group by tag from the current selection.
             //This produces a pattern of simple-complex-medium-complex-simple-medium-etc.
             /*lang.OnSyllableSelection += (lg, selection, word, syllable, current, max) =>
@@ -433,6 +450,8 @@ namespace PLGL.Examples
             lang.Lexicon.Vocabulary.Add("was", "hel");
             lang.Lexicon.Vocabulary.Add("were", "hend");
 
+            lang.Lexicon.Vocabulary.Add("of", "ha");
+
             /*lang.Lexicon.Inflections.Add("in", "ul");
             lang.Lexicon.Inflections.Add("on", "el");
             lang.Lexicon.Inflections.Add("at", "ön");
@@ -483,13 +502,14 @@ namespace PLGL.Examples
         private void SetAffixes()
         {
             //Prefixes
-            lang.Lexicon.Affixes.Add(new Affix("un", "da", Affix.AffixLocation.Prefix, Affix.AffixLocation.Prefix));
+            lang.Lexicon.Affixes.Add(new Affix("un", "da", Affix.AffixLocation.Prefix, Affix.AffixLocation.Prefix, LetterGroups:"PV"));
 
             //Suffixes
-            lang.Lexicon.Affixes.Add(new Affix("'s", "-it", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("ly", "il", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("s", "en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
-            lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix));
+            lang.Lexicon.Affixes.Add(new Affix("'s", "-it", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, LetterGroups: "VP"));
+            lang.Lexicon.Affixes.Add(new Affix("ly", "il", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, LetterGroups: "VR"));
+            lang.Lexicon.Affixes.Add(new Affix("s", "en", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, LetterGroups: "VN"));
+            lang.Lexicon.Affixes.Add(new Affix("less", "nöl", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, LetterGroups: "NVR"));
+            lang.Lexicon.Affixes.Add(new Affix("ing", "arel", Affix.AffixLocation.Suffix, Affix.AffixLocation.Suffix, LetterGroups: "VRVR"));
 
             //Events
             lang.OnPrefix += (lg, word, current) => lg.AFFIX_Insert(word, current, "un", "l", 2, lg.AFFIX_VowelFirst(word, current));

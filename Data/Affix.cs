@@ -13,6 +13,7 @@ namespace PLGL.Data
 
         public enum AffixLocation { Prefix, Suffix }
         public int Order { get; set; }
+        public string LetterGroups { get; set; }
 
         /// <summary>
         /// What type of affix is it? This tells the generator where to look for the affix.
@@ -23,13 +24,15 @@ namespace PLGL.Data
         /// </summary>
         public AffixLocation ValueLocation { get; set; }
 
-        public Affix(string Key, string Value, AffixLocation KeyLocation, AffixLocation ValueLocation, int Order = 0)
+        public Affix(string Key, string Value, AffixLocation KeyLocation, AffixLocation ValueLocation,
+            int Order = 0, string LetterGroups = "")
         {
             this.Key = Key;
             this.Value = Value;
             this.KeyLocation = KeyLocation;
             this.ValueLocation = ValueLocation;
             this.Order = Order;
+            this.LetterGroups = LetterGroups;
         }
     }
 }

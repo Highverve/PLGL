@@ -695,7 +695,9 @@ namespace PLGL
         /// <param name="insert"></param>
         /// <param name="insertIndex"></param>
         /// <param name="condition"></param>
-        public void AFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert, int insertIndex, bool condition)
+        /// <param name="letterGroups"></param>
+        public void AFFIX_Insert(WordInfo word, AffixInfo current, string affixKey, string insert,
+            int insertIndex, bool condition)
         {
             if (current.IsProcessed == false && current.Affix.Key.ToUpper() == affixKey.ToUpper())
             {
@@ -904,13 +906,13 @@ namespace PLGL
         /// <summary>
         /// Sets how the generator counts a root's syllables. Default is EnglishSigmaCount (C/V border checking).
         /// </summary>
-        public Func<string, int> SigmaCount { get; set; }
+        public Func<string, int> CountSyllables { get; set; }
         /// <summary>
         /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        public int EnglishSigmaCount(string word)
+        public int EnglishSyllableCount(string word)
         {
             if (word.ToLower().EndsWith("es"))
                 word = word.Substring(0, word.Length - 2);
@@ -958,7 +960,7 @@ namespace PLGL
         /// </summary>
         /// <param name="word"></param>
         /// <returns></returns>
-        public int CharacterSigmaCount(string word)
+        public int CharacterSyllableCount(string word)
         {
             int result = 0;
 
@@ -973,7 +975,7 @@ namespace PLGL
         #endregion
 
         #region Random management
-        public int Seed { get; private set; }
+        public int Seed { get; set; }
         public bool SEED_EndsAny(params int[] numbers)
         {
             foreach (int n in numbers)
@@ -996,6 +998,10 @@ namespace PLGL
             Seed = SEED_Generate(word.ToUpper());
             return new Random(Seed);
         }
+        public Random SEED_SetRandom(int seed)
+        {
+            return new Random(Seed = seed);
+        }
         public int SEED_Generate(string word)
         {
             using var a = System.Security.Cryptography.SHA1.Create();
@@ -1006,14 +1012,14 @@ namespace PLGL
 
         public LanguageGenerator()
         {
-            SigmaCount = EnglishSigmaCount;
+            CountSyllables = EnglishSyllableCount;
 
             CASE_Capitalize = CASE_CapitalizeDefault;
             CASE_Uppercase = CASE_UpperDefault;
             CASE_Random = CASE_RandomDefault;
 
             Deconstruct = new Deconstructor();
-            Diagnostics = new Diagnostics();
+            Diagnostics = new Diagnostics(this);
             Deconstruct.Diagnostics = Diagnostics;
         }
 
@@ -1283,7 +1289,12 @@ namespace PLGL
                 {
                     if (affixes[i].ValueLocation == Affix.AffixLocation.Prefix)
                     {
-                        word.Prefixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
+                        word.Prefixes.Add(current = new AffixInfo()
+                        {
+                            Affix = affixes[i],
+                            AffixText = affixes[i].Value,
+                            LetterGroups = affixes[i].LetterGroups
+                        });
 
                         if (Language.Options.AffixCustomOrder == false)
                         {
@@ -1299,8 +1310,12 @@ namespace PLGL
 
                     if (affixes[i].ValueLocation == Affix.AffixLocation.Suffix)
                     {
-                        word.Suffixes.Add(current = new AffixInfo() { Affix = affixes[i], AffixText = affixes[i].Value });
-
+                        word.Suffixes.Add(current = new AffixInfo()
+                        {
+                            Affix = affixes[i],
+                            AffixText = affixes[i].Value,
+                            LetterGroups = affixes[i].LetterGroups
+                        });
                         if (Language.Options.AffixCustomOrder == false)
                         {
                             suffixIndex++;
@@ -1420,7 +1435,7 @@ namespace PLGL
             }
             else
             {
-                int count = Math.Max((int)(SigmaCount(word.WordRoot) *
+                int count = Math.Max((int)(CountSyllables(word.WordRoot) *
                     NextDouble(Language.Options.SyllableSkewMin, Language.Options.SyllableSkewMax)), 1);
 
                 for (int i = 0; i < count; i++)

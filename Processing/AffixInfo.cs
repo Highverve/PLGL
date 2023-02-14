@@ -15,6 +15,10 @@ namespace PLGL.Processing
         /// Set to the Affix.Value. Can be changed by OnPrefix or OnSuffix depending on affix context.
         /// </summary>
         public string AffixText { get; set; }
+        /// <summary>
+        /// Set to Affix.LetterGroups by the generator. Can be modified if a letter is inserted or removed.
+        /// </summary>
+        public string LetterGroups { get; set; }
 
         public AffixInfo AdjacentLeft { get; set; }
         public AffixInfo AdjacentRight { get; set; }
