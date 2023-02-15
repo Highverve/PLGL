@@ -49,7 +49,7 @@ Lo manäs ha Enna, saŋ nebö fökum belidëf
 Fe skenälen sof ürur egel ü mërrublan ëlen
 ```
 
-In fictional Japanese language (seed offset set to 6), in Romaji and Hiragana:
+Now in a fictional Japanese language (seed offset set to 6 — Romaji and Hiragana):
 ```
 pa mene ta wadagomo sudere ba ki musaha、
 ぱ めね た わだごも すでれ ば き むさは、
