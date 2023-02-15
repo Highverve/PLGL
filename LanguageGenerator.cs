@@ -21,14 +21,6 @@ namespace PLGL
     /// <param name="lg"></param>
     /// <param name="word"></param>
     public delegate void OnConstruct(LanguageGenerator lg, WordInfo word);
-    public delegate void OnSyllable(LanguageGenerator lg, WordInfo word, SyllableInfo syllable);
-    /// <summary>
-    /// Allows manipulation of the generated word's letters.
-    /// </summary>
-    /// <param name="lg"></param>
-    /// <param name="word"></param>
-    /// <param name="letter"></param>
-    public delegate void OnLetter(LanguageGenerator lg, WordInfo word, LetterInfo current);
     /// <summary>
     /// Allows manipulation of the word's prefixes. Called after word generation.
     /// </summary>
@@ -399,6 +391,7 @@ namespace PLGL
                         syllableSelection.Add(Language.Structure.Syllables[s]);
             }
         }
+
         /// <summary>
         /// Sets the weight multiplier of the syllable, if the group is found and the condition is met.
         /// </summary>
@@ -902,78 +895,6 @@ namespace PLGL
         }
         #endregion
 
-        #region Syllable counting
-        /// <summary>
-        /// Sets how the generator counts a root's syllables. Default is EnglishSigmaCount (C/V border checking).
-        /// </summary>
-        public Func<string, int> CountSyllables { get; set; }
-        /// <summary>
-        /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public int EnglishSyllableCount(string word)
-        {
-            if (word.ToLower().EndsWith("es"))
-                word = word.Substring(0, word.Length - 2);
-            if (word.ToLower().EndsWith("ed"))
-                word = word.Substring(0, word.Length - 2);
-
-            string cv = string.Empty;
-
-            foreach (char c in word)
-            {
-                if (Language.Options.InputConsonants.Contains(c)) cv += 'c';
-                if (Language.Options.InputVowels.Contains(c)) cv += 'v';
-            }
-
-            int result = 0;
-            while (cv.Length > 1)
-            {
-
-                //Check for consonant-vowel border.
-                if (cv[0] == 'c' && cv[1] == 'v' ||
-                    cv[0] == 'v' && cv[1] == 'c')
-                {
-                    result++;
-                    cv = cv.Remove(0, Math.Min(cv.Length, 2));
-                }
-
-                if (cv.Length <= 1)
-                    break;
-
-                //If double consonant or vowel, remove one.
-                if (cv[0] == 'c' && cv[1] == 'c' ||
-                    cv[0] == 'v' && cv[1] == 'v')
-                {
-                    cv = cv.Remove(0, 1);
-                }
-            }
-
-            if (word.Length > 0 && result == 0)
-                result = 1;
-
-            return result;
-        }
-        /// <summary>
-        /// Counts each valid character found in Language.Options.InputConsonants and InputVowels. More ideal for languages where each letter may be a syllable.
-        /// </summary>
-        /// <param name="word"></param>
-        /// <returns></returns>
-        public int CharacterSyllableCount(string word)
-        {
-            int result = 0;
-
-            foreach (char c in word)
-            {
-                if (Language.Options.InputConsonants.Contains(c)) result++;
-                if (Language.Options.InputVowels.Contains(c)) result++;
-            }
-
-            return result;
-        }
-        #endregion
-
         #region Random management
         public int Seed { get; set; }
         public bool SEED_EndsAny(params int[] numbers)
@@ -1000,7 +921,8 @@ namespace PLGL
         }
         public Random SEED_SetRandom(int seed)
         {
-            return new Random(Seed = seed);
+            Seed = seed;
+            return new Random(Seed);
         }
         public int SEED_Generate(string word)
         {
@@ -1012,8 +934,6 @@ namespace PLGL
 
         public LanguageGenerator()
         {
-            CountSyllables = EnglishSyllableCount;
-
             CASE_Capitalize = CASE_CapitalizeDefault;
             CASE_Uppercase = CASE_UpperDefault;
             CASE_Random = CASE_RandomDefault;
@@ -1435,8 +1355,12 @@ namespace PLGL
             }
             else
             {
-                int count = Math.Max((int)(CountSyllables(word.WordRoot) *
-                    NextDouble(Language.Options.SyllableSkewMin, Language.Options.SyllableSkewMax)), 1);
+                //Estimate syllable count.
+                int syllables = Language.Options.CountSyllables(word.WordRoot);
+                //Choose multiplying factor between the min and max functions, with the word-seeded random.
+                double modifier = NextDouble(Language.Options.SyllableSkewMin(syllables), Language.Options.SyllableSkewMax(syllables));
+                //Make sure the final count is never below 1.
+                int count = (int)Math.Max(syllables * modifier, 1);
 
                 for (int i = 0; i < count; i++)
                 {
@@ -1459,15 +1383,6 @@ namespace PLGL
                     word.Syllables[i].AdjacentLeft = word.Syllables[i - 1];
                 if (i != word.Syllables.Count - 1)
                     word.Syllables[i].AdjacentRight = word.Syllables[i + 1];
-            }
-
-            if (Language.OnSyllable != null)
-            {
-                for (int i = 0; i < word.Syllables.Count; i++)
-                {
-                    if (word.Syllables[i].IsProcessed == false)
-                        Language.OnSyllable(this, word, word.Syllables[i]);
-                }
             }
         }
         public void PopulateLetters(WordInfo word)
@@ -1504,32 +1419,16 @@ namespace PLGL
                 if (i < word.Letters.Count - 1) word.Letters[i].AdjacentRight = word.Letters[i + 1];
             }
 
-            if (Language.OnLetter != null)
-            {
-                for (int i = 0; i < word.Letters.Count; i++)
-                {
-                    int currentCount = word.Letters.Count;
-
-                    if (word.Letters[i].IsProcessed == false)
-                    {
-                        word.Letters[i].IsProcessed = true;
-
-                        Language.OnLetter(this, word, word.Letters[i]);
-
-                        LinkLeftLetter(word, word.Letters[i]);
-                        LinkRightLetter(word, word.Letters[i]);
-                    }
-
-                    //If there is a difference (e.g, a letter was added), return to 0.
-                    if (currentCount != word.Letters.Count)
-                        i = 0;
-                }
-            }
-
-            word.Letters.RemoveAll((l) => l.IsAlive == false);
-
             foreach (LetterInfo l in word.Letters)
                 word.WordGenerated += l.Letter.Case.lower;
+        }
+        private void AssembleWord(WordInfo word)
+        {
+            foreach (SyllableInfo syllable in word.Syllables)
+            {
+                foreach (LetterInfo letter in syllable.Letters)
+                    syllable.Result += letter.Letter.Case.lower;
+            }
         }
 
         private List<Syllable> syllableSelection = new List<Syllable>();

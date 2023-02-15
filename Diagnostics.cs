@@ -73,13 +73,15 @@ namespace PLGL
         {
             Uniques.Clear();
 
-            double syllableMin = generator.Language.Options.SyllableSkewMin, syllableMax = generator.Language.Options.SyllableSkewMax;
+            Func<int, double> syllableMin = generator.Language.Options.SyllableSkewMin, syllableMax = generator.Language.Options.SyllableSkewMax;
+            var syllableFunc = generator.Language.Options.CountSyllables;
+
             for (int i = 0; i < seedCount; i++)
             {
                 generator.SEED_SetRandom(i);
-                generator.CountSyllables = (word) => { return syllableCount; };
-                generator.Language.Options.SyllableSkewMin = 1;
-                generator.Language.Options.SyllableSkewMax = 1;
+                generator.Language.Options.CountSyllables = (word) => { return syllableCount; };
+                generator.Language.Options.SyllableSkewMin = (count) => { return 1; };
+                generator.Language.Options.SyllableSkewMax = (count) => { return 1; };
 
                 WordInfo word = new WordInfo();
                 word.Filter = generator.Deconstruct.Undefined;
@@ -95,6 +97,7 @@ namespace PLGL
 
                 generator.Language.Options.SyllableSkewMin = syllableMin;
                 generator.Language.Options.SyllableSkewMax = syllableMax;
+                generator.Language.Options.CountSyllables = syllableFunc;
             }
 
             return (double)Uniques.Where((x) => x.Value.Item1 > 0).Count() / (double)Uniques.Count;

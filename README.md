@@ -30,35 +30,35 @@ The initial thought that started this project was simple: using a word as a seed
 
 In English:
 ```
-Ah! like gold fall the leaves in the wind,
-long years numberless as the wings of trees!
-The years have passed like swift draughts
-of the sweet mead in lofty halls beyond the West,
-beneath the blue vaults of [Varda]
-where-in the stars tremble
-in the song of her voice, holy and queenly.
+So in this pleasant vale we stand again,
+The field of Enna, now once more ablaze
+With flowers that brighten as thy footstep falls
 ```
 
-In the fictional language called *Qen* (with seed offset set to 1):
+In the fictional language called *Qen* (with seed offset set to 2):
 ```
-Skem! skon dör um tur skonŝkruns nug tur nap,
-skom wërskäms spönumöl wers tur bäms wur spons!
-Tur wërskäms nad gïrstam skon ben ŝons
-wur tur spinöd pumÞän nug sprüm bals spenŝpem tur Bir,
-ÞangerÞön tur bön bïmmïbs wur Varda
-parnabnug tur ims dalÞëŋ
-nug tur äg wur pa emum, metila sken ösëgila৹
+Fras sil iren yadïnem nigüŋ mel spil nälis,
+Lo flapäs ha Enna, om kelbu nölën numëmo
+Nob sallesen on sölez egel hän borsüspöŋ ŝlonen
 ```
 
-Qen, this time with the seed offset set to 17:
+Qen, this time with the seed offset set to 15:
 ```
-Wur! pülspen spïm bën göm derspöms del göm spën,
-wor gumskrens nagspamöl bïrs göm bers skim bïrs!
-Göm gumskrens dorstum spendar pülspen es meptöms
-skim göm turuŋ dar del ën käls girëm göm Mëb,
-palspembïm göm um strönons skim Varda
-skimümdel göm böns nigyël
-del göm pun skim bär tespïm, stönila hur spëmumila৹
+Ik öl fonen mëöbür femöm füp be fume,
+Lo manäs ha Enna, saŋ nebö fökum belidëf
+Fe skenälen sof ürur egel ü mërrublan ëlen
+```
+
+In fictional Japanese language (seed offset set to 6), in Romaji and Hiragana:
+```
+pa mene ta wadagomo sudere ba ki musaha、
+ぱ めね た わだごも すでれ ば き むさは、
+
+chusa kugucho giyu gita、 shoku kazubi dayuke kozopeyo
+ちゅさ くぐちょ ぎゆ ぎた、 しょく かづび だゆけ こぞぺよ
+
+sote pumaya shu sushorya chi muki pobihe na。
+そて ぷまや しゅ すしょりゃ ち むき ぽびへ な。
 ```
 
 

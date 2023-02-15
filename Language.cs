@@ -4,18 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using PLGL.Data;
+using PLGL.Examples;
 using PLGL.Languages;
 
 namespace PLGL
 {
-    /// <summary>
-    /// Language showcasing:
-    ///     - Fauxglish. A language designed to mimic the patterns of English.
-    ///     - Elvish.
-    ///     - Orcish.
-    ///     - Singing. A silly language. Uses L, D, A, E, O, no double consonants, yet triple vowel potential.
-    /// </summary>
-
     public class Language
     {
         /// <summary>
@@ -68,8 +61,6 @@ namespace PLGL
 
         public OnSyllableSelect OnSyllableSelection { get; set; }
         public OnLetterSelect OnLetterSelection { get; set; }
-        public OnSyllable OnSyllable { get; set; }
-        public OnLetter OnLetter { get; set; }
 
         public OnPrefix OnPrefix { get; set; }
         public OnSuffix OnSuffix { get; set; }
@@ -102,18 +93,16 @@ namespace PLGL
         /// If the case of the original word doesn't follow a clear pattern (word, Word, WORD—lowercase, capitalized, uppercase), it will be randomized (wOrD). Default is true.
         /// </summary>
         public bool AllowRandomCase { get; set; } = true;
-
         /// <summary>
         /// If true, affixes are sorted by the language author's order. Otherwise, sorted to match the order the affixes are read. Default is false.
         /// </summary>
         public bool AffixCustomOrder { get; set; } = false;
-
         /// <summary>
         /// If true, all inflections are added to the Lexicon class, skipping the generation stage for previously processed words.
         /// </summary>
         public bool MemorizeWords { get; set; } = true;
 
-        public enum LetterPathing
+        public enum PathSelection
         {
             /// <summary>For language author's with a solid grip on their language. This will error if there isn't a next path.</summary>
             Exclusion,
@@ -125,8 +114,17 @@ namespace PLGL
         /// <summary>
         /// Determines how the generator behaves if it encounters a letter path with no way forward, yet has more letters to generate.
         /// </summary>
-        public LetterPathing Pathing { get; set; } = LetterPathing.EndWord;
+        public PathSelection Syllables { get; set; } = PathSelection.EndWord;
+        public PathSelection LetterPathing { get; set; } = PathSelection.EndWord;
 
+        public LanguageOptions()
+        {
+            SyllableSkewMin = (count) => { return 0.8; };
+            SyllableSkewMax = (count
+                ) => { return 1.2; };
+        }
+
+        #region Syllable counting
         /// <summary>
         /// All lowercase consonants in your input language. This is for estimating syllable count, and defaults to english.
         /// </summary>
@@ -136,12 +134,84 @@ namespace PLGL
         /// </summary>
         public char[] InputVowels { get; set; } = "aeiou".ToArray();
         /// <summary>
-        /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.6
+        /// Tells the generator how much lower the word's syllable count could be from the syllable estimate. Default is 0.8
         /// </summary>
-        public double SyllableSkewMin { get; set; } = 0.6;
+        public Func<int, double> SyllableSkewMin { get; set; }
         /// <summary>
         /// Tells the generator how much higher the word's syllable count could be from the syllable estimate. Default is 1.2.
         /// </summary>
-        public double SyllableSkewMax { get; set; } = 1.2;
+        public Func<int, double> SyllableSkewMax { get; set; }
+
+        /// <summary>
+        /// Sets how the generator counts a root's syllables. Default is EnglishSigmaCount (C/V border checking).
+        /// </summary>
+        public Func<string, int> CountSyllables { get; set; }
+
+        /// <summary>
+        /// Roughly estimates a word's syllables. It transforms the word into c/v, and counts where a consonant shares a border with a vowel. Only misses where a consonant could also be a vowel (such as "y")).
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int EnglishSyllableCount(string word)
+        {
+            if (word.ToLower().EndsWith("es"))
+                word = word.Substring(0, word.Length - 2);
+            if (word.ToLower().EndsWith("ed"))
+                word = word.Substring(0, word.Length - 2);
+
+            string cv = string.Empty;
+
+            foreach (char c in word)
+            {
+                if (InputConsonants.Contains(c)) cv += 'c';
+                if (InputVowels.Contains(c)) cv += 'v';
+            }
+
+            int result = 0;
+            while (cv.Length > 1)
+            {
+
+                //Check for consonant-vowel border.
+                if (cv[0] == 'c' && cv[1] == 'v' ||
+                    cv[0] == 'v' && cv[1] == 'c')
+                {
+                    result++;
+                    cv = cv.Remove(0, Math.Min(cv.Length, 2));
+                }
+
+                if (cv.Length <= 1)
+                    break;
+
+                //If double consonant or vowel, remove one.
+                if (cv[0] == 'c' && cv[1] == 'c' ||
+                    cv[0] == 'v' && cv[1] == 'v')
+                {
+                    cv = cv.Remove(0, 1);
+                }
+            }
+
+            if (word.Length > 0 && result == 0)
+                result = 1;
+
+            return result;
+        }
+        /// <summary>
+        /// Counts each valid character found in Language.Options.InputConsonants and InputVowels. More ideal for languages where each letter may be a syllable.
+        /// </summary>
+        /// <param name="word"></param>
+        /// <returns></returns>
+        public int CharacterSyllableCount(string word)
+        {
+            int result = 0;
+
+            foreach (char c in word)
+            {
+                if (InputConsonants.Contains(c)) result++;
+                if (InputVowels.Contains(c)) result++;
+            }
+
+            return result;
+        }
+        #endregion
     }
 }

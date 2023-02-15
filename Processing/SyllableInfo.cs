@@ -19,5 +19,6 @@ namespace PLGL.Processing
 
         public WordInfo Word { get; set; }
         public List<LetterInfo> Letters { get; set; }
+        public string Result { get; set; }
     }
 }

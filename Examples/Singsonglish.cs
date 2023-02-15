@@ -41,10 +41,10 @@ namespace PLGL.Examples
 
         private void SetOptions()
         {
-            lang.Options.Pathing = LanguageOptions.LetterPathing.Inclusion;
+            //lang.Options.Pathing = LanguageOptions.PathSelection.Inclusion;
             lang.Options.MemorizeWords = false;
-            lang.Options.SyllableSkewMin = 1.0;
-            lang.Options.SyllableSkewMax = 2.5;
+            //lang.Options.SyllableSkewMin = 1.0;
+            //lang.Options.SyllableSkewMax = 2.5;
 
             lang.Options.AllowAutomaticCasing = true;
             lang.Options.AllowRandomCase = true;
@@ -110,14 +110,6 @@ namespace PLGL.Examples
             lang.Alphabet.AddVowel('i', ('i', 'I'));
             lang.Alphabet.AddVowel('o', ('o', 'O'));
             lang.Alphabet.AddVowel('u', ('u', 'U'));
-
-            lang.OnLetter += (lg, w, current) =>
-            {
-                if (current.AdjacentLeft != null && (current.AdjacentLeft.Letter.Key == 'l' && current.Letter.Key != 'l') && w.Letters.IndexOf(current) > 1)
-                {
-                    //lg.GENERATE_InsertLetter(w, current, 'l', 0);
-                }
-            };
         }
         public void SetStructure()
         {
