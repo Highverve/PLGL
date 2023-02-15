@@ -35,21 +35,21 @@ The field of Enna, now once more ablaze
 With flowers that brighten as thy footstep falls
 ```
 
-In the fictional language called *Qen* (with seed offset set to 2):
+In the fictional language called *Qen* (with seed offset at 2):
 ```
 Fras sil iren yadïnem nigüŋ mel spil nälis,
 Lo flapäs ha Enna, om kelbu nölën numëmo
 Nob sallesen on sölez egel hän borsüspöŋ ŝlonen
 ```
 
-Qen, this time with the seed offset set to 15:
+Qen, this time with the seed offset at 15:
 ```
 Ik öl fonen mëöbür femöm füp be fume,
 Lo manäs ha Enna, saŋ nebö fökum belidëf
 Fe skenälen sof ürur egel ü mërrublan ëlen
 ```
 
-Now in a fictional Japanese language (seed offset set to 6 — Romaji and Hiragana):
+Now in a fictional Japanese language (seed offset at 6 — Romaji and Hiragana):
 ```
 pa mene ta wadagomo sudere ba ki musaha、
 ぱ めね た わだごも すでれ ば き むさは、
