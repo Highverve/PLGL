@@ -19,12 +19,12 @@ namespace PLGL
 
         public Diagnostics(LanguageGenerator generator) { this.generator = generator; }
 
-        public bool IsLogging { get; set; } = true;
-        public bool IsDeconstructLog { get; set; } = true;
-        public bool IsDeconstructEventLog { get; set; } = true;
-        public bool IsConstructLog { get; set; } = true;
-        public bool IsConstructEventLog { get; set; } = true;
-        public bool IsSelectEventLog { get; set; } = true;
+        public bool IsLogging { get; set; } = false;
+        public bool IsDeconstructLog { get; set; } = false;
+        public bool IsDeconstructEventLog { get; set; } = false;
+        public bool IsConstructLog { get; set; } = false;
+        public bool IsConstructEventLog { get; set; } = false;
+        public bool IsSelectEventLog { get; set; } = false;
 
         public void LOG_Header(string text)
         {

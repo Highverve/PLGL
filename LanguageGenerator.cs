@@ -59,7 +59,7 @@ namespace PLGL
 
     public class LanguageGenerator
     {
-        private Language language;
+        private Language language = null;
         public Language Language
         {
             get { return language; }
@@ -393,7 +393,7 @@ namespace PLGL
         }
 
         /// <summary>
-        /// Sets the weight multiplier of the syllable, if the group is found and the condition is met.
+        /// Sets the weight multiplier of the syllable, if the group key is found and the condition is met.
         /// </summary>
         /// <param name="groups"></param>
         /// <param name="multiplier"></param>
@@ -402,7 +402,7 @@ namespace PLGL
         {
             if (condition == true)
             {
-                Syllable s = syllableSelection.Where(s => s.Letters == groups).FirstOrDefault();
+                Syllable? s = syllableSelection.Where(s => s.Letters == groups).FirstOrDefault();
 
                 if (s != null)
                     s.WeightMultiplier = multiplier;
@@ -418,7 +418,7 @@ namespace PLGL
         {
             if (condition == true)
             {
-                Letter l = Language.Alphabet.Find(letter);
+                Letter? l = Language.Alphabet.Find(letter);
 
                 if (l != null)
                     l.WeightMultiplier *= multiplier;
@@ -448,6 +448,25 @@ namespace PLGL
 
             return false;
         }
+        /// <summary>
+        /// Returns true if the target letter is any of the keys listed.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="keys"></param>
+        /// <returns></returns>
+        public bool SELECT_LetterAny(LetterInfo target, params char[] keys)
+        {
+            if (target != null)
+            {
+                foreach (char k in keys)
+                {
+                    if (target.Letter.Key == k)
+                        return true;
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Returns true if the syllable index is 0.
         /// </summary>
@@ -642,42 +661,6 @@ namespace PLGL
         }
         #endregion
 
-        #region LETTER_ methods
-        public void LETTER_Replace(LetterInfo target, char letterKey, bool condition)
-        {
-            if (condition && target != null)
-                target.Letter = Language.Alphabet.Find(letterKey);
-        }
-        public void LETTER_Insert(WordInfo word, LetterInfo current, char letterKey, int indexOffset, bool condition)
-        {
-            if (condition)
-            {
-                int index = word.Letters.IndexOf(current);
-                Letter letter = Language.Alphabet.Find(letterKey);
-                word.Letters.Insert(index + indexOffset, new LetterInfo(letter) { IsProcessed = true });
-            }
-        }
-
-        /// <summary>
-        /// Returns true if the target letter is any of the keys listed.
-        /// </summary>
-        /// <param name="target"></param>
-        /// <param name="keys"></param>
-        /// <returns></returns>
-        public bool LETTER_Any(LetterInfo target, params char[] keys)
-        {
-            if (target != null)
-            {
-                foreach (char k in keys)
-                {
-                    if (target.Letter.Key == k)
-                        return true;
-                }
-            }
-            return false;
-        }
-        #endregion
-
         #region AFFIX_ methods
         /// <summary>
         /// Inserts the text into the current affix if the condition is true. Set condition to AFFIX_MatchLast, AFFIX_VowelFirst, etc.
@@ -833,7 +816,7 @@ namespace PLGL
         /// <returns></returns>
         public char AFFIX_LastChar(WordInfo word, AffixInfo current)
         {
-            char last = char.MinValue;
+            char last;
 
             if (current.AdjacentLeft != null) last = current.AdjacentLeft.AffixText.Last();
             else
@@ -854,7 +837,7 @@ namespace PLGL
         /// <returns></returns>
         public char AFFIX_FirstChar(WordInfo word, AffixInfo current)
         {
-            char last = char.MinValue;
+            char last;
 
             if (current.AdjacentRight != null) last = current.AdjacentRight.AffixText.First();
             else last = word.WordGenerated.First();
@@ -1470,33 +1453,6 @@ namespace PLGL
                     return l.letter;
             }
             return null;
-        }
-
-        private void LinkLeftLetter(WordInfo word, LetterInfo letter)
-        {
-            int index = word.Letters.IndexOf(letter);
-
-            for (int i = index - 1; i > 0; i--)
-            {
-                if (word.Letters[i].IsAlive == true)
-                {
-                    letter.AdjacentLeft = word.Letters[i];
-                    break;
-                }
-            }
-        }
-        private void LinkRightLetter(WordInfo word, LetterInfo letter)
-        {
-            int index = word.Letters.IndexOf(letter);
-
-            for (int i = index + 1; i < word.Letters.Count; i++)
-            {
-                if (word.Letters[i].IsAlive == true)
-                {
-                    letter.AdjacentRight = word.Letters[i];
-                    break;
-                }
-            }
         }
         #endregion
     }

@@ -165,3 +165,7 @@
 ### 2023-2-16
 - Removed an old language.
 - Official launch.
+- Removed LanguageGenerator.LinkLetterLeft and LinkLetterRight, as it was no longer necessary.
+- Removed IsAlive and IsProcessed from LetterInfo.
+- Removed LETTER_Insert and LETTER_Replace. These were old support methods for the now-deleted OnLetter event.
+- Renamed LETTER_Any to SELECT_LetterAny.
