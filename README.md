@@ -101,7 +101,7 @@ Next up, the generator must select the syllable structure. Language.OnSyllableSe
 
 With the syllable structure set, the letters are chosen according to each syllable's letter group. For each letter group, Language.OnLetterSelection is called, excluding any undesired letters, and the remaining letters are selected by weight.
 
-The affixes that were extracted earlier are processed and assembled by order, and OnAffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
+The affixes that were extracted earlier are processed and assembled by order. Language.OnPrefix and Language.OnSuffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
 
 The final word is assembled with its prefixes, generated word, and suffixes put together. The word is memorized, so that it doesn't have to be processed twice (if enabled), and the case of the word is set to match the original word (if enabled). Now you have your new word. Unless you make changes to your language, or adjust the seed offset, it will make the same choices for that word every time.
 
@@ -124,23 +124,19 @@ You should check out the Examples folder for ideas on authoring a language.
         - **Letters**. a-z, A-Z. This filter is essentially required.
         - **Numbers**. 0-9. Not required, but recommended.
         - **Punctuation**. Optional, but recommended.
-        - **Flags**. Also needs FlagsOpen and FlagsClose for CONSTRUCT_ContainWithin.
+        - **Flags**. Also needs FlagsOpen and FlagsClose during construction.
         - **Escape**. Allows the surrounded block to escape it's filter (e.g, "[Generate]" results in "Generate"). This can be added with flagging, so it's optional.
-    - Add deconstruct events. This is the second pass, and corrects blocks through a stronger contextual lens.
-        - Absorb single apostrophe into letter blocks with DECONSTRUCT_MergeBlocks.
-        - Absorb decimal into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");`
-        - Absorb comma into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");`
-        - For Escape filter. `... => lg.DECONSTRUCT_MergeBlocks(current, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");`
-        - For Flags filter. `... => lg.DECONSTRUCT_ContainWithin(current, "FLAGSOPEN", "FLAGSCLOSE", "FLAGS");`
+    - Add deconstruct events. This is the second pass, and corrects blocks through a stronger contextual lens. Some suggestions:
+        - Absorb single apostrophe into Letters, decimals and commas into Numbers, and Letters into Escape filter with `DECONSTRUCT_MergeBlocks`.
+        - For the Flags filter, use `DECONSTRUCT_ContainWithin`.
 4. Construction. Add construct events (Language.Construct).
-    - Keep Undefined. `... => lg.CONSTRUCT_KeepAsIs(word, "UNDEFINED");`
-    - Keep Delimiter. `... => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");`
-    - Set Letters to Generate. Essential. `... => lg.CONSTRUCT_Generate(word, "LETTERS");`
-    - Set Punctuation to Punctuation.Process. `... => lang.Punctuation.Process(lg, word, "PUNCTUATION");`
-    - Set Flags to Flagging.Process. `... => lang.Flags.Process(lg, word, "FLAGS");`
+    - Keep Undefined and Delimiter with `CONSTRUCT_KeepAsIs`.
+    - Set Letters to Generate with `CONSTRUCT_Generate`. This is essential.
+    - Set Punctuation to `Punctuation.Process`.
+    - Set Flags to `Flags.Process`.
 5. Other options.
-    - Add punctuation. Alternative punctuation marks, or a particle system, for stronger language style. `lang.Punctuation.Add(".", (w) => { return "·"; });`
-    - Add flags (<Hide, Hide>, NoGen, ). There are a few default actions in the Language.Flags class. The result can be concatenated dynamically, if required. `lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_Replace(lg, word, () => { return PlayerName; }));`
+    - Add punctuation. Alternative punctuation marks, or a particle system, for stronger language style. `Punctuation.Add`
+    - Add flags (<Hide, Hide>, NoGen, ). There are a few default actions in the Language.Flags class.
 
 
 ## 6 — Future Updates
@@ -152,6 +148,9 @@ You should check out the Examples folder for ideas on authoring a language.
 - [x] Add generation logging to help authors diagnose and fix their language.
 - [x] Add syllable rarity estimation, which returns the most (or least) likely syllables your language generates.
 - [ ] Custom base conversion for numbers (low priority).
+- [ ] More supporting methods in Diagnostics.
+- [ ] Improve existing languages; exclusion rules and affixes, in particular.
+- [ ] Create new languages.
 
 
 ## 7 — Useful Resources
