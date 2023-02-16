@@ -330,7 +330,7 @@ namespace PLGL.Examples
         {
         }
 
-        public string Romanize(string sentence)
+        public string ToRomaji(string sentence)
         {
             //ksŝtċţnhmyrwgzjdpb
 
