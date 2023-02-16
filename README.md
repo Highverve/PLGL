@@ -101,6 +101,8 @@ Next up, the generator must select the syllable structure. Language.OnSyllableSe
 
 With the syllable structure set, the letters are chosen according to each syllable's letter group. For each letter group, Language.OnLetterSelection is called, excluding any undesired letters, and the remaining letters are selected by weight.
 
+![plgl2](https://user-images.githubusercontent.com/119130949/219273048-103996d4-b400-4071-a1b0-443719d947f7.png)
+
 The affixes that were extracted earlier are processed and assembled by order. Language.OnPrefix and Language.OnSuffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
 
 The final word is assembled with its prefixes, generated word, and suffixes put together. The word is memorized, so that it doesn't have to be processed twice (if enabled), and the case of the word is set to match the original word (if enabled). Now you have your new word. Unless you make changes to your language, or adjust the seed offset, it will make the same choices for that word every time.
