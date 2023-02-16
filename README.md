@@ -1,4 +1,6 @@
-# (P)rocedural (L)anguage (G)eneration (L)ibrary
+![header](https://user-images.githubusercontent.com/119130949/219457086-4802af93-8c4f-40d2-9fad-44743b3753f7.png)
+
+# Procedural Language Generation Library
 
 > No language is justly studied merely as an aid to other purposes. It will in fact better serve other purposes, philological or historical, when it is studied for love, for itself. — J. R. R. Tolkien
 
