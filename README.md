@@ -9,8 +9,6 @@
 
 Procedural Language Generation Library (PLGL) is a code library designed for game developers who want consistent, fictional languages for their game's cultures and peoples, *without the time needed to create one*. The language author constructs the alphabet, sigma structures, letter pathing, character filtering for deconstruction, and other constraints; then, the generator processes a regular sentence, and returns a new, stylized sentence from your fictional language.
 
-The initial thought that started this project was simple: using a word as a seed, could I procedurally generate an entirely different word? After a few obstacles and a necessary amount of feature creep, the first version of the PLGL is released.
-
 
 ## 2 — Contents
 
@@ -27,6 +25,8 @@ The initial thought that started this project was simple: using a word as a seed
 7. [Useful Resources](https://github.com/Highverve/PLGL#7--useful-resources)
 
 ## 3 — Examples
+
+*Qen* is more of a scandinavian/english language, whereas *Jabanese* attempts to mimic Japanese. Qen has complex syllables, and a moderate amount of exclusion rules. Jabanese has simpler syllable structures, yet relies on letter exclusion a bit more. You can convert the generated sentence into hiragana with the built-in `ToHiragana()`; otherwise, I recommend using `ToRomaji()`.
 
 In English:
 ```
@@ -64,43 +64,23 @@ sote pumaya shu sushorya chi muki pobihe na。
 
 ## 4 — Theory & Process
 
-The generation process can be divided into two parts: *Deconstruction* and *construction*. Deconstruction breaks down a sentence by character filters (primarily *letters*, *numbers*, *delimiters*, *punctuation marks*, etc.), and merges any desired blocks (more on this later). This greatly helps the construction process, which is responsible for handling how each filter block is manipulated. For example, the *letters* filter should typically be generated into an entirely new word, whereas the language author may prefer to keep 'numbers' or 'punctuation' filters as is. Since filters—and how they function—are defined by the language author, there is immense flexibility.
+The generation process can be divided into two parts: *Deconstruction* and *construction*. Deconstruction breaks down a sentence into segments (specified by custom character filters). This greatly helps the construction process, which is responsible for handling how each filter block is processed. Since filters—and how they function—are defined by the language author, there is immense flexibility.
+
+Using a word as a seed, the code procedurally generates an entirely different word. Because the Random is seeded with the word converted into an integer.
 
 ### 4.1 — **Deconstruction**.
 
-The first step is to add a character filter:
-```c#
-lang.AddFilter("Letters", "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ");
-```
+The deconstruction process loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block.
 
-The `Deconstructor` class loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block. With a delimiter and punctuation filter added, the returned list looks like this:
-```c#
-{LETTERS[0,1]: "My"}
-{DELIMITER[2,2]: " "}
-{LETTERS[3,6]: "name"}
-{DELIMITER[7,7]: " "}
-{LETTERS[8,9]: "is"}
-{DELIMITER[10,10]: " "}
-{LETTERS[11,16]: "Trevor"}
-{PUNCTUATION[17,17]: "."}
-```
+![plgl](https://user-images.githubusercontent.com/119130949/219261964-e5f91306-edc7-4e63-b995-ddf4b0e6a73f.png)
 
-You could also write these block separations plainly as: "My| |name| |is| |Trevor|.|". It's from this list of character blocks that the constructor operates on (specifically, after they're added to a WordInfo class). You don't have to define every character; however, any unlisted character will be included anyway under the "UNDEFINED" filter, and will appear in the returned string.
+You could write these block separations plainly as: "The| |field| |of| |Enna|,|". It's from this list of character blocks that the constructor operates on (specifically, after they're added to a WordInfo class). You don't have to define every character; however, any unlisted character will be included anyway under the "UNDEFINED" filter, and will appear in the returned string.
 
-There are some circumstances where a character belongs in one filter, yet also really *should* be included in a different block based on certain conditions to help the generator process the block. Words such as "let's", or numbers with commas or decimals, or even word flagging. I've included methods that help merge character blocks based on the specified criteria. Let's add one for the apostrophe.
-```c#
-lang.Deconstruct += (lg, current) => lg.EVENT_MergeBlocks(current, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");
-```
-The Deconstruct event is called after all of the characters in the string have been processed. It allows the language author greater control over how blocks behave around their neighbors. In this case, EVENT_MergeBlocks compares the current iterated character block (*PUNCTUATION* filter) to its friends on the left and right; if both are *LETTERS*, it then checks if the PUNCTUATION block is a single apostrophe '. If it is, the three blocks are merged into one, taking on the filter of the last string in the parameter. Without this, the three blocks are processed separately; for a number like $9,999.99, a *NUMBERS* filter would only see 9, 999, and 99—that's not ideal at all.
+After the deconstructor breakes the sentence down (the *first pass*), the new list of character blocks are looped through again, and the Deconstruct event is called on each. This is the second pass, processing all functions set by the language author. Some circumstances may require a block's filter to be changed, or three blocks to be merged into one. Words such as "let's", or numbers with commas or decimals, or even word flagging. I've included methods that help merge character blocks based on the specified criteria.
 
 ### 4.2 — **Construction**.
 
-The ConstructFilter event is the most crucial to implement. This is where you tell the generator how you want each filter to be processed. Here is a simple example (where `lang` is the Language class reference, and `lg` is the LanguageGenerator class):
-```c#
-lang.Construct += (lg, word) => lg.CONSTRUCT_KeepAsIs(word, "DELIMITER");
-```
-
-The LanguageGenerator comes with a few common generation methods to speed up language authoring: `CONSTRUCT_Hide`, `CONSTRUCT_KeepAsIs`, `CONSTRUCT_Generate`. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
+The OnConstruct event is the most crucial to implement. This is where you tell the generator how you want each filter to be processed. The LanguageGenerator class comes with a few common generation methods to speed up language authoring: `CONSTRUCT_Hide`, `CONSTRUCT_KeepAsIs`, `CONSTRUCT_Replace`, `CONSTRUCT_Within`, and `CONSTRUCT_Generate`. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
 ```c#
 public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
 {
@@ -118,32 +98,39 @@ The filter check is the most important part. If it's not included, the method is
 
 ### 4.3 — **Generating Sentences**.
 
-An overview at the code that parses your sentence, transforming it according to the language author's constraints.
+The generator starts by finding the root word by extracting any affixes. If none are found, the original word is the root word. If the root matches a key in Lexicon.Roots, the generated word will be set to its value. Then, the Random seed is set to the root.
 
+Next up, the generator must select the syllable structure. Language.OnSyllableSelection is called, excluding any undesired syllables, and the remaining syllables are selected by weight. A custom syllable structure will be set if the word matches a key found in Lexicon.Syllables.
+
+With the syllable structure set, the letters are chosen according to each syllable's letter group. For each letter group, Language.OnLetterSelection is called, excluding any undesired letters, and the remaining letters are selected by weight.
+
+The affixes that were extracted earlier are processed and assembled by order, and OnAffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
+
+The final word is assembled with its prefixes, generated word, and suffixes put together. The word is memorized, so that it doesn't have to be processed twice (if enabled), and the case of the word is set to match the original word (if enabled). Now you have your new word. Unless you make changes to your language, or adjust the seed offset, it will make the same choices for that word every time.
 
 ## 5 — Setting Up
 
-### 5.1 Detailed Overview
+You should check out the Examples folder for ideas on authoring a language.
 
 1. Initial setup.
-    - Add a class to your project with a Language field.
-    - Add a method which returns your language.
+    - Add a class to your project which derives from Language.
+    - Put all methods in the constructor.
     - Fill in your language's metadata: name, description, author.
     - Set additional properties found in Language.Options.
 2. Structuring.
     - Add consonants and vowels to your alphabet.
-    - Add syllable structure.
-    - Add all letter paths to Language.Structure. Be patient: this is the most tedious part.
+    - Add letter groups. These are the building blocks of syllables.
+    - Add syllables.
 3. Deconstruction.
     - Add character filters. Unlisted charactered are added to Undefined filter when a sentence is processed. Examples:
         - **Delimiter**. Usually just space. Highly recommended.
-        - **Letters**. a-z, A-Z. Some letter filter is essentially required.
+        - **Letters**. a-z, A-Z. This filter is essentially required.
         - **Numbers**. 0-9. Not required, but recommended.
         - **Punctuation**. Optional, but recommended.
         - **Flags**. Also needs FlagsOpen and FlagsClose for CONSTRUCT_ContainWithin.
         - **Escape**. Allows the surrounded block to escape it's filter (e.g, "[Generate]" results in "Generate"). This can be added with flagging, so it's optional.
-    - Add deconstruct events (to Language.Deconstruct; lg = LanguageGenerator). This is the second pass, and corrects blocks through a stronger contextual lens.
-        - Absorb single apostrophe into letter blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "LETTERS", "LETTERS", "\'", "LETTERS");`
+    - Add deconstruct events. This is the second pass, and corrects blocks through a stronger contextual lens.
+        - Absorb single apostrophe into letter blocks with DECONSTRUCT_MergeBlocks.
         - Absorb decimal into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ".", "NUMBERS");`
         - Absorb comma into number blocks. `... => lg.DECONSTRUCT_MergeBlocks(current, "PUNCTUATION", "NUMBERS", "NUMBERS", ",", "NUMBERS");`
         - For Escape filter. `... => lg.DECONSTRUCT_MergeBlocks(current, "LETTERS", "ESCAPE", "ESCAPE", "ESCAPE");`
@@ -158,8 +145,6 @@ An overview at the code that parses your sentence, transforming it according to 
     - Add punctuation. Alternative punctuation marks, or a particle system, for stronger language style. `lang.Punctuation.Add(".", (w) => { return "·"; });`
     - Add flags (<Hide, Hide>, NoGen, ). There are a few default actions in the Language.Flags class. The result can be concatenated dynamically, if required. `lang.Flags.Add("PLAYER", (lg, word) => lang.Flags.ACTION_Replace(lg, word, () => { return PlayerName; }));`
 
-### 5.2 
-
 
 ## 6 — Future Updates
 
@@ -167,11 +152,10 @@ An overview at the code that parses your sentence, transforming it according to 
 - [x] Stronger control over sigma selection.
 - [x] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
 - [x] Easier, or less tedious, letter pathing—if at all possible.
-- [ ] Add syllable costs.
-- [ ] Custom base conversion for numbers.
-- [ ] Add generation logging to help authors diagnose and fix their language.
-- [ ] Add path processing method, which output letter path probability of the input text file.
-- [ ] Add syllable rarity estimation, which returns the most (or least) likely syllables your language generates.
+- [x] Add generation logging to help authors diagnose and fix their language.
+- [x] Add syllable rarity estimation, which returns the most (or least) likely syllables your language generates.
+- [ ] Custom base conversion for numbers (low priority).
+
 
 ## 7 — Useful Resources
 
