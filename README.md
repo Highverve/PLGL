@@ -1,5 +1,3 @@
-#### **NOTE**: The readme is a work in progress. I'm updating the code faster than I can update the readme (daily). Thank you for your patience.
-
 # (P)rocedural (L)anguage (G)eneration (L)ibrary
 
 > No language is justly studied merely as an aid to other purposes. It will in fact better serve other purposes, philological or historical, when it is studied for love, for itself. — J. R. R. Tolkien
@@ -20,7 +18,6 @@ Procedural Language Generation Library (PLGL) is a code library designed for gam
     - 4.2 [Construction](https://github.com/Highverve/PLGL#42--construction)
     - 4.3 [Generating Sentences](https://github.com/Highverve/PLGL#43--generating-sentences)
 5. [Setting Up](https://github.com/Highverve/PLGL#5--setting-up)
-    - 5.1 [Detailed Overview](https://github.com/Highverve/PLGL#51-detailed-overview)
 6. [Future Updates](https://github.com/Highverve/PLGL#6--future-updates)
 7. [Useful Resources](https://github.com/Highverve/PLGL#7--useful-resources)
 
