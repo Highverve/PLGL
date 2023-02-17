@@ -146,16 +146,16 @@ You should check out the Examples folder for ideas on authoring a language.
 ## 6 — Future Updates
 
 - [x] Improve how affixes are handled.
-- [x] Stronger control over sigma selection.
+- [x] Stronger control over syllable selection.
 - [x] Better control over letters (perhaps with consonant doubling, diphthongs, or some other rules).
-- [x] Easier, or less tedious, letter pathing—if at all possible.
+- [x] Easier, or less tedious, letter pathing.
 - [x] Add generation logging to help authors diagnose and fix their language.
 - [x] Add syllable rarity estimation, which returns the most (or least) likely syllables your language generates.
 - [ ] Custom base conversion for numbers (low priority).
 - [ ] More supporting methods in Diagnostics.
-- [ ] Improve existing languages; exclusion rules and affixes, in particular.
+- [ ] Improve existing languages; especially exclusion rules and affixes.
+- [ ] Support for creating "child" languages—taking two languages and blending them, skewed in different ways.
 - [ ] Create new languages.
-
 
 ## 7 — Useful Resources
 
