@@ -24,6 +24,7 @@ Procedural Language Generation Library (PLGL) is a code library designed for gam
 7. [Future Updates](https://github.com/Highverve/PLGL#7--future-updates)
 8. [Useful Resources](https://github.com/Highverve/PLGL#8--useful-resources)
 
+
 ## 3 — Examples
 
 *Qen* is more of a scandinavian/english language, whereas *Jabanese* attempts to mimic Japanese. Qen has complex syllables, and a moderate amount of exclusion rules. Jabanese has simpler syllable structures, yet relies on letter exclusion a bit more. You can convert the generated sentence into hiragana with the built-in `ToHiragana()`; otherwise, I recommend using `ToRomaji()`.
@@ -119,7 +120,7 @@ public void CONSTRUCT_KeepAsIs(WordInfo word, string filter)
 
 The filter check is the most important part. If it's not included, the method is applied to every word. We'll look at `CONSTRUCT_Generate` in the next section.
 
-### 4.3 — **Generating Sentences**.
+### 5.3 — **Generating Sentences**.
 
 The generator starts by finding the root word by extracting any affixes. If none are found, the original word is the root word. If the root matches a key in Lexicon.Roots, the generated word will be set to its value. Then, the Random seed is set to the root (which is converted from a string to an integer).
 
@@ -132,6 +133,7 @@ With the syllable structure set, the letters are chosen according to each syllab
 The affixes that were extracted earlier are processed and assembled by order. Language.OnPrefix and Language.OnSuffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
 
 The final word is assembled with its prefixes, generated word, and suffixes put together. The word is memorized, so that it doesn't have to be processed twice (if enabled), and the case of the word is set to match the original word (if enabled). Now you have your new word. Unless you make changes to your language, or adjust the seed offset, it will make the same choices for that word every time.
+
 
 ## 6 — Setting Up
 
@@ -180,6 +182,7 @@ You should check out the Examples folder for ideas on authoring a language.
 - [ ] Improve existing languages; especially exclusion rules and affixes.
 - [ ] Support for creating "child" languages—taking two languages and blending them, skewed in different ways.
 - [ ] Create new languages.
+
 
 ## 8 — Useful Resources
 
