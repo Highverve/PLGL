@@ -15,13 +15,14 @@ Procedural Language Generation Library (PLGL) is a code library designed for gam
 1. **Introduction**
 2. **Contents**
 3. [Examples](https://github.com/Highverve/PLGL#3--examples)
-4. [Theory & Process](https://github.com/Highverve/PLGL#4--theory--process)
-    - 4.1 [Deconstruction](https://github.com/Highverve/PLGL#41--deconstruction)
-    - 4.2 [Construction](https://github.com/Highverve/PLGL#42--construction)
-    - 4.3 [Generating Sentences](https://github.com/Highverve/PLGL#43--generating-sentences)
-5. [Setting Up](https://github.com/Highverve/PLGL#5--setting-up)
-6. [Future Updates](https://github.com/Highverve/PLGL#6--future-updates)
-7. [Useful Resources](https://github.com/Highverve/PLGL#7--useful-resources)
+4. [Code Layout](https://github.com/Highverve/PLGL#4--code-layout)
+5. [Theory & Process](https://github.com/Highverve/PLGL#5--theory--process)
+    - 5.1 [Deconstruction](https://github.com/Highverve/PLGL#51--deconstruction)
+    - 5.2 [Construction](https://github.com/Highverve/PLGL#52--construction)
+    - 5.3 [Generating Sentences](https://github.com/Highverve/PLGL#53--generating-sentences)
+6. [Setting Up](https://github.com/Highverve/PLGL#6--setting-up)
+7. [Future Updates](https://github.com/Highverve/PLGL#7--future-updates)
+8. [Useful Resources](https://github.com/Highverve/PLGL#8--useful-resources)
 
 ## 3 — Examples
 
@@ -61,13 +62,36 @@ sote pumaya shu sushorya chi muki pobihe na。
 ```
 
 
-## 4 — Theory & Process
+## 4 — Code Layout
+
+It's really simple to quickly set up a testing environment for languages.
+
+```c#
+LanguageGenerator lg = new LanguageGenerator();
+
+//Found in PLGL.Examples. Set this to your own language (derived from Language).
+Qen qen = new Qen();
+lg.Language = qen;
+
+Console.WriteLine(lg.GenerateClean("Your sentence goes here!"));
+```
+
+`GenerateClean` only returns a string, whereas `GenerateDebug` returns the string and a `List<WordInfo>` for debugging. `GenerateRaw` only returns the list.
+
+- **LanguageGenerator.cs**. Processes the sentence according to the constraints found in the referenced Language.
+- **Deconstructor.cs**. Deconstructs the input sentence according to the specified Language's filters.
+- **Language.cs**. Contains all classes found in the Languages folder and other settings. It's passed to and used by LanguageGenerator.
+- **LanguageManager.cs**. Intended for use by anyone who needs to implement this code into their project. Not utilized by any PLGL classes.
+- **Processing**. All the classes in this folder are utilized by LanguageGenerator. They're left public in case a language author needs to debug their language.
+- **Data**. Data utilized by other classes found in Language.
+- **Examples**. Two example languages for testing the generator and as a model for your language.
+
+
+## 5 — Theory & Process
 
 The generation process can be divided into two parts: *Deconstruction* and *construction*. Deconstruction breaks down a sentence into segments (specified by custom character filters). This greatly helps the construction process, which is responsible for handling how each filter block is processed. Since filters—and how they function—are defined by the language author, there is immense flexibility.
 
-Using a word as a seed, the code procedurally generates an entirely different word. Because the Random is seeded with the word converted into an integer.
-
-### 4.1 — **Deconstruction**.
+### 5.1 — **Deconstruction**.
 
 The deconstruction process loops through the characters in your string, checking if the character matches any characters in any filter. In this case, if it's a letter, it starts counting. When it encounters a character from a different filter, it splits off the string, adds it to the list, and starts counting through the new filter block.
 
@@ -77,7 +101,7 @@ You could write these block separations plainly as: "The| |field| |of| |Enna|,|"
 
 After the deconstructor breakes the sentence down (the *first pass*), the new list of character blocks are looped through again, and the Deconstruct event is called on each. This is the second pass, processing all functions set by the language author. Some circumstances may require a block's filter to be changed, or three blocks to be merged into one. Words such as "let's", or numbers with commas or decimals, or even word flagging. I've included methods that help merge character blocks based on the specified criteria.
 
-### 4.2 — **Construction**.
+### 5.2 — **Construction**.
 
 The OnConstruct event is the most crucial to implement. This is where you tell the generator how you want each filter to be processed. The LanguageGenerator class comes with a few common generation methods to speed up language authoring: `CONSTRUCT_Hide`, `CONSTRUCT_KeepAsIs`, `CONSTRUCT_Replace`, `CONSTRUCT_Within`, and `CONSTRUCT_Generate`. These methods start with `CONSTRUCT_` for clarity, so that auto-suggestion groups them together. If you plan to add any custom functionality (and you likely will), here's what KeepAsIs looks like:
 ```c#
@@ -97,7 +121,7 @@ The filter check is the most important part. If it's not included, the method is
 
 ### 4.3 — **Generating Sentences**.
 
-The generator starts by finding the root word by extracting any affixes. If none are found, the original word is the root word. If the root matches a key in Lexicon.Roots, the generated word will be set to its value. Then, the Random seed is set to the root.
+The generator starts by finding the root word by extracting any affixes. If none are found, the original word is the root word. If the root matches a key in Lexicon.Roots, the generated word will be set to its value. Then, the Random seed is set to the root (which is converted from a string to an integer).
 
 Next up, the generator must select the syllable structure. Language.OnSyllableSelection is called, excluding any undesired syllables, and the remaining syllables are selected by weight. A custom syllable structure will be set if the word matches a key found in Lexicon.Syllables.
 
@@ -109,7 +133,7 @@ The affixes that were extracted earlier are processed and assembled by order. La
 
 The final word is assembled with its prefixes, generated word, and suffixes put together. The word is memorized, so that it doesn't have to be processed twice (if enabled), and the case of the word is set to match the original word (if enabled). Now you have your new word. Unless you make changes to your language, or adjust the seed offset, it will make the same choices for that word every time.
 
-## 5 — Setting Up
+## 6 — Setting Up
 
 You should check out the Examples folder for ideas on authoring a language.
 
@@ -143,7 +167,7 @@ You should check out the Examples folder for ideas on authoring a language.
     - Add flags (<Hide, Hide>, NoGen, ). There are a few default actions in the Language.Flags class.
 
 
-## 6 — Future Updates
+## 7 — Future Updates
 
 - [x] Improve how affixes are handled.
 - [x] Stronger control over syllable selection.
@@ -157,7 +181,7 @@ You should check out the Examples folder for ideas on authoring a language.
 - [ ] Support for creating "child" languages—taking two languages and blending them, skewed in different ways.
 - [ ] Create new languages.
 
-## 7 — Useful Resources
+## 8 — Useful Resources
 
 - Understanding vowels. [https://en.wikipedia.org/wiki/Vowel](https://en.wikipedia.org/wiki/Vowel)
 - Pulmonic consonants for human-centric phonemes. [https://en.wikipedia.org/wiki/Pulmonic_consonant](https://en.wikipedia.org/wiki/Pulmonic_consonant)
