@@ -1,4 +1,4 @@
-![header](https://user-images.githubusercontent.com/119130949/219457086-4802af93-8c4f-40d2-9fad-44743b3753f7.png)
+![header_b](https://user-images.githubusercontent.com/119130949/226001193-387086ae-734a-4c01-b01a-2098ff1c4900.png)
 
 # Procedural Language Generation Library
 
@@ -128,7 +128,7 @@ Next up, the generator must select the syllable structure. Language.OnSyllableSe
 
 With the syllable structure set, the letters are chosen according to each syllable's letter group. For each letter group, Language.OnLetterSelection is called, excluding any undesired letters, and the remaining letters are selected by weight.
 
-![plgl2](https://user-images.githubusercontent.com/119130949/219273048-103996d4-b400-4071-a1b0-443719d947f7.png)
+![plgl2_b](https://user-images.githubusercontent.com/119130949/226001137-0695c1a7-b07d-45f9-9ce6-b60a3bf6919e.png)
 
 The affixes that were extracted earlier are processed and assembled by order. Language.OnPrefix and Language.OnSuffix is called during this process. This is useful if the affix needs to add a letter to make the word flow easier.
 
